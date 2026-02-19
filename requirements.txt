@@ -1,0 +1,12 @@
+-r LongYAAL/requirements.txt
+
+qwen-asr
+torch>=2.2
+transformers>=4.45
+sentence-transformers>=3.0
+spacy>=3.7
+numpy>=1.26
+tqdm>=4.66
+soundfile>=0.12
+vecalign
+-e ./SEGALE
