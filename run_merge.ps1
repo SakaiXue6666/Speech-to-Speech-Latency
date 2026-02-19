@@ -24,7 +24,7 @@ if ($InstallDeps) {
 }
 
 if ($WriteTemplateOnly) {
-  python merge.py --write_template $InputJson
+  python main.py --write_template $InputJson
   Write-Host "Template generated at $InputJson"
   exit 0
 }
@@ -34,7 +34,7 @@ if ($Language -ne "") {
   $langArg = @("--language", $Language)
 }
 
-python merge.py `
+python main.py `
   --input_json $InputJson `
   --output_json $OutputJson `
   --asr_model $AsrModel `
