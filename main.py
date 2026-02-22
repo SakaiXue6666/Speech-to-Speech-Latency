@@ -11,6 +11,7 @@ from SEGALE import segale_align as sa
 from LongYAAL.softsegmenter import Instance, YAALScorer
 
 '''
+把SEGALE\segale_align.py的 compute_embedding_api 改成分批处理
 conda run --no-capture-output -n s2s_latency python main.py --input_json data/input_samples.json --output_json data/output/merge_output.json --task_lang zh --language Chinese --proc_device cuda:0
 '''
 
@@ -361,6 +362,14 @@ def run_pipeline_for_sample(
     )
     print(f"[{sample_id}] Step 1/3 done. ({_time.time()-t0:.1f}s, "
           f"{len(step1['tgt_hyp_timestamps'])} words)")
+
+    # ⭐《我电脑就8G显存》Free ASR model from GPU to make room for SEGALE embedding model.
+    print(f"[{sample_id}] Offloading ASR model from GPU ...")
+    if hasattr(asr_model, "model") and asr_model.model is not None:
+        asr_model.model.cpu()
+    if hasattr(asr_model, "forced_aligner") and asr_model.forced_aligner is not None:
+        asr_model.forced_aligner.model.cpu()
+    torch.cuda.empty_cache()
 
     # Step 2: text segmentation + alignment.
     print(f"[{sample_id}] Step 2/3: SEGALE segment + align ...")
