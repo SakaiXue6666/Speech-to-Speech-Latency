@@ -1,0 +1,391 @@
+﻿import os
+import time
+import base64
+import asyncio
+import json
+import websockets
+import pyaudio
+import queue
+import threading
+import traceback
+
+import numpy as np
+import soundfile as sf
+
+'''
+conda activate s2s_latency
+conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_microphone.py
+'''
+
+
+# [INFO] 翻译文本完成。
+# [INFO] 翻译文本: 我是你爸爸，我是你爸爸。你是谁？
+
+# [INFO] 一轮响应完成。
+# [INFO] Token 使用情况: {
+#   "total_tokens": 147,
+#   "input_tokens": 92,
+#   "output_tokens": 55,
+#   "input_tokens_details": {
+#     "text_tokens": 30,
+#     "audio_tokens": 62
+#   },
+#   "output_tokens_details": {
+#     "text_tokens": 15,
+#     "audio_tokens": 40
+#   }
+# }
+
+
+# [INFO] 翻译文本完成。
+# [INFO] 翻译文本: 你好，你叫什么名字？
+
+# [INFO] 一轮响应完成。
+# [INFO] Token 使用情况: {
+#   "total_tokens": 838,
+#   "input_tokens": 599,
+#   "output_tokens": 239,
+#   "input_tokens_details": {
+#     "text_tokens": 276,
+#     "audio_tokens": 323
+#   },
+#   "output_tokens_details": {
+#     "text_tokens": 62,
+#     "audio_tokens": 177
+#   }
+# }
+
+os.environ["DASHSCOPE_API_KEY"] = "sk-34274543fd8e4e8e863a96b1293d1f58"
+
+class LiveTranslateClient:
+    def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True):
+        if not api_key:
+            raise ValueError("API key cannot be empty.")
+            
+        self.api_key = api_key
+        self.target_language = target_language
+        self.audio_enabled = audio_enabled
+        self.voice = voice if audio_enabled else "Cherry"
+        self.ws = None
+        self.api_url = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model=qwen3-livetranslate-flash-realtime"
+        
+        # 音频输入配置 (来自麦克风)
+        self.input_rate = 16000
+        self.input_chunk = 1600
+        # self.input_format = pyaudio.paInt16
+        # self.input_channels = 1
+        
+        # 音频输出配置 (用于播放)
+        self.output_rate = 24000
+        self.output_chunk = 2400
+        self.output_format = pyaudio.paInt16
+        self.output_channels = 1
+        
+        # 状态管理
+        self.is_connected = False
+        self.audio_player_thread = None
+        self.audio_playback_queue = queue.Queue()
+        self.pyaudio_instance = pyaudio.PyAudio()
+
+    async def connect(self):
+        """建立到翻译服务的 WebSocket 连接。"""
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        try:
+            self.ws = await websockets.connect(self.api_url, additional_headers=headers)
+            self.is_connected = True
+            print(f"成功连接到服务端: {self.api_url}")
+            await self.configure_session()
+        except Exception as e:
+            print(f"连接失败: {e}")
+            self.is_connected = False
+            raise
+
+    async def configure_session(self):
+        """配置翻译会话，设置目标语言、声音等。"""
+        config = {
+            "event_id": f"event_{int(time.time() * 1000)}",
+            "type": "session.update",
+            "session": {
+                # 'modalities' 控制输出类型。
+                # ["text", "audio"]: 同时返回翻译文本和合成音频（推荐）。
+                # ["text"]: 仅返回翻译文本。
+                "modalities": ["text", "audio"] if self.audio_enabled else ["text"],
+                **({"voice": self.voice} if self.audio_enabled and self.voice else {}),
+                "input_audio_format": "pcm",
+                "output_audio_format": "pcm",
+                # 'input_audio_transcription' 配置源语言识别。
+                # 设置 'model' 为 'qwen3-asr-flash-realtime' 可同时输出源语言识别结果。
+                # "input_audio_transcription": {
+                #     "model": "qwen3-asr-flash-realtime",
+                #     "language": "zh"  # 源语言，默认 'en'
+                # },
+                "translation": {
+                    "language": self.target_language
+                }
+            }
+        }
+        print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
+        await self.ws.send(json.dumps(config))
+
+    async def send_audio_chunk(self, audio_data: bytes):
+        """将音频数据块编码并发送到服务端。"""
+        if not self.is_connected:
+            return
+            
+        event = {
+            "event_id": f"event_{int(time.time() * 1000)}",
+            "type": "input_audio_buffer.append",
+            "audio": base64.b64encode(audio_data).decode()
+        }
+        await self.ws.send(json.dumps(event))
+
+    async def send_image_frame(self, image_bytes: bytes, *, event_id: str | None = None):
+        #将图像数据发送到服务端
+        if not self.is_connected:
+            return
+
+        if not image_bytes:
+            raise ValueError("image_bytes 不能为空")
+
+        # 编码为 Base64
+        image_b64 = base64.b64encode(image_bytes).decode()
+
+        event = {
+            "event_id": event_id or f"event_{int(time.time() * 1000)}",
+            "type": "input_image_buffer.append",
+            "image": image_b64,
+        }
+
+        await self.ws.send(json.dumps(event))
+
+    def _audio_player_task(self):
+        stream = self.pyaudio_instance.open(
+            format=self.output_format,
+            channels=self.output_channels,
+            rate=self.output_rate,
+            output=True,
+            frames_per_buffer=self.output_chunk,
+        )
+        try:
+            while self.is_connected or not self.audio_playback_queue.empty():
+                try:
+                    audio_chunk = self.audio_playback_queue.get(timeout=0.1)
+                    if audio_chunk is None: # 结束信号
+                        break
+                    stream.write(audio_chunk)
+                    self.audio_playback_queue.task_done()
+                except queue.Empty:
+                    continue
+        finally:
+            stream.stop_stream()
+            stream.close()
+
+    def start_audio_player(self):
+        """启动音频播放线程（仅当启用音频输出时）。"""
+        if not self.audio_enabled:
+            return
+        if self.audio_player_thread is None or not self.audio_player_thread.is_alive():
+            self.audio_player_thread = threading.Thread(target=self._audio_player_task, daemon=True)
+            self.audio_player_thread.start()
+
+    async def handle_server_messages(self, on_text_received):
+        """循环处理来自服务端的消息。"""
+        try:
+            async for message in self.ws:
+                event = json.loads(message)
+                event_type = event.get("type")
+                if event_type == "response.audio.delta" and self.audio_enabled:
+                    audio_b64 = event.get("delta", "")
+                    if audio_b64:
+                        audio_data = base64.b64decode(audio_b64)
+                        self.audio_playback_queue.put(audio_data)
+
+                elif event_type == "response.done":
+                    print("\n[INFO] 一轮响应完成。")
+                    usage = event.get("response", {}).get("usage", {})
+                    if usage:
+                        print(f"[INFO] Token 使用情况: {json.dumps(usage, indent=2, ensure_ascii=False)}")
+                # 处理源语言识别结果（需启用 input_audio_transcription.model）
+                # elif event_type == "conversation.item.input_audio_transcription.text":
+                #     stash = event.get("stash", "")  # 待确认的识别文本
+                #     print(f"[识别中] {stash}")
+                # elif event_type == "conversation.item.input_audio_transcription.completed":
+                #     transcript = event.get("transcript", "")  # 完整识别结果
+                #     print(f"[源语言] {transcript}")
+                elif event_type == "response.audio_transcript.done":
+                    print("\n[INFO] 翻译文本完成。")
+                    text = event.get("transcript", "")
+                    if text:
+                        print(f"[INFO] 翻译文本: {text}")
+                elif event_type == "response.text.done":
+                    print("\n[INFO] 翻译文本完成。")
+                    text = event.get("text", "")
+                    if text:
+                        print(f"[INFO] 翻译文本: {text}")
+
+        except websockets.exceptions.ConnectionClosed as e:
+            print(f"[WARNING] 连接已关闭: {e}")
+            self.is_connected = False
+        except Exception as e:
+            print(f"[ERROR] 消息处理时发生未知错误: {e}")
+            traceback.print_exc()
+            self.is_connected = False
+
+    async def start_wav_streaming(self, audio_path: str = "data/2022.acl-long.268.wav"):
+        """从 wav 文件读取音频并按流式方式传输到服务端。"""
+        print(f"开始从文件流式发送音频: {audio_path}")
+        # 读取音频文件；audio_data 形状为 (num_samples, num_channels)，采样率为 sample_rate
+        audio_data, sample_rate = sf.read(audio_path, dtype="int16", always_2d=True)
+        # 如果是多通道音频，转换为单通道（取平均值）
+        if audio_data.shape[1] > 1:
+            audio_data = audio_data.mean(axis=1, keepdims=True).astype(np.int16)
+        # 转换为一维数组
+        audio_data = audio_data[:, 0]
+
+        # 如果音频采样率与输入采样率不匹配，进行重采样
+        if sample_rate != self.input_rate:
+            # 简单线性插值重采样（可替换为更高质量的重采样算法）
+            src_len = audio_data.shape[0]  # 原始采样点数
+            dst_len = int(src_len * self.input_rate / sample_rate)  # 目标采样点数
+            x_src = np.linspace(0, src_len - 1, src_len)
+            x_dst = np.linspace(0, src_len - 1, dst_len)
+            # 线性插值重采样，并确保输出为 int16 类型
+            audio_data = np.interp(x_dst, x_src, audio_data).astype(np.int16)
+
+        chunk_size = self.input_chunk
+        total_samples = audio_data.shape[0]
+        idx = 0
+        
+        # 按chunk发送音频数据，并根据实际发送的样本数控制发送速率，模拟实时流式传输
+        while self.is_connected and idx < total_samples:
+            # 获取当前chunk的音频数据
+            chunk = audio_data[idx: idx + chunk_size]
+            if chunk.size == 0:
+                break
+            # 将音频数据转换为字节并发送
+            await self.send_audio_chunk(chunk.tobytes())
+            # 更新索引以发送下一个chunk
+            idx += chunk_size
+            # 根据实际发送的样本数控制发送速率，模拟实时流式传输
+            await asyncio.sleep(chunk.shape[0] / self.input_rate)
+        
+        # 发送结束事件，通知服务端音频数据已全部发送完毕
+        self.is_connected = False
+        # 确保在发送完所有音频数据后关闭 WebSocket 连接
+        if self.ws:
+            await self.ws.close()
+
+    async def close(self):
+        """优雅地关闭连接和资源。"""
+        self.is_connected = False
+        if self.ws:
+            await self.ws.close()
+            print("WebSocket 连接已关闭。")
+        
+        if self.audio_player_thread:
+            self.audio_playback_queue.put(None) # 发送结束信号
+            self.audio_player_thread.join(timeout=1)
+            print("音频播放线程已停止。")
+            
+        self.pyaudio_instance.terminate()
+        print("PyAudio 实例已释放。")
+
+
+import os
+import asyncio
+
+def print_banner():
+    print("=" * 60)
+    print("  基于千问 qwen3-livetranslate-flash-realtime")
+    print("=" * 60 + "\n")
+
+def get_user_config():
+    """获取用户配置"""
+    print("请选择模式:")
+    print("1. 语音+文本 [默认] | 2. 仅文本")
+    mode_choice = input("请输入选项 (直接回车选择语音+文本): ").strip()
+    audio_enabled = (mode_choice != "2")
+
+    if audio_enabled:
+        lang_map = {
+            "1": "en", "2": "zh", "3": "ru", "4": "fr", "5": "de", "6": "pt",
+            "7": "es", "8": "it", "9": "ko", "10": "ja", "11": "yue"
+        }
+        print("请选择翻译目标语言 (音频+文本 模式):")
+        print("1. 英语 | 2. 中文 | 3. 俄语 | 4. 法语 | 5. 德语 | 6. 葡萄牙语 | 7. 西班牙语 | 8. 意大利语 | 9. 韩语 | 10. 日语 | 11. 粤语")
+    else:
+        lang_map = {
+            "1": "en", "2": "zh", "3": "ru", "4": "fr", "5": "de", "6": "pt", "7": "es", "8": "it",
+            "9": "id", "10": "ko", "11": "ja", "12": "vi", "13": "th", "14": "ar",
+            "15": "yue", "16": "hi", "17": "el", "18": "tr"
+        }
+        print("请选择翻译目标语言 (仅文本 模式):")
+        print("1. 英语 | 2. 中文 | 3. 俄语 | 4. 法语 | 5. 德语 | 6. 葡萄牙语 | 7. 西班牙语 | 8. 意大利语 | 9. 印尼语 | 10. 韩语 | 11. 日语 | 12. 越南语 | 13. 泰语 | 14. 阿拉伯语 | 15. 粤语 | 16. 印地语 | 17. 希腊语 | 18. 土耳其语")
+
+    choice = input("请输入选项 (默认取第一个): ").strip()
+    target_language = lang_map.get(choice, next(iter(lang_map.values())))
+
+    voice = None
+    if audio_enabled:
+        print("\n请选择语音合成声音:")
+        voice_map = {"1": "Cherry", "2": "Nofish", "3": "Sunny", "4": "Jada", "5": "Dylan", "6": "Peter", "7": "Eric", "8": "Kiki"}
+        print("1. Cherry (女声) [默认] | 2. Nofish (男声) | 3. 晴儿 Sunny (四川女声) | 4. 阿珍 Jada (上海女声) | 5. 晓东 Dylan (北京男声) | 6. 李彼得 Peter (天津男声) | 7. 程川 Eric (四川男声) | 8. 阿清 Kiki (粤语女声)")
+        voice_choice = input("请输入选项 (直接回车选择Cherry): ").strip()
+        voice = voice_map.get(voice_choice, "Cherry")
+    return target_language, voice, audio_enabled
+
+async def main(audio_path: str = "data/2022.acl-long.268.wav"):
+    """主程序入口"""
+    print_banner()
+    
+    api_key = os.environ.get("DASHSCOPE_API_KEY")
+    if not api_key:
+        print("[ERROR] 请设置环境变量 DASHSCOPE_API_KEY")
+        print("  例如: export DASHSCOPE_API_KEY='your_api_key_here'")
+        return
+        
+    target_language, voice, audio_enabled = get_user_config()
+    print("\n配置完成:")
+    print(f"  - 目标语言: {target_language}")
+    if audio_enabled:
+        print(f"  - 合成声音: {voice}")
+    else:
+        print("  - 输出模式: 仅文本")
+    
+    client = LiveTranslateClient(api_key=api_key, target_language=target_language, voice=voice, audio_enabled=audio_enabled)
+    
+    # 定义回调函数
+    def on_translation_text(text):
+        print(text, end="", flush=True)
+
+    try:
+        print("正在连接到翻译服务...")
+        await client.connect()
+        
+        # 根据模式启动音频播放
+        client.start_audio_player()
+        
+        print("\n" + "-" * 60)
+        print(f"连接成功！将从 wav 文件读取音频: {audio_path}")
+        print("程序将实时翻译该音频并播放结果。")
+        print("-" * 60 + "\n")
+
+        # 并发运行消息处理和 wav 音频流发送
+        message_handler = asyncio.create_task(client.handle_server_messages(on_translation_text))  # 后台持续处理服务端消息
+        tasks = [message_handler]
+        microphone_streamer = asyncio.create_task(client.start_wav_streaming(audio_path))  # 后台持续发送 wav 音频流
+        tasks.append(microphone_streamer)
+
+        await asyncio.gather(*tasks)
+
+    except KeyboardInterrupt:
+        print("\n\n用户中断，正在退出...")
+    except Exception as e:
+        print(f"\n发生严重错误: {e}")
+    finally:
+        print("\n正在清理资源...")
+        await client.close()
+        print("程序已退出。")
+
+if __name__ == "__main__":
+    asyncio.run(main())
