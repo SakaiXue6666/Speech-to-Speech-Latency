@@ -14,15 +14,15 @@ mosestokenizer==1.2.1
 PyYAML>=6.0
 sacrebleu>=2.5
 
-# ── SEGALE (editable install, run after pip install) ──
-# pip install --no-deps -e ./SEGALE
-
-# ── vecalign (clone + build, not on PyPI) ──
-# git clone https://github.com/thompsonb/vecalign.git
-# touch vecalign/__init__.py
-# cd vecalign && python -c "from Cython.Build import cythonize; cythonize('dp_core.pyx')"
-# then compile: python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
-# copy the .pyd/.so from build/ to vecalign/ if --inplace fails
+# ── SEGALE + vecalign（vecalign 是 SEGALE 的 git submodule，安装 SEGALE 时自动包含）──
+# 1. 克隆 SEGALE（含 vecalign 子模块）：
+#    cd SEGALE && git clone https://github.com/shuoyangd/vecalign.git
+# 2. 编译 vecalign 的 Cython 扩展 dp_core：
+#    cd SEGALE/vecalign
+#    python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
+#    若 --inplace 报路径错误，手动拷贝: cp build/lib.*/SEGALE/vecalign/dp_core.*.pyd .
+# 3. 安装 SEGALE（会自动注册 vecalign 命令）：
+#    pip install --no-deps -e ./SEGALE
 
 # ── SimulEval agent (qwen_livetranslate_simuleval.py) ──
 simuleval>=1.1
@@ -35,8 +35,13 @@ websockets>=12.0
 # pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128
 
 
+# ── 快速安装（完整步骤）──
 # conda create -n s2s_latency python=3.10 -y
-# conda run -n s2s_latency pip install -r requirements.txt
-# conda run -n s2s_latency pip install --no-deps -e ./SEGALE
-# conda run -n s2s_latency python -m spacy download zh_core_web_sm
+# conda activate s2s_latency
+# pip install -r requirements.txt
+# cd SEGALE && git clone https://github.com/shuoyangd/vecalign.git && cd vecalign
+# python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
+# cd ../..
+# pip install --no-deps -e ./SEGALE
+# python -m spacy download zh_core_web_sm
 # 如需 GPU：pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128

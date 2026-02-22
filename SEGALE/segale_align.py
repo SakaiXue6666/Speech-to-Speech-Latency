@@ -120,36 +120,68 @@ def compute_embedding_api(overlaps: list[str], model=None, tokenizer=None) -> by
     """
 
     if tokenizer is not None:
-        tokens = tokenizer(
-            overlaps,
-            padding="max_length",
-            truncation=True,
-            max_length=512,
-            add_special_tokens=True,
-            return_tensors="pt",
-        )
+        # --- [MODIFIED] 原版一次性把所有 overlap 送入模型，显存不够会 OOM。
+        # --- 改为分批处理（batch_size=64），逐批计算 embedding 再拼接。
+        # --- 原版代码保留在下方注释中，方便对比。
         device = next(model.parameters()).device
-        tokens = {k: v.to(device) for k, v in tokens.items()}
+        expected_dim = getattr(model.config, "hidden_size", 1024)
+        all_embeddings = []
+        batch_size = 64
 
-        with torch.no_grad():
-            outputs = model(**tokens)
-            if hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
-                embeddings = outputs.pooler_output
-            else:
-                embeddings = outputs.last_hidden_state[:, 0, :]
+        for start in range(0, len(overlaps), batch_size):
+            batch = overlaps[start : start + batch_size]
+            tokens = tokenizer(
+                batch,
+                padding="max_length",
+                truncation=True,
+                max_length=512,
+                add_special_tokens=True,
+                return_tensors="pt",
+            )
+            tokens = {k: v.to(device) for k, v in tokens.items()}
 
-            normalized_embeddings = F.normalize(embeddings, p=2)
+            with torch.no_grad():
+                outputs = model(**tokens)
+                if hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
+                    embeddings = outputs.pooler_output
+                else:
+                    embeddings = outputs.last_hidden_state[:, 0, :]
 
-            expected_dim = getattr(model.config, "hidden_size", 1024)
-            if normalized_embeddings.shape[-1] != expected_dim:
-                normalized_embeddings = normalized_embeddings[:, :expected_dim]
-            normalized_embeddings = normalized_embeddings.cpu()
+                normalized = F.normalize(embeddings, p=2)
+                if normalized.shape[-1] != expected_dim:
+                    normalized = normalized[:, :expected_dim]
+                all_embeddings.append(normalized.cpu())
 
-        return [emb.numpy().astype(np.float32) for emb in normalized_embeddings]
+        all_embeddings = torch.cat(all_embeddings, dim=0)
+        return [emb.numpy().astype(np.float32) for emb in all_embeddings]
 
-        # emb_np = normalized_embeddings.numpy().astype(np.float32)
-        # emb_np.tofile(embed_file)
-        # print(f"Saved API embedding file (model) for {embed_file}")
+        # --- [ORIGINAL] 原版代码（一次性处理所有 overlap，大数据量时会 OOM）：
+        # tokens = tokenizer(
+        #     overlaps,
+        #     padding="max_length",
+        #     truncation=True,
+        #     max_length=512,
+        #     add_special_tokens=True,
+        #     return_tensors="pt",
+        # )
+        # device = next(model.parameters()).device
+        # tokens = {k: v.to(device) for k, v in tokens.items()}
+        #
+        # with torch.no_grad():
+        #     outputs = model(**tokens)
+        #     if hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
+        #         embeddings = outputs.pooler_output
+        #     else:
+        #         embeddings = outputs.last_hidden_state[:, 0, :]
+        #
+        #     normalized_embeddings = F.normalize(embeddings, p=2)
+        #
+        #     expected_dim = getattr(model.config, "hidden_size", 1024)
+        #     if normalized_embeddings.shape[-1] != expected_dim:
+        #         normalized_embeddings = normalized_embeddings[:, :expected_dim]
+        #     normalized_embeddings = normalized_embeddings.cpu()
+        #
+        # return [emb.numpy().astype(np.float32) for emb in normalized_embeddings]
     else:
         return [model.encode_sentences([overlap])[0] for overlap in overlaps]
 
