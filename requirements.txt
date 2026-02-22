@@ -1,6 +1,5 @@
--r LongYAAL/requirements.txt
-
-qwen-asr
+# ── core pipeline (main.py) ──
+qwen-asr>=0.0.6
 torch>=2.2
 transformers>=4.45
 sentence-transformers>=3.0
@@ -8,5 +7,36 @@ spacy>=3.7
 numpy>=1.26
 tqdm>=4.66
 soundfile>=0.12
-vecalign
--e ./SEGALE
+Cython>=3.0
+
+# ── LongYAAL ──
+mosestokenizer==1.2.1
+PyYAML>=6.0
+sacrebleu>=2.5
+
+# ── SEGALE (editable install, run after pip install) ──
+# pip install --no-deps -e ./SEGALE
+
+# ── vecalign (clone + build, not on PyPI) ──
+# git clone https://github.com/thompsonb/vecalign.git
+# touch vecalign/__init__.py
+# cd vecalign && python -c "from Cython.Build import cythonize; cythonize('dp_core.pyx')"
+# then compile: python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
+# copy the .pyd/.so from build/ to vecalign/ if --inplace fails
+
+# ── SimulEval agent (qwen_livetranslate_simuleval.py) ──
+simuleval>=1.1
+websockets>=12.0
+
+# ── spacy model (run after install) ──
+# python -m spacy download zh_core_web_sm
+
+# ── GPU: if you need CUDA torch, reinstall with: ──
+# pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128
+
+
+# conda create -n s2s_latency python=3.10 -y
+# conda run -n s2s_latency pip install -r requirements.txt
+# conda run -n s2s_latency pip install --no-deps -e ./SEGALE
+# conda run -n s2s_latency python -m spacy download zh_core_web_sm
+# 如需 GPU：pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128

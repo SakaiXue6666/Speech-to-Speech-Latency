@@ -10,6 +10,9 @@ from qwen_asr import Qwen3ASRModel
 from SEGALE import segale_align as sa
 from LongYAAL.softsegmenter import Instance, YAALScorer
 
+'''
+conda run --no-capture-output -n s2s_latency python main.py --input_json data/input_samples.json --output_json data/output/merge_output.json --task_lang zh --language Chinese --proc_device cuda:0
+'''
 
 @dataclass
 class WordTS:
@@ -341,19 +344,27 @@ def run_pipeline_for_sample(
     asr_model: Any,
 ) -> Dict[str, Any]:
     """Run complete 3-step pipeline for one sample."""
+    import time as _time
+
     sample_id = sample.get("sample_id", "unknown")
     tgt = sample["tgt"]
     tgt_audio = tgt["audio_path"]
     tgt_ref = tgt["reference_transcript"]
 
     # Step 1: ASR + forced align timestamps.
+    print(f"[{sample_id}] Step 1/3: ASR + forced alignment on {tgt_audio} ...")
+    t0 = _time.time()
     step1 = qwen3_asr_with_timestamps(
         model=asr_model,
         tgt_audio_path=tgt_audio,
         language=args.language,
     )
+    print(f"[{sample_id}] Step 1/3 done. ({_time.time()-t0:.1f}s, "
+          f"{len(step1['tgt_hyp_timestamps'])} words)")
 
     # Step 2: text segmentation + alignment.
+    print(f"[{sample_id}] Step 2/3: SEGALE segment + align ...")
+    t0 = _time.time()
     step2 = segale_segment_and_align(
         hyp_text=step1["tgt_hyp_transcript"],
         ref_text=tgt_ref,
@@ -364,18 +375,25 @@ def run_pipeline_for_sample(
         save_folder=os.path.join(args.tmp_dir, sample_id),
         max_size=args.max_size,
     )
+    print(f"[{sample_id}] Step 2/3 done. ({_time.time()-t0:.1f}s, "
+          f"{len(step2['alignment_pairs'])} aligned pairs)")
 
     # Bridge step: map aligned hyp segments to real timestamps.
+    print(f"[{sample_id}] Bridge: mapping timestamps ...")
     seg_time = build_hyp_segment_time_map(
         hyp_segments=step2["hyp_segments"],
         hyp_timestamps=step1["tgt_hyp_timestamps"],
     )
 
     # Step 3: compute latency metric.
+    print(f"[{sample_id}] Step 3/3: computing LongYAAL latency ...")
+    t0 = _time.time()
     step3 = compute_longyaal(
         alignment_pairs=step2["alignment_pairs"],
         hyp_seg_time=seg_time,
     )
+    print(f"[{sample_id}] Step 3/3 done. ({_time.time()-t0:.1f}s)")
+    print(f"[{sample_id}] Pipeline complete.")
 
     return {
         "sample_id": sample_id,
@@ -391,13 +409,14 @@ def validate_sample(sample: Dict[str, Any]) -> None:
     required = [
         ("src", "audio_path"),
         ("src", "transcript"),
-        ("src", "word_timestamps"),
         ("tgt", "audio_path"),
         ("tgt", "reference_transcript"),
     ]
     for parent, key in required:
         if parent not in sample or key not in sample[parent]:
             raise ValueError(f"Missing field: {parent}.{key}")
+    # src.word_timestamps is optional; only needed for archival purposes.
+    sample.setdefault("src", {}).setdefault("word_timestamps", [])
 
 
 def write_input_template(path: str) -> None:
@@ -451,7 +470,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         type=str,
         default="sentence-transformers/LaBSE",
     )
-    parser.add_argument("--proc_device", type=str, default="cpu")
+    parser.add_argument("--proc_device", type=str, default="cuda:0")
     parser.add_argument("--max_size", type=int, default=8)
     parser.add_argument("--tmp_dir", type=str, default=".merge_tmp")
     return parser
@@ -482,6 +501,7 @@ def main() -> None:
     payload = read_json(args.input_json)
     samples = payload["samples"] if isinstance(payload, dict) else payload
 
+    print(f"Loading ASR model: {args.asr_model} ...")
     asr_model = init_qwen3_asr_model(
         asr_model_path=args.asr_model,
         forced_aligner_path=args.forced_aligner,
@@ -490,9 +510,13 @@ def main() -> None:
         max_inference_batch_size=args.max_inference_batch_size,
         max_new_tokens=args.max_new_tokens,
     )
+    print("ASR model loaded.")
 
     outputs: List[Dict[str, Any]] = []
-    for sample in samples:
+    for i, sample in enumerate(samples, 1):
+        print(f"\n{'='*50}")
+        print(f"Processing sample {i}/{len(samples)}: {sample.get('sample_id', 'unknown')}")
+        print(f"{'='*50}")
         validate_sample(sample)
         outputs.append(run_pipeline_for_sample(sample, args, asr_model))
 

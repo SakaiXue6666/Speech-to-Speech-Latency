@@ -4,3 +4,9 @@ __pycache__/
 *.log
 *.egg-info/
 data/
+
+vecalign/
+*.wav
+*.pyd
+*.so
+build/
