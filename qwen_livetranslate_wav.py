@@ -58,7 +58,8 @@ conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_microp
 os.environ["DASHSCOPE_API_KEY"] = "sk-34274543fd8e4e8e863a96b1293d1f58"
 
 class LiveTranslateClient:
-    def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True):
+    def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True, 
+    save_tgt_wav_path: str | None = None, save_timeline_path: str | None = None):
         if not api_key:
             raise ValueError("API key cannot be empty.")
             
@@ -84,31 +85,48 @@ class LiveTranslateClient:
         # 状态管理
         self.is_connected = False
         self.audio_player_thread = None
-        self.audio_playback_queue = queue.Queue()
+        self.audio_playback_queue = queue.Queue()  # [tgt] 音频播放队列
         self.pyaudio_instance = pyaudio.PyAudio()
 
+        # ===========================================================\
+        # ⭐ [tgt] 保存生成的翻译音频与时间线：每段 delta 的 (offset_sec, duration_sec, receive_timestamp)
+        self.tgt_audio_chunks = []  # 收集所有 response.audio.delta 的 PCM，最后拼成 wav
+        self.tgt_timeline = []      # 每段在 tgt 音频时间轴上的 offset、时长、接收物理时间
+        self.save_tgt_wav_path = save_tgt_wav_path   # 若设置，close() 时将 tgt 音频写入该路径
+        self.save_timeline_path = save_timeline_path # 若设置，close() 时将时间线写入该 json 路径
+        # ⭐ [src] 以「发送」为参考：第一次发送 src 音频的墙钟时间（用于 tgt 物理时间 = first_send_timestamp + 偏移）
+        self.first_send_timestamp = None
+        # ===========================================================/
+
+    # ------------------------------------------------------------
+    # 连接
+    # Client -> Server，用到 configure_session 的 session.update
     async def connect(self):
         """建立到翻译服务的 WebSocket 连接。"""
         headers = {"Authorization": f"Bearer {self.api_key}"}
         try:
+            # 等待连接
             self.ws = await websockets.connect(self.api_url, additional_headers=headers)
+            # 连接成功
             self.is_connected = True
+            # 等待配置会话
             print(f"成功连接到服务端: {self.api_url}")
+            # 配置会话成功
             await self.configure_session()
         except Exception as e:
+            # 失败
             print(f"连接失败: {e}")
             self.is_connected = False
             raise
 
+    # Client -> Server: session.update
     async def configure_session(self):
         """配置翻译会话，设置目标语言、声音等。"""
         config = {
             "event_id": f"event_{int(time.time() * 1000)}",
             "type": "session.update",
             "session": {
-                # 'modalities' 控制输出类型。
-                # ["text", "audio"]: 同时返回翻译文本和合成音频（推荐）。
-                # ["text"]: 仅返回翻译文本。
+                # 'modalities': ["text", "audio"]: 同时返回翻译文本和合成音频（推荐）；["text"]: 仅返回翻译文本。
                 "modalities": ["text", "audio"] if self.audio_enabled else ["text"],
                 **({"voice": self.voice} if self.audio_enabled and self.voice else {}),
                 "input_audio_format": "pcm",
@@ -127,18 +145,21 @@ class LiveTranslateClient:
         print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
         await self.ws.send(json.dumps(config))
 
+    # ------------------------------------------------------------
+    # Client -> Server: input_audio_buffer.append
     async def send_audio_chunk(self, audio_data: bytes):
         """将音频数据块编码并发送到服务端。"""
         if not self.is_connected:
             return
             
         event = {
-            "event_id": f"event_{int(time.time() * 1000)}",
-            "type": "input_audio_buffer.append",
-            "audio": base64.b64encode(audio_data).decode()
+            "event_id": f"event_{int(time.time() * 1000)}",  # 事件ID
+            "type": "input_audio_buffer.append",  # 事件类型：把后面带的音频追加到输入缓冲区
+            "audio": base64.b64encode(audio_data).decode()  # 音频数据
         }
-        await self.ws.send(json.dumps(event))
+        await self.ws.send(json.dumps(event))  # 发送事件
 
+    # Client -> Server: input_image_buffer.append
     async def send_image_frame(self, image_bytes: bytes, *, event_id: str | None = None):
         #将图像数据发送到服务端
         if not self.is_connected:
@@ -158,7 +179,11 @@ class LiveTranslateClient:
 
         await self.ws.send(json.dumps(event))
 
+    # ------------------------------------------------------------
+    # 播放
     def _audio_player_task(self):
+        """在子线程里循环从 audio_playback_queue 取数据并写入声卡播放"""
+        # 用 self.pyaudio_instance 打开播放流，参数是之前设好的格式、声道、采样率、每帧长度
         stream = self.pyaudio_instance.open(
             format=self.output_format,
             channels=self.output_channels,
@@ -167,14 +192,20 @@ class LiveTranslateClient:
             frames_per_buffer=self.output_chunk,
         )
         try:
+            # 只要还连着 或者 队列里还有没播完的数据，就继续播
             while self.is_connected or not self.audio_playback_queue.empty():
                 try:
-                    audio_chunk = self.audio_playback_queue.get(timeout=0.1)
+                    # 从队列取一块音频，0.1 秒取不到就抛 queue.Empty 异常
+                    audio_chunk = self.audio_playback_queue.get(timeout=0.1)  # 出队
+                    # 如果取到的是 None，说明是结束信号，退出循环
                     if audio_chunk is None: # 结束信号
                         break
+                    # 把这一块 PCM 交给声卡播放
                     stream.write(audio_chunk)
+                    # 标记这块音频已经处理完了
                     self.audio_playback_queue.task_done()
                 except queue.Empty:
+                    # 超时没取到就 continue，继续等下一块
                     continue
         finally:
             stream.stop_stream()
@@ -188,35 +219,75 @@ class LiveTranslateClient:
             self.audio_player_thread = threading.Thread(target=self._audio_player_task, daemon=True)
             self.audio_player_thread.start()
 
+    # ------------------------------------------------------------
+    # Server -> Client
+    # response.audio.delta: [tgt] 翻译结果语音的一小段（流式）
+    # response.done: 本轮响应结束
+    # conversation.item.input_audio_transcription.text： [src] 识别进行中的中间结果（开asr时）
+    # conversation.item.input_audio_transcription.completed： [src] 这一段音频的最终识别结果（开asr时）
+    # response.audio_transcript.done: [tgt] 本段翻译的最终文本（开音频时）
+    # response.text.done: [tgt] 本段翻译的最终文本（仅文本时）
     async def handle_server_messages(self, on_text_received):
         """循环处理来自服务端的消息。"""
         try:
             async for message in self.ws:
                 event = json.loads(message)
                 event_type = event.get("type")
+
+                # response.audio.delta: [tgt] 翻译结果语音的一小段（流式）
                 if event_type == "response.audio.delta" and self.audio_enabled:
                     audio_b64 = event.get("delta", "")
                     if audio_b64:
                         audio_data = base64.b64decode(audio_b64)
-                        self.audio_playback_queue.put(audio_data)
 
+                        # ===========================================================\
+                        # ⭐ 记录接收物理时间与在 tgt 音频时间轴上的 offset，供后续保存与 latency 分析
+                        receive_ts = time.time()
+                        duration_sec = len(audio_data) / (2 * self.output_rate)  # 16bit mono，每样本 2 字节
+                        offset_sec = (self.tgt_timeline[-1][0] + self.tgt_timeline[-1][1]) if self.tgt_timeline else 0  # 当前块在最终 tgt wav 中的起始时间（秒）
+
+                        # 这块在「最终 tgt 音频」里从第几秒开始
+                        # 这块在「最终 tgt 音频」音频里占多少秒
+                        # 收到这块时的物理时间
+                        self.tgt_timeline.append((offset_sec, duration_sec, receive_ts))
+
+                        self.tgt_audio_chunks.append(audio_data)  # 把 一小段翻译结果语音 放入 tgt 音频
+                        # ===========================================================/
+
+                        # 收到一块就 put 进队列，播放线程按顺序 get 后连续 stream.write()，中间不插静音
+                        # 生成的 tgt 音频时间轴 = 把所有 delta 的 PCM 按顺序接在一起，没有显式“空闲时间”
+                        # 每块在“最终 tgt 音频”里的位置，只由前面所有块的 PCM 总时长决定，和“收到的时间间隔”无关
+                        self.audio_playback_queue.put(audio_data)  # 把 一小段翻译结果语音 放入音频播放队列
+
+                # response.done: 本轮响应结束
+                # Server 把这一段输入（你之前发的音频/文本）处理完了：识别、翻译、以及若开启了音频则 TTS 也播完了
                 elif event_type == "response.done":
                     print("\n[INFO] 一轮响应完成。")
                     usage = event.get("response", {}).get("usage", {})
                     if usage:
                         print(f"[INFO] Token 使用情况: {json.dumps(usage, indent=2, ensure_ascii=False)}")
+
                 # 处理源语言识别结果（需启用 input_audio_transcription.model）
+                # # conversation.item.input_audio_transcription.text： [src] 识别进行中的中间结果（开asr时）
+                # # 流式 ASR，说一点就返回一点，stash 可能是“当前已识别出的、还可能被修正”的文本，会随着后续音频更新
                 # elif event_type == "conversation.item.input_audio_transcription.text":
                 #     stash = event.get("stash", "")  # 待确认的识别文本
                 #     print(f"[识别中] {stash}")
+                #
+                # # conversation.item.input_audio_transcription.completed： [src] 这一段音频的最终识别结果（开asr时）
+                # # 这一段输入已经处理完，transcript 是这一段对应的最终、完整源语言文本，不再变
                 # elif event_type == "conversation.item.input_audio_transcription.completed":
                 #     transcript = event.get("transcript", "")  # 完整识别结果
                 #     print(f"[源语言] {transcript}")
+
+                # response.audio_transcript.done: [tgt] 本段翻译的最终文本（开音频时）
                 elif event_type == "response.audio_transcript.done":
                     print("\n[INFO] 翻译文本完成。")
                     text = event.get("transcript", "")
                     if text:
                         print(f"[INFO] 翻译文本: {text}")
+
+                # response.text.done: [tgt] 本段翻译的最终文本（仅文本时）
                 elif event_type == "response.text.done":
                     print("\n[INFO] 翻译文本完成。")
                     text = event.get("text", "")
@@ -231,8 +302,19 @@ class LiveTranslateClient:
             traceback.print_exc()
             self.is_connected = False
 
+    # ------------------------------------------------------------
+    # wav
+    # Client -> Server，用到 send_audio_chunk 的 input_audio_buffer.append
     async def start_wav_streaming(self, audio_path: str = "data/2022.acl-long.268.wav"):
         """从 wav 文件读取音频并按流式方式传输到服务端。"""
+        # ===========================================================\
+        # ⭐ 每次调用 start_wav_streaming 开始时清空，只保存本次的 tgt 音频与时间线、src 首次发送时间
+        self.tgt_audio_chunks = []
+        self.tgt_timeline = []
+
+        self.first_send_timestamp = None
+        # ===========================================================/
+
         print(f"开始从文件流式发送音频: {audio_path}")
         # 读取音频文件；audio_data 形状为 (num_samples, num_channels)，采样率为 sample_rate
         audio_data, sample_rate = sf.read(audio_path, dtype="int16", always_2d=True)
@@ -262,8 +344,13 @@ class LiveTranslateClient:
             chunk = audio_data[idx: idx + chunk_size]
             if chunk.size == 0:
                 break
+            # ===========================================================\
+            # ⭐ 以「发送」为参考：记录第一次发送 src 的墙钟时间（只记一次）
+            if self.first_send_timestamp is None:
+                self.first_send_timestamp = time.time()
+            # ===========================================================/
             # 将音频数据转换为字节并发送
-            await self.send_audio_chunk(chunk.tobytes())
+            await self.send_audio_chunk(chunk.tobytes())  # 发送input audio chunk => Client -> Server: input_audio_buffer.append
             # 更新索引以发送下一个chunk
             idx += chunk_size
             # 根据实际发送的样本数控制发送速率，模拟实时流式传输
@@ -275,6 +362,8 @@ class LiveTranslateClient:
         if self.ws:
             await self.ws.close()
 
+    # ------------------------------------------------------------
+    # 关闭
     async def close(self):
         """优雅地关闭连接和资源。"""
         self.is_connected = False
@@ -282,6 +371,34 @@ class LiveTranslateClient:
             await self.ws.close()
             print("WebSocket 连接已关闭。")
         
+        # ===========================================================\
+        # ⭐ 若设置了保存路径，将本轮的 tgt 音频拼成 wav、时间线写成 json
+        # 保存 tgt 音频 wav
+        if self.save_tgt_wav_path and self.tgt_audio_chunks:
+            # 把多段 PCM 按顺序拼成一段完整字节流
+            pcm = b"".join(self.tgt_audio_chunks)
+            # 把这串字节按 16 位整数解析成为 numpy 数组
+            samples = np.frombuffer(pcm, dtype=np.int16)
+            # 保存为 wav 文件
+            os.makedirs(os.path.dirname(self.save_tgt_wav_path) or ".", exist_ok=True)
+            sf.write(self.save_tgt_wav_path, samples, self.output_rate, subtype="PCM_16")
+            print(f"[INFO] 已保存 tgt 音频: {self.save_tgt_wav_path}")
+
+        # 保存 tgt 音频时间线 json（含 first_send_timestamp，供以「发送」为参考的物理时间）
+        if self.save_timeline_path and self.tgt_timeline:
+            # 转成 字典列表
+            timeline = [{"offset_sec": o, "duration_sec": d, "receive_timestamp": t} for o, d, t in self.tgt_timeline]
+            payload = {
+                "first_send_timestamp": self.first_send_timestamp,  # 第一次发送 src 的墙钟时间；None 表示未记录
+                "timeline": timeline,
+            }
+            # 保存为 json 文件
+            os.makedirs(os.path.dirname(self.save_timeline_path) or ".", exist_ok=True)
+            with open(self.save_timeline_path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+            print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
+        # ===========================================================/
+
         if self.audio_player_thread:
             self.audio_playback_queue.put(None) # 发送结束信号
             self.audio_player_thread.join(timeout=1)
@@ -300,7 +417,12 @@ def print_banner():
     print("=" * 60 + "\n")
 
 def get_user_config():
-    """获取用户配置"""
+    """
+    获取用户配置：
+    target language: 输出的翻译目标语言
+    voice: 输出的语音合成声音
+    audio_enabled: 输出是否启用音频输出
+    """
     print("请选择模式:")
     print("1. 语音+文本 [默认] | 2. 仅文本")
     mode_choice = input("请输入选项 (直接回车选择语音+文本): ").strip()
@@ -352,7 +474,23 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav"):
     else:
         print("  - 输出模式: 仅文本")
     
-    client = LiveTranslateClient(api_key=api_key, target_language=target_language, voice=voice, audio_enabled=audio_enabled)
+    # ===========================================================\
+    # ⭐ 若需保存本轮的 tgt 音频与时间线，传入 save_tgt_wav_path / save_timeline_path（此处按 wav 路径自动命名）
+    base = os.path.splitext(audio_path)[0]
+    save_tgt_wav_path = base + "_tgt.wav"
+    save_timeline_path = base + "_timeline.json"
+    # ===========================================================/
+    
+    client = LiveTranslateClient(
+        api_key=api_key,
+        target_language=target_language,
+        voice=voice,
+        audio_enabled=audio_enabled,
+        save_tgt_wav_path=save_tgt_wav_path,
+        save_timeline_path=save_timeline_path,
+    )
+
+    # ------------------------------------------------------------
     
     # 定义回调函数
     def on_translation_text(text):
