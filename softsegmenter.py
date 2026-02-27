@@ -373,9 +373,7 @@ def load_hypothesis(hypothesis_file, char_level, segmentation_order):
     with open(hypothesis_file, "r", encoding="utf-8") as file:
         for line in file:
             h = json.loads(line.strip())
-            src = h["source"]
-            src_path = (src[0] if isinstance(src, list) else src)
-            h_name = os.path.basename(src_path)
+            h_name = os.path.basename(h["source"][0])
             assert h_name in segmentation_order, f"Missing hypothesis for {h_name}"
             assert h_name not in hypotheses, f"Duplicate hypothesis for {h_name}"
             source_lengths[h_name] = h["source_length"] if "source_length" in h else INF
@@ -595,34 +593,8 @@ def evaluate_instances(
     }
 
 
-# ===================================================================
-# Segale:
-# 输入 jsonl (ref & hyp)：
-# src	(string)	该段的源语言文本（日语，一句或一段）
-# tgt	(string)	该段的目标语言文本（中文）：在 ref 里是ref，在系统文件里是hyp
-# sys_id	(string)	系统ID：ref_A 表示参考，GPT-4、Claude-3.5 等表示模型名
-# doc_id	(string)	文档 ID，jsonl 中有很多 doc_id；同一篇长文档的所有 segment 共用同一个 doc_id
-# seg_id	(int)	段ID，在同一 jsonl 内从 1 开始递增（第 1 条通常不是正文）；一个 segment 有一到多 sentences
-
-# 输出 jsonl：
-# src	(string)	对齐后的源句（可能由多段 src 拼成一句）
-# ref	(string)	与 src 对应的ref译文（按 src 的索引从 ref 取出的句/段）
-# tgt	(string)	与 src 对齐的hyp译文（Vecalign 对齐到的 hyp 句/段）
-# sys_id	(string)	系统 ID
-# doc_id	(string)	文档 ID，与输入一致
-# seg_id	(int)	对齐对 ID，在同一 doc_id 内从 1 开始递增
-
-# 对齐：
-# src 和 ref 在文件里一一对应
-# Vecalign：对齐 src 和 hyp
-# ===================================================================
-
-# ref_segments.yaml, references.txt: ✅
-# TODO: 用 qwen-asr+qwen-forcedaligner 获得 ⭐ hypothesis_file (instances.log)
-# TODO: 适配 segale 输入
-
 # ref_segments.yaml: ✅ (第 i 个 对应的是第 i 个句子) src speech 的时间信息 {duration: xxx, offset: xxx, speaker_id: xxx, wav: xxx}
-# references.txt: ✅ (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定) tgt1 sentence1 \n tgt1 sentence2 \n tgt1 sentence3... tgtN sentence2
+# references.txt: ✅ (第 i 行 对应的是第 i 个句子) tgt1 sentence1 \n tgt1 sentence2 \n tgt1 sentence3... tgtN sentence2
 # instances.log: ❓ (第 n 个 对应的是第 n 个 音频) {index: xxx, prediction: xxx, delays: xxx, elapsed: xxx, prediction_length: xxx, reference: xxx, source: xxx, source_length: xxx, ...}
 # segmentation_output: 
 # - instances.resegmented.json: (第 i 个 对应的是第 i 个句子) {index: xxx, prediction: xxx, reference: xxx, source_length: xxx, delays: xxx, elapsed: xxx, recording_end: xxx}
@@ -653,10 +625,7 @@ def resegment(
 
     # Align words
     # 第 6 步：按录音做“ref–hyp”对齐，并按句归位
-    # new_segmentation = align_words(ref_words, hyp_words, char_level)
-    # TODO: 用 segale_align.py 对齐
-    # TODO: 适配 segale 输入
-    # TODO: segale 输出要适配 ⭐ softsegmenter new_segmentation 输出格式
+    new_segmentation = align_words(ref_words, hyp_words, char_level)
 
     # 第 7 步：创建输出目录
     os.makedirs(output_folder, exist_ok=True)
