@@ -753,8 +753,28 @@ def init_config(task_lang):
 # -----------------------------------------------------------------------------
 # Main Function
 # -----------------------------------------------------------------------------
+# 输入 jsonl (ref & hyp)：
+# src	(string)	该段的源语言文本（日语，一句或一段）
+# tgt	(string)	该段的目标语言文本（中文）：在 ref 里是ref，在系统文件里是hyp
+# sys_id	(string)	系统ID：ref_A 表示参考，GPT-4、Claude-3.5 等表示模型名
+# doc_id	(string)	文档 ID，jsonl 中有很多 doc_id；同一篇长文档的所有 segment 共用同一个 doc_id
+# seg_id	(int)	段ID，在同一 jsonl 内从 1 开始递增（第 1 条通常不是正文）；一个 segment 有一到多 sentences
+
+# 输出 jsonl：
+# src	(string)	对齐后的源句（可能由多段 src 拼成一句）
+# ref	(string)	与 src 对应的ref译文（按 src 的索引从 ref 取出的句/段）
+# tgt	(string)	与 src 对齐的hyp译文（Vecalign 对齐到的 hyp 句/段）
+# sys_id	(string)	系统 ID
+# doc_id	(string)	文档 ID，与输入一致
+# seg_id	(int)	对齐对 ID，在同一 doc_id 内从 1 开始递增
+
+# 对齐：
+# src 和 ref 在文件里一一对应
+# Vecalign：对齐 src 和 hyp
 def main():
+    # 1. 随机种子
     set_seed(42)
+    # 2. 命令行参数
     parser = argparse.ArgumentParser(
         description="Set TARGET_FILE, TARGET_COLUMN, and TASK_LANGUAGE"
     )
@@ -807,12 +827,14 @@ def main():
     )
     args = parser.parse_args()
 
+    # 3. 全局与保存目录
     global VERBOSE
     VERBOSE = args.verbose
 
     SAVE_FOLDER = os.path.abspath(init_save_folder(args.system_file))
     print(f"Save folder: {SAVE_FOLDER}")
 
+    # 4. 句切分与对齐参数
     global SPACY, STOP_JUMP, COST_MAX, COST_MIN
     SPACY = args.segmenter
     if SPACY == "spacy":
@@ -836,6 +858,7 @@ def main():
     COST_MIN = align_paras["cost_min"]
     MAX_OVERLAP = align_paras["overlap"]
 
+    # 5. 读入并合并数据
     system_entries = read_jsonl(args.system_file)
     ref_entries = read_jsonl(args.ref_file)
 
@@ -844,6 +867,7 @@ def main():
 
     combined_docs = combine_system_ref(system_merged, ref_merged)
 
+    # 6. 加载 Embedding 模型
     if args.embedding_model is None:
         try:
             from laser_encoders import LaserEncoderPipeline
@@ -860,6 +884,7 @@ def main():
             args.proc_device, args.embedding_model
         )
 
+    # 7. 逐文档对齐
     sequential_results = []
     failed_doc_ids = []
 
@@ -872,6 +897,7 @@ def main():
         else:
             failed_doc_ids.append(doc_id)
 
+    # 8. 写失败列表
     if failed_doc_ids:
         failure_file = os.path.join(
             SAVE_FOLDER,
@@ -882,6 +908,7 @@ def main():
                 f_fail.write(json.dumps(doc_id, ensure_ascii=False) + "\n")
         print(f"Failed doc_id record: {failure_file}")
 
+    # 9. 写对齐结果
     if sequential_results:
         aligned_file = os.path.join(
             SAVE_FOLDER,
@@ -889,6 +916,7 @@ def main():
         )
         save_align_info(sequential_results, aligned_file)
 
+    # 10. 结束
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Alignment completed at: {timestamp}.")
 

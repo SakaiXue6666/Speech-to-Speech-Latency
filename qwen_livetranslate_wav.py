@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 import base64
 import asyncio
@@ -14,7 +14,7 @@ import soundfile as sf
 
 '''
 conda activate s2s_latency
-conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_microphone.py
+conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav.py
 '''
 
 
@@ -59,7 +59,7 @@ os.environ["DASHSCOPE_API_KEY"] = "sk-34274543fd8e4e8e863a96b1293d1f58"
 
 class LiveTranslateClient:
     def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True, 
-    save_tgt_wav_path: str | None = None, save_timeline_path: str | None = None):
+    manifest_src_path: str | None = None, save_tgt_wav_path: str | None = None, save_timeline_path: str | None = None):
         if not api_key:
             raise ValueError("API key cannot be empty.")
             
@@ -92,6 +92,7 @@ class LiveTranslateClient:
         # ⭐ [tgt] 保存生成的翻译音频与时间线：每段 delta 的 (offset_sec, duration_sec, receive_timestamp)
         self.tgt_audio_chunks = []  # 收集所有 response.audio.delta 的 PCM，最后拼成 wav
         self.tgt_timeline = []      # 每段在 tgt 音频时间轴上的 offset、时长、接收物理时间
+        self.manifest_src_path = manifest_src_path           # 源 wav 路径，用于写入 manifest
         self.save_tgt_wav_path = save_tgt_wav_path   # 若设置，close() 时将 tgt 音频写入该路径
         self.save_timeline_path = save_timeline_path # 若设置，close() 时将时间线写入该 json 路径
         # ⭐ [src] 以「发送」为参考：第一次发送 src 音频的墙钟时间（用于 tgt 物理时间 = first_send_timestamp + 偏移）
@@ -200,8 +201,8 @@ class LiveTranslateClient:
                     # 如果取到的是 None，说明是结束信号，退出循环
                     if audio_chunk is None: # 结束信号
                         break
-                    # 把这一块 PCM 交给声卡播放
-                    stream.write(audio_chunk)
+                    # 把这一块 PCM 交给声卡播放（转成 bytes 避免 PyAudio 与 Python 3.10+ 的 PY_SSIZE_T_CLEAN 报错）
+                    stream.write(bytes(audio_chunk))
                     # 标记这块音频已经处理完了
                     self.audio_playback_queue.task_done()
                 except queue.Empty:
@@ -246,9 +247,10 @@ class LiveTranslateClient:
                         duration_sec = len(audio_data) / (2 * self.output_rate)  # 16bit mono，每样本 2 字节
                         offset_sec = (self.tgt_timeline[-1][0] + self.tgt_timeline[-1][1]) if self.tgt_timeline else 0  # 当前块在最终 tgt wav 中的起始时间（秒）
 
-                        # 这块在「最终 tgt 音频」里从第几秒开始
-                        # 这块在「最终 tgt 音频」音频里占多少秒
-                        # 收到这块时的物理时间
+                        # offset_src：这块在「最终 tgt 音频」里从第几秒开始
+                        # duration_src：这块在「最终 tgt 音频」音频里占多少秒
+                        # receive_ts：收到这块时的物理时间
+                        # 若改成“考虑时间 gap”（例如按收到间隔插静音，让 tgt 时间轴 = 真实经过时间），并定义 offset 为“相对会话起点 t0 的秒”，则可以做到 offset = receive_ts - t0
                         self.tgt_timeline.append((offset_sec, duration_sec, receive_ts))
 
                         self.tgt_audio_chunks.append(audio_data)  # 把 一小段翻译结果语音 放入 tgt 音频
@@ -397,6 +399,19 @@ class LiveTranslateClient:
             with open(self.save_timeline_path, "w", encoding="utf-8") as f:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
             print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
+
+        # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslate/manifest.jsonl
+        if self.manifest_src_path and self.save_tgt_wav_path and self.save_timeline_path:
+            manifest_path = os.path.join(os.path.dirname(self.save_tgt_wav_path), "manifest.jsonl")
+            os.makedirs(os.path.dirname(manifest_path) or ".", exist_ok=True)
+            record = {
+                "src": self.manifest_src_path,
+                "tgt": self.save_tgt_wav_path,
+                "tgt_timeline": self.save_timeline_path,
+            }
+            with open(manifest_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            print(f"[INFO] 已追加记录到: {manifest_path}")
         # ===========================================================/
 
         if self.audio_player_thread:
@@ -475,10 +490,11 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav"):
         print("  - 输出模式: 仅文本")
     
     # ===========================================================\
-    # ⭐ 若需保存本轮的 tgt 音频与时间线，传入 save_tgt_wav_path / save_timeline_path（此处按 wav 路径自动命名）
-    base = os.path.splitext(audio_path)[0]
-    save_tgt_wav_path = base + "_tgt.wav"
-    save_timeline_path = base + "_timeline.json"
+    # ⭐ 若需保存本轮的 tgt 音频与时间线，存到 {音频所在目录}/output_qwen_livetranslate/{文件名}_tgt.wav
+    base, _ = os.path.splitext(audio_path)
+    output_dir = os.path.join(os.path.dirname(audio_path) or ".", "output_qwen_livetranslate")
+    save_tgt_wav_path = os.path.join(output_dir, os.path.basename(base) + "_tgt.wav")
+    save_timeline_path = os.path.join(output_dir, os.path.basename(base) + "_timeline.json")
     # ===========================================================/
     
     client = LiveTranslateClient(
@@ -486,6 +502,7 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav"):
         target_language=target_language,
         voice=voice,
         audio_enabled=audio_enabled,
+        manifest_src_path=audio_path,
         save_tgt_wav_path=save_tgt_wav_path,
         save_timeline_path=save_timeline_path,
     )
