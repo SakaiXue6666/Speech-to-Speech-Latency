@@ -23,7 +23,7 @@ Covers:
   - returning time_stamps (single + batch) via Qwen3ForcedAligner
 
 对 tgt wav 跑 ASR 并保存 transcript + 词级时间戳（供后续算 latency）:
-  python example_qwen3_asr_transformers.py --manifest data/output_qwen_livetranslate/manifest.jsonl
+  python qwen3_asr.py --manifest data/output_qwen_livetranslate/manifest.jsonl
   输出: out_dir（默认 data/output_qwen_asr）下 {basename}_asr.json。建议在项目根目录运行。
 """
 
@@ -41,7 +41,10 @@ import torch
 
 from qwen_asr import Qwen3ASRModel
 
+import types
+
 '''
+conda activate s2s_latency
 python qwen3_asr.py --manifest data/output_qwen_livetranslate/manifest.jsonl --out_dir data/output_qwen_asr
 '''
 
@@ -135,21 +138,6 @@ def test_batch_with_timestamps(asr: Qwen3ASRModel) -> None:
 
 
 # ===========================================================\
-# 在还没考虑 timeline、会话时间之前，先把 ASR 直接给我们的东西整理成一个要保存的字典
-def _time_stamps_to_dicts(time_stamps: Any) -> List[dict]:
-    """将 ASR 返回的 time_stamps 转为可 JSON 序列化的列表。"""
-    if time_stamps is None:
-        return []
-    out = []
-    for ts in time_stamps:
-        out.append({
-            "text": getattr(ts, "text", ""),
-            "start_time": getattr(ts, "start_time", 0.0),
-            "end_time": getattr(ts, "end_time", 0.0),
-        })
-    return out
-
-
 # ⭐ 转换到真实时间 ！！！
 def _wav_time_to_session_sec(wav_sec: float, timeline: list, t0: float) -> float:
     """把「无 gap 的 wav 内时间」映射为「考虑 gap 的会话相对时间」(秒)。
@@ -165,9 +153,9 @@ def _wav_time_to_session_sec(wav_sec: float, timeline: list, t0: float) -> float
       [2] offset_sec=0.64, duration_sec=0.08, receive_timestamp=100.2
       [3] offset_sec=0.72, duration_sec=0.32, receive_timestamp=105.0   # 中间有约 4.8s gap
     如果 t0 = 98.0:
-    - wav_sec=0.16 → 落在片段 0 [o0, o0+d0] → session = (100.0-98.0) + (0.16-0) = 0.16
-    - wav_sec=0.50 → 落在片段 1 [o1, o1+d1] → session = (100.1-98.0) + (0.50-0.32) = 0.1 + 0.18 = 0.28
-    - wav_sec=0.80 → 落在片段 3 [o3, o3+d3] → session = (105.0-98.0) + (0.80-0.72) = 5.0 + 0.08 = 5.08
+    - wav_sec=0.16 → 落在片段 0 [o0, o0+d0] → session = (100.0-98.0) + (0.16-0) = 2.0 + 0.16 = 2.16
+    - wav_sec=0.50 → 落在片段 1 [o1, o1+d1] → session = (100.1-98.0) + (0.50-0.32) = 2.1 + 0.18 = 2.28
+    - wav_sec=0.80 → 落在片段 3 [o3, o3+d3] → session = (105.0-98.0) + (0.80-0.72) = 7.0 + 0.08 = 7.08
 
     - wav_sec → 落在片段 [oi, oi + di]，因为 oi <= wav_sec < oi + di
               → session = (ri - t0) + (wav_sec - oi)
@@ -187,27 +175,38 @@ def run_tgt_asr_from_manifest(
     asr: Qwen3ASRModel,
     tgt_language: str = "Chinese",
     use_timeline_for_gap: bool = True,
-    t0_first_receive: bool = False,
+    use_first_src_send_for_t0: bool = True,
     out_dir: str = "data/output_qwen_asr",
 ) -> None:
     """
     读 manifest.jsonl，对每条 tgt wav 跑 ASR（带时间戳），写出 out_dir/{basename}_asr.json
     time_stamps：相对 wav 起点的连续时间（无 gap）
-    
+
     若有 tgt_timeline 且 use_timeline_for_gap：
-    额外写出 time_stamps_session_sec（会话相对时间）；t0 优先 first_send_timestamp，否则首段 receive
+    额外写出 time_stamps_with_gap（会话相对时间）；t0 优先 first_send_timestamp，否则首段 receive。
+
+    长音频说明：Qwen3 ASR 内部按 chunk 处理，结果有时会少最后几秒（最后一 chunk 未返回）。
+    若出现「ASR 比 wav 短约 Xs」的提示，可查阅 qwen_asr 是否支持 chunk_length_s / max_duration 等参数，
+    或考虑将长音频先按静音切分为多段再分别识别后拼接。
     """
     # 1. 读 manifest
+    # jsonl:
+    # - "src": <path of srcwav>
+    # - "tgt": <path of tgt wav>
+    # - "tgt_timeline": <path of json>
     with open(manifest_path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
 
     # 2. 对每个 tgt wav 跑 ASR
     for i, line in enumerate(lines):
+        # 加载 jsonl
         try:
             rec = json.loads(line)
         except json.JSONDecodeError as e:
             print(f"[{i+1}/{len(lines)}] 跳过：无效 JSON - {e}")
             continue
+
+        # tgt wav 路径
         tgt_wav = rec.get("tgt")
         if not tgt_wav:
             print(f"[{i+1}/{len(lines)}] 跳过：无 tgt 路径")
@@ -219,7 +218,9 @@ def run_tgt_asr_from_manifest(
 
         print(f"[{i+1}/{len(lines)}] ASR: {tgt_wav}")
 
-        # 用 asr.transcribe 对这一段 tgt 音频做 ASR，得到一条结果（含整段 text 和词级 time_stamps）
+        # 3. 用 asr.transcribe 对这一段 tgt 音频做 ASR，得到一条结果（含整段 text 和词级 time_stamps）
+        # ================================================\
+        # 注意：Qwen3 ASR 内部按 chunk 处理长音频（如 2s 流式窗口），尾部可能少几秒未返回，属模型/库行为。
         results = asr.transcribe(
             audio=tgt_wav,
             language=tgt_language,
@@ -230,49 +231,75 @@ def run_tgt_asr_from_manifest(
             print(f"  警告：未得到单条结果，跳过")
             continue
 
-        r = results[0]
-        ts_list = _time_stamps_to_dicts(r.time_stamps)
+        r = results[0]  # 一条音频 一个结果
+
+        # 在还没考虑 timeline、会话时间之前，先把 ASR 直接给我们的东西整理成一个要保存的字典
+        if r.time_stamps is None:
+            ts_list = []
+        else:
+            ts_list = [
+                {
+                    "text": getattr(ts, "text", ""),
+                    "start_time": getattr(ts, "start_time", 0.0),
+                    "end_time": getattr(ts, "end_time", 0.0),
+                }
+            for ts in r.time_stamps
+        ]
+        # ================================================/
+        
         out = {
             "src": rec.get("src", ""),
             "tgt": tgt_wav,
             "tgt_timeline": rec.get("tgt_timeline", ""),
             "text": r.text or "",
-            "time_stamps": ts_list,
-            "time_reference": "wav_relative_no_gap",
+            "time_stamps_no_gap": ts_list,
+            "time_reference": "tgt wav no gap",
         }
-        # 4. 可选：考虑 gap 的会话时间
+
+        # ⭐ 4. 可选：考虑 gap 的会话时间
         if use_timeline_for_gap:
+            # timeline 路径
             tgt_timeline_path = rec.get("tgt_timeline")
             if tgt_timeline_path and os.path.isfile(os.path.normpath(tgt_timeline_path)):
+                # 加载 timeline
                 with open(os.path.normpath(tgt_timeline_path), "r", encoding="utf-8") as f:
                     tl_data = json.load(f)
                 timeline = tl_data.get("timeline") or []
+                # timeline 不为空
                 if timeline:
-                    # t0：默认优先 src 开始（first_send_timestamp），否则或指定 --t0_first_receive 则用第一个 tgt receive
-                    if t0_first_receive:
+                    # t0：默认优先 src send，否则用第一个 tgt receive
+                    if not use_first_src_send_for_t0:
                         t0 = timeline[0]["receive_timestamp"]
-                        t0_ref = "first_receive_timestamp"
+                        t0_ref = "first_tgt_receive"
                     else:
                         t0_send = tl_data.get("first_send_timestamp")
                         if t0_send is not None:
                             t0 = float(t0_send)
-                            t0_ref = "first_send_timestamp"
+                            t0_ref = "first_src_send"
                         else:
                             t0 = timeline[0]["receive_timestamp"]
-                            t0_ref = "first_receive_timestamp"
-                    session_sec = [
-                        {
+                            t0_ref = "first_tgt_receive"
+                    # 只对 start_time 做 wav→session 映射；end_time = start_time + duration，避免映射后 end < start
+                    session_sec = []
+                    for t in ts_list:
+                        start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
+                        dur_s = max(0.0, t["end_time"] - t["start_time"])  # 👈 end_time 不要直接用_wav_time_to_session_sec，不然会导致 end < start
+                        session_sec.append({
                             "text": t["text"],
-                            "start_time": _wav_time_to_session_sec(t["start_time"], timeline, t0),
-                            "end_time": _wav_time_to_session_sec(t["end_time"], timeline, t0),
-                        }
-                        for t in ts_list
-                    ]
-                    out["time_stamps_session_sec"] = session_sec
-                    out["t0_reference"] = t0_ref
-                    out["time_reference"] = "wav_relative_no_gap; time_stamps_session_sec considers gap via tgt_timeline (t0=%s)" % t0_ref
+                            "start_time": start_s,
+                            "end_time": start_s + dur_s,  # 👈 end_time 不要直接用_wav_time_to_session_sec，不然会导致 end < start
+                        })
+                    out["time_stamps"] = session_sec  # ⭐ 存到这里 ！
+                    out["t0_reference"] = t0_ref  # 以什么为基准：send / receive
+                    out["time_reference"] = "tgt wav no gap; use timeline for gap; use (t0=%s) for t0" % t0_ref
             else:
                 out["_note"] = "tgt_timeline missing or not file; only wav-relative timestamps saved (no gap)."
+        
+        # 👈 prediction_length 用最后一个 token 的结束时间？
+        last_end = out["time_stamps"][-1]["end_time"]
+        out["prediction_length"] = round(last_end, 2)
+
+        # 5. 保存结果
         out_dir = os.path.normpath(out_dir)
         os.makedirs(out_dir, exist_ok=True)
         base_name = os.path.basename(os.path.splitext(tgt_wav)[0])
@@ -298,14 +325,16 @@ def main() -> None:
         help="manifest 模式下 tgt 音频的语言，如 Chinese / English（默认 Chinese）",
     )
     parser.add_argument(
-        "--no_timeline_gap",
-        action="store_true",
-        help="manifest 模式下不根据 tgt_timeline 计算考虑 gap 的会话时间，只输出 wav 相对时间戳",
+        "--use_timeline_for_gap",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="根据 tgt_timeline 算会话时间（默认开启；--no-use_timeline_for_gap 可关闭）",
     )
     parser.add_argument(
-        "--t0_first_receive",
-        action="store_true",
-        help="会话时间以第一个 tgt receive 为 0；默认是 first_send_timestamp（src 开始）为 0（若 timeline 里有）",
+        "--use_first_src_send_for_t0",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="t0 取 first_send_timestamp（默认开启；--no-use_first_src_send_for_t0 则用首段 tgt receive）",
     )
     parser.add_argument(
         "--out_dir",
@@ -330,16 +359,73 @@ def main() -> None:
             device_map="cuda:0",
         ),
         max_inference_batch_size=32,
-        max_new_tokens=256,
+        max_new_tokens=1024,
     )
 
+    # ===========================================================\
+    # DEBUG / SAFE
+    # def _infer_asr_transformers_debug(self, contexts, wavs, languages):
+    #     outs = []
+    #     texts = [self._build_text_prompt(context=c, force_language=fl) for c, fl in zip(contexts, languages)]
+
+    #     batch_size = self.max_inference_batch_size
+    #     if batch_size is None or batch_size < 0:
+    #         batch_size = len(texts)
+
+    #     for i in range(0, len(texts), batch_size):
+    #         sub_text = texts[i : i + batch_size]
+    #         sub_wavs = wavs[i : i + batch_size]
+
+    #         inputs = self.processor(text=sub_text, audio=sub_wavs, return_tensors="pt", padding=True)
+    #         inputs = inputs.to(self.model.device).to(self.model.dtype)
+    #         # ++++++++++++++++++++++++++++++++++++++++\
+    #         gen_out = self.model.generate(
+    #             **inputs,
+    #             max_new_tokens=self.max_new_tokens,
+    #         )
+
+    #         # 兼容不同 transformers 返回
+    #         seq = getattr(gen_out, "sequences", None)
+    #         if seq is None:
+    #             # 有些实现直接返回 tensor
+    #             seq = gen_out
+
+    #         gen = seq[:, inputs["input_ids"].shape[1]:]
+
+    #         eos_ids = {151645, 151643}
+    #         for b in range(gen.shape[0]):
+    #             row = gen[b].tolist()
+    #             eos_pos = next((t for t, tok in enumerate(row) if tok in eos_ids), None)
+    #             if eos_pos is None:
+    #                 real_len = len(row)
+    #                 truncated = True
+    #             else:
+    #                 real_len = eos_pos + 1
+    #                 truncated = False
+    #             print(
+    #                 f"[ASR DEBUG] batch_start={i} item={b} "
+    #                 f"real_len={real_len} truncated={truncated} last_token_id={row[-1]}"
+    #             )
+    #         # ++++++++++++++++++++++++++++++++++++++++/
+    #         decoded = self.processor.batch_decode(
+    #             gen,
+    #             skip_special_tokens=True,
+    #             clean_up_tokenization_spaces=False,
+    #         )
+    #         outs.extend(list(decoded))
+
+    #     return outs
+
+    # # 把实例方法替换掉（只影响你当前脚本里的这个 asr 对象）
+    # asr._infer_asr_transformers = types.MethodType(_infer_asr_transformers_debug, asr)
+    # ===========================================================/
     if args.manifest:
         run_tgt_asr_from_manifest(
             args.manifest,
             asr,
             tgt_language=args.tgt_language,
-            use_timeline_for_gap=not args.no_timeline_gap,
-            t0_first_receive=args.t0_first_receive,
+            use_timeline_for_gap=args.use_timeline_for_gap,
+            use_first_src_send_for_t0=args.use_first_src_send_for_t0,
             out_dir=args.out_dir,
         )
         return

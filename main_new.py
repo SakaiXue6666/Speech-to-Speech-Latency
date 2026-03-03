@@ -382,6 +382,9 @@ def load_hypothesis(hypothesis_file, char_level, segmentation_order):
             # if char_level:
             #     h['prediction'] = h['prediction'].replace(' ', '')
             hypotheses[h_name] = h
+
+    print("len: ", len(hypotheses), len(segmentation_order))
+
     assert len(hypotheses) == len(
         segmentation_order
     ), "Number of hypotheses and segmentation orders do not match."
@@ -398,7 +401,8 @@ def load_hypothesis(hypothesis_file, char_level, segmentation_order):
 
     words = []
     for i, (h, l) in enumerate(zip(hypotheses, source_lengths)):
-        prediction = normalize_unicode(h["prediction"])
+        # prediction = normalize_unicode(h["prediction"])
+        prediction = normalize_unicode(h["prediction_text"])
         units = list(prediction) if char_level else prediction.split()
         assert len(units) == len(
             h["delays"]
@@ -615,15 +619,21 @@ def evaluate_instances(
 # 对齐：
 # src 和 ref 在文件里一一对应
 # Vecalign：对齐 src 和 hyp
+
+# ===================================================================
+# 这个代码这么垃圾吗？
+# 1. 如果我hyp里有中英文交杂，我的一个单元有时是一个字有时是一个单词，判定失败（怎么分？）
+# 2. 如果我hyp里时间信息不包含标点的（s2s），导致含标点的文本和参与时间信息的文字数量不同，判定失败（是不是要考虑标点？）
+#    - 是不是可以分句对齐的时候考虑标点，longyaal不考虑标点？
 # ===================================================================
 
 # ref_segments.yaml, references.txt: ✅
-# TODO: 用 qwen-asr+qwen-forcedaligner 获得 ⭐ hypothesis_file (instances.log)
-# TODO: 适配 segale 输入
+# 用 qwen-asr+qwen-forcedaligner 获得 hypothesis_file (instances.log)
+# 适配 segale 输入
 
 # ref_segments.yaml: ✅ (第 i 个 对应的是第 i 个句子) src speech 的时间信息 {duration: xxx, offset: xxx, speaker_id: xxx, wav: xxx}
 # references.txt: ✅ (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定) tgt1 sentence1 \n tgt1 sentence2 \n tgt1 sentence3... tgtN sentence2
-# instances.log: ❓ (第 n 个 对应的是第 n 个 音频) {index: xxx, prediction: xxx, delays: xxx, elapsed: xxx, prediction_length: xxx, reference: xxx, source: xxx, source_length: xxx, ...}
+# instances.log: ✅ (第 n 个 对应的是第 n 个 音频) {index: xxx, prediction: xxx, delays: xxx, elapsed: xxx, prediction_length: xxx, reference: xxx, source: xxx, source_length: xxx, ...}
 # segmentation_output: 
 # - instances.resegmented.json: (第 i 个 对应的是第 i 个句子) {index: xxx, prediction: xxx, reference: xxx, source_length: xxx, delays: xxx, elapsed: xxx, recording_end: xxx}
 # - scores.resegmented.csv: ca_unaware_yaal ca_aware_yaal bleu ...
@@ -639,81 +649,162 @@ def resegment(
 ):
     # Load reference and hypothesis sentences
     # 第 1 步：加载ref并转成“按录音分组的词”
+    # ref_words: [Word(text=字, delay=这段的起始时间, seq_id=这段的id, ...)
     ref_words, segmentation, ref_sentences = load_reference(
         yaml_file, ref_sentences_file, char_level, offset_delays
     )
+    
     # 第 2 步：ref词做分词（子词化）
     ref_words = tokenize_words(ref_words, lang)
+
     # 第 3 步：得到“音频出现顺序”
+    # segmention_order: ['2022.acl-long.268.wav']
     segmentation_order = get_segmentation_order(segmentation)
+
     # 第 4 步：加载hyp并转成“按录音分组的词”
     hyp_words = load_hypothesis(hypothesis_file, char_level, segmentation_order)
+    print(f"hyp_words: {hyp_words}")
+
     # 第 5 步：hyp词也做分词
     hyp_words = tokenize_words(hyp_words, lang)
 
     # Align words
     # 第 6 步：按录音做“ref–hyp”对齐，并按句归位
-    # new_segmentation = align_words(ref_words, hyp_words, char_level)
-    # TODO: 用 segale_align.py 对齐
-    # TODO: 适配 segale 输入
+
+    # 已有文件：
+    # segale.jsonl (分段对齐)：
+    # {"doc_id": src1_wav_basename, "seg_id": 1, "sys_id": null, "src":  src_text_seg, "tgt": tgt_hyp_text_seg, "ref": tgt_ref_text_seg}
+    # {"doc_id": src1_wav_basename, "seg_id": 2, "sys_id": null, "src":  src_text_seg, "tgt": tgt_hyp_text_seg, "ref": tgt_ref_text_seg}
+    # {"doc_id": src1_wav_basename, "seg_id": a, "sys_id": null, "src":  src_text_seg, "tgt": tgt_hyp_text_seg, "ref": tgt_ref_text_seg}
+    # {"doc_id": srcN_wav_basename, "seg_id": 1, "sys_id": null, "src":  src_text_seg, "tgt": tgt_hyp_text_seg, "ref": tgt_ref_text_seg}
+
+    # ref_segments.yaml (第 i 个 对应的是第 i 个句子) src speech 的时间信息: 
+    # {duration: 时间s, offset: 时间s, speaker_id: xxx, wav: src1_wav_basename}
+    # {duration: 时间s, offset: 时间s, speaker_id: xxx, wav: src1_wav_basename}
+    # {duration: 时间s, offset: 时间s, speaker_id: xxx, wav: srcN_wav_basename}
+
+    # references.txt (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定): 
+    # tgt1 sentence1 \n tgt1 sentence_b \n tgtN sentence1
+
+    # source.txt (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定): 
+    # src1 sentence1 \n src1 sentence_b \n srcN sentence1
+
+    # instances.log (第 n 个 对应的是第 n 个 音频): 
+    # {index: 0, source: src1_wav_path, prediction: tgt_hyp_wav_path, delays: 时间无标点ms, durations: 时间无标点ms, intervals：时间无标点ms， elapsed: 时间无标点ms, prediction_length: tgt_hyp_wav时间长度s, reference: src1_wav_path, source_length: src1_wav时间长度s, prediction_text: tgt_hyp_text有标点, ...}
+    # {index: N-1, source: srcN_wav_path, prediction: tgt_hyp_wav_path, delays: 时间无标点ms, durations: 时间无标点ms, intervals：时间无标点ms， elapsed: 时间无标点ms, prediction_length: tgt_hyp_wav时间长度s, reference: srcN_wav_path, source_length: srcN_wav时间长度s, prediction_text: tgt_hyp_text有有标点, ...}
+
+    # asr/asr1.json ... asrN.json: 
+    # {src: src1_wav_path, tgt: tgt_hyp_wav_path, text: tgt_hyp_text有标点, time_stamps: [{text: unit无标点, start_time: 时间s, end_time: 时间s}, ...]}
+    # {src: srcN_wav_path, tgt: tgt_hyp_wav_path, text: tgt_hyp_text有标点, time_stamps: [{text: unit无标点, start_time: 时间s, end_time: 时间s}, ...]}
+
+    # 我是 s2s的latency 不应该算标点
+    # 原代码：
+    # - 分句对齐 + 计算yaal
+    # - speech to text
+    # 我的需求：
+    # - 已经使用segale分段对齐好了 (segale.jsonl)，现在需要计算yaal
+    # - 怎么把 segale.jsonl 的结果和 instances.log/asr*.json 的结果结合起来？
+    # -- 这就能知道每个分段中每个unit的延迟、间隔、持续时间
+    # - speech to speech
+
+ 
     # TODO: segale 输出要适配 ⭐ softsegmenter new_segmentation 输出格式
 
-    # 第 7 步：创建输出目录
-    os.makedirs(output_folder, exist_ok=True)
 
-    # Save the new segmentation
-    # 第 8 步：把 new_segmentation 转成“每句一个 instance”
-    instances = []
-    instances_dict = []
-    # idx = 句下标，seg = 该句在 YAML 里的信息（含 offset、duration），ref = 该句ref文本
-    for idx, (seg, ref) in enumerate(zip(segmentation, ref_sentences)):
-        # new_seg = 对齐到这一句的hyp词列表；若这句没有对齐到任何词，则为空列表
-        new_seg = new_segmentation[idx] if idx in new_segmentation else []
-        # 为该hyp句确定 recording_length（整条录音的长度，ms）
-        recording_lengths = [w.recording_length for w in new_seg]
-        # 若 new_seg 为空：用该段的时间区间近似
-        if len(recording_lengths) == 0:
-            recording_length = seg["offset"] + seg["duration"]
-        else:  # 若 new_seg 非空：从这些词的 w.recording_length 取最大值
-            recording_length = max(recording_lengths)
-            assert all(
-                [w.recording_length == recording_length for w in new_seg]
-            ), f"Recording lengths do not match for segment {idx}: {recording_lengths}"
-        # 从 new_seg 里取每个词的 w.original（原始词形，去掉 None），拼出该句的 prediction 文本
-        prediction = [w.original for w in new_seg if w.original is not None]
-        if char_level:
-            prediction = "".join(prediction)
-        else:
-            prediction = " ".join(prediction)
-        # 构造这一句的 new_seg_dict
-        new_seg_dict = {
-            "index": idx,
-            "prediction": prediction,
-            "reference": ref,
-            "source_length": seg["duration"],
-            "delays": [w.delay - seg["offset"] for w in new_seg],
-            "elapsed": [w.elapsed - seg["offset"] for w in new_seg],
-            "recording_end": recording_length - seg["offset"],
-        }
-        instances_dict.append(new_seg_dict)
-        instances.append(
-            Instance(new_seg_dict, latency_unit="char" if char_level else "word")
-        )
 
-    # 第 9 步：写重分段结果 JSON
-    with open(
-        os.path.join(output_folder, "instances.resegmented.json"), "w", encoding="utf-8"
-    ) as file:
-        file.write(json.dumps(instances_dict, ensure_ascii=False, indent=2) + "\n")
+    # ------------------------------------------------------------\
 
-    # Calculate metrics
-    # 第 10 步：在重分段句子上算 YAAL 和 BLEU
-    scores = evaluate_instances(instances, bleu_tokenizer)
-    with open(
-        os.path.join(output_folder, "scores.resegmented.csv"), "w", encoding="utf-8"
-    ) as file:
-        file.write("\t".join(scores.keys()) + "\n")
-        file.write("\t".join([f"{v:.4f}" for v in scores.values()]) + "\n")
+    # # 第 7 步：创建输出目录
+    # os.makedirs(output_folder, exist_ok=True)
+
+    # # Save the new segmentation
+    # # 第 8 步：把 new_segmentation 转成“每句一个 instance”
+    # instances = []
+    # instances_dict = []
+    # # idx = 句下标，seg = 该句在 YAML 里的信息（含 offset、duration），ref = 该句ref文本
+    # for idx, (seg, ref) in enumerate(zip(segmentation, ref_sentences)):
+    #     # new_seg = 对齐到这一句的hyp词列表；若这句没有对齐到任何词，则为空列表
+    #     new_seg = new_segmentation[idx] if idx in new_segmentation else []
+    #     # 为该hyp句确定 recording_length（整条录音的长度，ms）
+    #     recording_lengths = [w.recording_length for w in new_seg]
+    #     # 若 new_seg 为空：用该段的时间区间近似
+    #     if len(recording_lengths) == 0:
+    #         recording_length = seg["offset"] + seg["duration"]
+    #     else:  # 若 new_seg 非空：从这些词的 w.recording_length 取最大值
+    #         recording_length = max(recording_lengths)
+    #         assert all(
+    #             [w.recording_length == recording_length for w in new_seg]
+    #         ), f"Recording lengths do not match for segment {idx}: {recording_lengths}"
+    #     # 从 new_seg 里取每个词的 w.original（原始词形，去掉 None），拼出该句的 prediction 文本
+    #     prediction = [w.original for w in new_seg if w.original is not None]
+    #     if char_level:
+    #         prediction = "".join(prediction)
+    #     else:
+    #         prediction = " ".join(prediction)
+    #     # 构造这一句的 new_seg_dict
+    #     new_seg_dict = {
+    #         "index": idx,
+    #         "prediction": prediction,
+    #         "reference": ref,
+    #         "source_length": seg["duration"],
+    #         "delays": [w.delay - seg["offset"] for w in new_seg],
+    #         "elapsed": [w.elapsed - seg["offset"] for w in new_seg],
+    #         "recording_end": recording_length - seg["offset"],
+    #     }
+    #     instances_dict.append(new_seg_dict)
+    #     instances.append(
+    #         Instance(new_seg_dict, latency_unit="char" if char_level else "word")
+    #     )
+
+    # # 第 9 步：写重分段结果 JSON
+    # with open(
+    #     os.path.join(output_folder, "instances.resegmented.json"), "w", encoding="utf-8"
+    # ) as file:
+    #     file.write(json.dumps(instances_dict, ensure_ascii=False, indent=2) + "\n")
+
+    # # Calculate metrics
+    # # 第 10 步：在重分段句子上算 YAAL 和 BLEU
+    # scores = evaluate_instances(instances, bleu_tokenizer)
+    # with open(
+    #     os.path.join(output_folder, "scores.resegmented.csv"), "w", encoding="utf-8"
+    # ) as file:
+    #     file.write("\t".join(scores.keys()) + "\n")
+    #     file.write("\t".join([f"{v:.4f}" for v in scores.values()]) + "\n")
+
+
+# s2s: prediction 是 tgt_path；但是这里貌似要 text 才可以？
+'''
+python main_new.py `
+--yaml_file data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml `
+--ref_sentences_file data/input/ACL.6060.dev.en-xx.zh.txt `
+--hypothesis_file data/output_qwen_asr/instances.log `
+--char_level `
+--lang zh `
+--output_folder data/output_qwen_asr/segmentation_output `
+--bleu_tokenizer 13a --offset_delays
+'''
+
+def _to_milliseconds_if_needed(x):
+    """
+    让 source_length 和 delays 在同一单位（ms）。
+    - delays 基本一定是 ms
+    - source_length 你的 instances.log 里可能是秒(float)，也可能是 ms
+    经验判断：
+      - 如果是 0 < x < 1e4，通常是秒（比如 737.44）
+      - 如果是 >= 1e4，通常是 ms（比如 737440）
+    """
+    if x is None:
+        return INF
+    try:
+        v = float(x)
+    except Exception:
+        return INF
+    if v <= 0:
+        return INF
+    if v < 1e4:   # 很像秒
+        return v * 1000.0
+    return v      # 很像毫秒
+
 
 
 if __name__ == "__main__":

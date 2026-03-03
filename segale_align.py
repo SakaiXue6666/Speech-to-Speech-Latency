@@ -34,9 +34,7 @@ import torch.nn.functional as F
 # -----------------------------------------------------------------------------
 # Global Variables
 # -----------------------------------------------------------------------------
-# LASER 安装目录。本机安装后设为你的路径，或设置环境变量 LASER_DIR。
-# 详见本目录下 INSTALL_LASER.md
-LASER_DIR = os.environ.get("LASER_DIR", os.environ.get("LASER", "/opt/LASER"))
+LASER_DIR = "/opt/LASER"
 
 
 # -----------------------------------------------------------------------------
@@ -755,6 +753,10 @@ def init_config(task_lang):
 # -----------------------------------------------------------------------------
 # Main Function
 # -----------------------------------------------------------------------------
+# ref_segments.yaml: ✅ (第 i 个 对应的是第 i 个句子) src speech 的时间信息 {duration: xxx, offset: xxx, speaker_id: xxx, wav: xxx}
+# references.txt: ✅ (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定) tgt1 sentence1 \n tgt1 sentence2 \n tgt1 sentence3... tgtN sentence2
+# instances.log: ✅ (第 n 个 对应的是第 n 个 音频) {index: xxx, prediction: xxx, delays: xxx, elapsed: xxx, prediction_length: xxx, reference: xxx, source: xxx, source_length: xxx, ...}
+# -----------------------------------------------------------------------------
 # 输入 jsonl (ref & hyp)：
 # src	(string)	该段的源语言文本（日语，一句或一段）
 # tgt	(string)	该段的目标语言文本（中文）：在 ref 里是ref，在系统文件里是hyp
@@ -773,6 +775,30 @@ def init_config(task_lang):
 # 对齐：
 # src 和 ref 在文件里一一对应
 # Vecalign：对齐 src 和 hyp
+# -----------------------------------------------------------------------------
+# 输入文件：
+# src text.txt
+# tgt ref text.txt
+# ref_segments.yaml
+# instances.log
+
+# -----------------------------------------------------------------------------
+
+'''
+cd d:\Li_Lab\Speech-to-Speech-Latency
+
+# 先把 SEGALE 加到路径，否则 import vecalign 会报错
+$env:PYTHONPATH = "d:\Li_Lab\Speech-to-Speech-Latency;d:\Li_Lab\Speech-to-Speech-Latency\SEGALE"
+
+python segale_align.py `
+  --system_file  data/output_segale/hyp.jsonl `
+  --ref_file     data/output_segale/ref.jsonl `
+  --segmenter    spacy `
+  --task_lang    zh `
+  --embedding_model  sentence-transformers/LaBSE `
+  --proc_device  cuda
+'''
+
 def main():
     # 1. 随机种子
     set_seed(42)
