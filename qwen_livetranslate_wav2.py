@@ -14,7 +14,7 @@ import soundfile as sf
 
 '''
 conda activate s2s_latency
-conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav.py
+conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav2.py
 '''
 
 
@@ -97,6 +97,10 @@ class LiveTranslateClient:
         self.save_timeline_path = save_timeline_path # 若设置，close() 时将时间线写入该 json 路径
         # ⭐ [src] 以「发送」为参考：第一次发送 src 音频的墙钟时间（用于 tgt 物理时间 = first_send_timestamp + 偏移）
         self.first_send_timestamp = None
+
+        self._chunk_id = 0
+        self._timeline_by_id = {}  # chunk_id -> entry
+        self._timeline_lock = threading.Lock()
         # ===========================================================/
 
     # ------------------------------------------------------------
@@ -196,13 +200,30 @@ class LiveTranslateClient:
             # 只要还连着 或者 队列里还有没播完的数据，就继续播
             while self.is_connected or not self.audio_playback_queue.empty():
                 try:
-                    # 从队列取一块音频，0.1 秒取不到就抛 queue.Empty 异常
-                    audio_chunk = self.audio_playback_queue.get(timeout=0.1)  # 出队
-                    # 如果取到的是 None，说明是结束信号，退出循环
-                    if audio_chunk is None: # 结束信号
+                    # # 从队列取一块音频，0.1 秒取不到就抛 queue.Empty 异常
+                    # audio_chunk = self.audio_playback_queue.get(timeout=0.1)  # 出队
+                    # # 如果取到的是 None，说明是结束信号，退出循环
+                    # if audio_chunk is None: # 结束信号
+                    #     break
+                    # # 把这一块 PCM 交给声卡播放（转成 bytes 避免 PyAudio 与 Python 3.10+ 的 PY_SSIZE_T_CLEAN 报错）
+                    # stream.write(bytes(audio_chunk))
+
+                    item = self.audio_playback_queue.get(timeout=0.1)
+                    if item is None:
                         break
-                    # 把这一块 PCM 交给声卡播放（转成 bytes 避免 PyAudio 与 Python 3.10+ 的 PY_SSIZE_T_CLEAN 报错）
+
+                    chunk_id, audio_chunk = item
+
+                    play_ts = time.time()
+                    with self._timeline_lock:
+                        ent = self._timeline_by_id.get(chunk_id)
+                        if ent is not None:
+                            ent["play_timestamp"] = float(play_ts)
+                            if self.first_send_timestamp is not None:
+                                ent["output_time_sec"] = float(play_ts - self.first_send_timestamp)
+
                     stream.write(bytes(audio_chunk))
+
                     # 标记这块音频已经处理完了
                     self.audio_playback_queue.task_done()
                 except queue.Empty:
@@ -243,25 +264,49 @@ class LiveTranslateClient:
 
                         # ===========================================================\
                         # ⭐ 记录接收物理时间与在 tgt 音频时间轴上的 offset，供后续保存与 latency 分析
+                        # receive_ts = time.time()
+                        # duration_sec = len(audio_data) / (2 * self.output_rate)  # 16bit mono，每样本 2 字节
+                        # offset_sec = (self.tgt_timeline[-1][0] + self.tgt_timeline[-1][1]) if self.tgt_timeline else 0  # 当前块在最终 tgt wav 中的起始时间（秒）
+                        # # 注意：相邻 delta 的 receive_timestamp 间隔可能小于 duration_sec——服务端流式推送多块时，
+                        # # 多块可在很短时间内连续到达，故「收到时间间隔」与「每块内容时长」无必然关系。
+
+                        # # offset_src：这块在「最终 tgt 音频」里从第几秒开始
+                        # # duration_src：这块在「最终 tgt 音频」音频里占多少秒
+                        # # receive_ts：收到这块时的物理时间
+                        # # 若改成“考虑时间 gap”（例如按收到间隔插静音，让 tgt 时间轴 = 真实经过时间），并定义 offset 为“相对会话起点 t0 的秒”，则可以做到 offset = receive_ts - t0
+                        # self.tgt_timeline.append((offset_sec, duration_sec, receive_ts))
+
+                        # self.tgt_audio_chunks.append(audio_data)  # 把 一小段翻译结果语音 放入 tgt 音频
+                        # # ===========================================================/
+
+                        # # 收到一块就 put 进队列，播放线程按顺序 get 后连续 stream.write()，中间不插静音
+                        # # 生成的 tgt 音频时间轴 = 把所有 delta 的 PCM 按顺序接在一起，没有显式“空闲时间”
+                        # # 每块在“最终 tgt 音频”里的位置，只由前面所有块的 PCM 总时长决定，和“收到的时间间隔”无关
+                        # self.audio_playback_queue.put(audio_data)  # 把 一小段翻译结果语音 放入音频播放队列
+
                         receive_ts = time.time()
-                        duration_sec = len(audio_data) / (2 * self.output_rate)  # 16bit mono，每样本 2 字节
-                        offset_sec = (self.tgt_timeline[-1][0] + self.tgt_timeline[-1][1]) if self.tgt_timeline else 0  # 当前块在最终 tgt wav 中的起始时间（秒）
-                        # 注意：相邻 delta 的 receive_timestamp 间隔可能小于 duration_sec——服务端流式推送多块时，
-                        # 多块可在很短时间内连续到达，故「收到时间间隔」与「每块内容时长」无必然关系。
+                        duration_sec = len(audio_data) / (2 * self.output_rate)
+                        offset_sec = (self.tgt_timeline[-1]["offset_sec"] + self.tgt_timeline[-1]["duration_sec"]) if self.tgt_timeline else 0.0
 
-                        # offset_src：这块在「最终 tgt 音频」里从第几秒开始
-                        # duration_src：这块在「最终 tgt 音频」音频里占多少秒
-                        # receive_ts：收到这块时的物理时间
-                        # 若改成“考虑时间 gap”（例如按收到间隔插静音，让 tgt 时间轴 = 真实经过时间），并定义 offset 为“相对会话起点 t0 的秒”，则可以做到 offset = receive_ts - t0
-                        self.tgt_timeline.append((offset_sec, duration_sec, receive_ts))
+                        chunk_id = self._chunk_id
+                        self._chunk_id += 1
 
-                        self.tgt_audio_chunks.append(audio_data)  # 把 一小段翻译结果语音 放入 tgt 音频
-                        # ===========================================================/
+                        entry = {
+                            "chunk_id": chunk_id,
+                            "offset_sec": float(offset_sec),
+                            "duration_sec": float(duration_sec),
+                            "receive_timestamp": float(receive_ts),
+                            # 下面两个播放时再补
+                            "play_timestamp": None,
+                            "output_time_sec": None,
+                        }
 
-                        # 收到一块就 put 进队列，播放线程按顺序 get 后连续 stream.write()，中间不插静音
-                        # 生成的 tgt 音频时间轴 = 把所有 delta 的 PCM 按顺序接在一起，没有显式“空闲时间”
-                        # 每块在“最终 tgt 音频”里的位置，只由前面所有块的 PCM 总时长决定，和“收到的时间间隔”无关
-                        self.audio_playback_queue.put(audio_data)  # 把 一小段翻译结果语音 放入音频播放队列
+                        with self._timeline_lock:
+                            self.tgt_timeline.append(entry)
+                            self._timeline_by_id[chunk_id] = entry
+
+                        self.tgt_audio_chunks.append(audio_data)
+                        self.audio_playback_queue.put((chunk_id, audio_data))
 
                 # response.done: 本轮响应结束
                 # Server 把这一段输入（你之前发的音频/文本）处理完了：识别、翻译、以及若开启了音频则 TTS 也播完了
@@ -317,6 +362,11 @@ class LiveTranslateClient:
         self.tgt_timeline = []
 
         self.first_send_timestamp = None
+
+        # ✅ 新增：每轮重置 chunk_id 和索引表，避免串轮
+        with self._timeline_lock:
+            self._chunk_id = 0
+            self._timeline_by_id.clear()
         # ===========================================================/
 
         print(f"开始从文件流式发送音频: {audio_path}")
@@ -359,12 +409,14 @@ class LiveTranslateClient:
             idx += chunk_size
             # 根据实际发送的样本数控制发送速率，模拟实时流式传输
             await asyncio.sleep(chunk.shape[0] / self.input_rate)
-        
-        # 发送结束事件，通知服务端音频数据已全部发送完毕
-        self.is_connected = False
-        # 确保在发送完所有音频数据后关闭 WebSocket 连接
+
+        # 音频已全部发送；等待服务端把最后一段翻译/语音推完，再关闭连接，否则 handle_server_messages 会一直卡在 async for message in self.ws
+        wait_after_send_sec = 15.0  # 可按需调整
+        print(f"[INFO] 音频发送完毕，等待 {wait_after_send_sec}s 收尾后关闭连接…")
+        await asyncio.sleep(wait_after_send_sec)
         if self.ws:
             await self.ws.close()
+            print("[INFO] 已关闭 WebSocket，等待收尾后退出。")
 
     # ------------------------------------------------------------
     # 关闭
@@ -390,11 +442,48 @@ class LiveTranslateClient:
 
         # 保存 tgt 音频时间线 json（含 first_send_timestamp，供以「发送」为参考的物理时间）
         if self.save_timeline_path and self.tgt_timeline:
-            # 转成 字典列表
-            timeline = [{"offset_sec": o, "duration_sec": d, "receive_timestamp": t} for o, d, t in self.tgt_timeline]
+            # offset_sec = 该块在「拼接后 wav」中的起始位置（内容时间轴，无静音）
+            # output_time_sec = 该块真实被收到/播放的时刻，相对首次发送的秒数（= receive_timestamp - first_send_timestamp）
+            # t0 = self.first_send_timestamp
+            # timeline = []
+            # for o, d, t in self.tgt_timeline:
+            #     entry = {"offset_sec": o, "duration_sec": d, "receive_timestamp": t}
+            #     if t0 is not None:
+            #         entry["output_time_sec"] = t - t0  # 真实输出时间（秒，相对会话开始）
+            #     timeline.append(entry)
+            # payload = {
+            #     "first_send_timestamp": t0,  # 第一次发送 src 的墙钟时间；None 表示未记录
+            #     "timeline": timeline,
+            # }
+
+            # ✅ NEW: 保存前补齐 output_time_sec，避免 None
+            if self.first_send_timestamp is not None:
+                with self._timeline_lock:
+                    prev_end = 0.0
+                    for ent in self.tgt_timeline:
+                        # 观测到的接收时间（相对 first_send）
+                        recv_base = ent["receive_timestamp"] - self.first_send_timestamp
+
+                        # 如果没有真实播放时间，就用“单调下界”补齐
+                        if ent.get("output_time_sec") is None:
+                            base = max(recv_base, prev_end)
+                            ent["output_time_sec"] = float(base)
+
+                        # play_timestamp 没有的话，给个兜底（可选）
+                        if ent.get("play_timestamp") is None:
+                            ent["play_timestamp"] = float(ent["receive_timestamp"])
+
+                        prev_end = ent["output_time_sec"] + ent["duration_sec"]
+
+                    timeline_copy = list(self.tgt_timeline)  # ✅ NEW: 在锁内复制
+            else:
+                # 没有 first_send_timestamp 就只能原样存
+                with self._timeline_lock:
+                    timeline_copy = list(self.tgt_timeline)
+                    
             payload = {
-                "first_send_timestamp": self.first_send_timestamp,  # 第一次发送 src 的墙钟时间；None 表示未记录
-                "timeline": timeline,
+                "first_send_timestamp": self.first_send_timestamp,
+                "timeline": timeline_copy,   # ✅ 用复制的，不直接用 self.tgt_timeline
             }
             # 保存为 json 文件
             os.makedirs(os.path.dirname(self.save_timeline_path) or ".", exist_ok=True)
@@ -402,7 +491,7 @@ class LiveTranslateClient:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
             print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
 
-        # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslate/manifest.jsonl
+        # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslate2/manifest.jsonl
         if self.manifest_src_path and self.save_tgt_wav_path and self.save_timeline_path:
             manifest_path = os.path.join(os.path.dirname(self.save_tgt_wav_path), "manifest.jsonl")
             os.makedirs(os.path.dirname(manifest_path) or ".", exist_ok=True)
@@ -492,9 +581,9 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav"):
         print("  - 输出模式: 仅文本")
     
     # ===========================================================\
-    # ⭐ 若需保存本轮的 tgt 音频与时间线，存到 {音频所在目录}/output_qwen_livetranslate/{文件名}_tgt.wav
+    # ⭐ 若需保存本轮的 tgt 音频与时间线，存到 {音频所在目录}/output_qwen_livetranslate2/{文件名}_tgt.wav
     base, _ = os.path.splitext(audio_path)
-    output_dir = os.path.join(os.path.dirname(audio_path) or ".", "output_qwen_livetranslate")
+    output_dir = os.path.join(os.path.dirname(audio_path) or ".", "output_qwen_livetranslate2")
     save_tgt_wav_path = os.path.join(output_dir, os.path.basename(base) + "_tgt.wav")
     save_timeline_path = os.path.join(output_dir, os.path.basename(base) + "_timeline.json")
     # ===========================================================/
