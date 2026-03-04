@@ -200,6 +200,9 @@ class LiveTranslateClient:
             output=True,
             frames_per_buffer=self.output_chunk,
         )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+        prev_heard_end = 0.0  # 上一块"听众听完"的墙钟时刻
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
         try:
             while self.is_connected or not self.audio_playback_queue.empty():
                 try:
@@ -207,18 +210,38 @@ class LiveTranslateClient:
                     if item is None:
                         break
                     chunk_id, audio_chunk = item
-                    t_get = time.time()
+                    t_before = time.time()
                     try:
                         stream.write(bytes(audio_chunk))
                     except OSError:
                         break
-                    t_written = time.time()
+                    t_after = time.time()
                     with self._timeline_lock:
                         ent = self._timeline_by_id.get(chunk_id)
                         if ent is not None:
-                            ent["play_timestamp"] = float(t_written)
+                            # ent["play_timestamp_before"] = float(t_before)
+                            # ent["play_timestamp_after"] = float(t_after)
+                            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+                            ent["write_before"] = float(t_before)
+                            ent["write_after"] = float(t_after)
+
+                            dur = ent["duration_sec"]
+                            # 👈 heard_start = 听众真正开始听到这块的时刻
+                            # 连续播放时：上一块听完后紧接着听这块
+                            # gap 后：缓冲区空了，t_before 就是真实开始时刻
+                            heard_start = max(t_before, prev_heard_end)
+                            heard_end = heard_start + dur
+                            prev_heard_end = heard_end
+
+                            ent["heard_start"] = float(heard_start)
+                            ent["heard_end"] = float(heard_end)
+                            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
+    
                             if self.first_send_timestamp is not None:
-                                output_time_sec = float(t_written - self.first_send_timestamp)  
+                                # output_time_sec = float(t_before - self.first_send_timestamp)
+                                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+                                output_time_sec = float(heard_start - self.first_send_timestamp)
+                                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
                                 ent["output_time_sec"] = output_time_sec
                                 print(f"👉 output_time_sec: {output_time_sec}")
                     self.audio_playback_queue.task_done()
@@ -298,8 +321,15 @@ class LiveTranslateClient:
                             "offset_sec": float(offset_sec),
                             "duration_sec": float(duration_sec),
                             "receive_timestamp": float(receive_ts),
-                            # 下面两个播放时再补
-                            "play_timestamp": None,
+                            # 播放时再补
+                            # "play_timestamp_before": None,
+                            # "play_timestamp_after": None,
+                            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+                            "write_before": None,
+                            "write_after": None,
+                            "heard_start": None,
+                            "heard_end": None,
+                            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
                             "output_time_sec": None,
                         }
 
@@ -452,7 +482,7 @@ class LiveTranslateClient:
         # +++++++++++++++++++++++++++++++++++++++++++
 
         # 音频已全部发送；等待服务端把最后一段翻译/语音推完，再关闭连接，否则 handle_server_messages 会一直卡在 async for message in self.ws
-        wait_after_send_sec = 15.0  # 可按需调整
+        wait_after_send_sec = 60.0  # 可按需调整
         print(f"[INFO] 音频发送完毕，等待 {wait_after_send_sec}s 收尾后关闭连接…")
         await asyncio.sleep(wait_after_send_sec)
         if self.ws:
@@ -500,21 +530,41 @@ class LiveTranslateClient:
             # ✅ NEW: 保存前补齐 output_time_sec，避免 None
             if self.first_send_timestamp is not None:
                 with self._timeline_lock:
-                    prev_end = 0.0
+                    # prev_end = 0.0
+                    # for ent in self.tgt_timeline:
+                    #     # 观测到的接收时间（相对 first_send）
+                    #     recv_base = ent["receive_timestamp"] - self.first_send_timestamp
+
+                    #     # 如果没有真实播放时间，就用"单调下界"补齐
+                    #     if ent.get("output_time_sec") is None:
+                    #         base = max(recv_base, prev_end)
+                    #         ent["output_time_sec"] = float(base)
+
+                    #     # play_timestamp_before 没有的话，给个兜底
+                    #     if ent.get("play_timestamp_before") is None:
+                    #         ent["play_timestamp_before"] = float(ent["receive_timestamp"])
+                    #     if ent.get("play_timestamp_after") is None:
+                    #         ent["play_timestamp_after"] = float(ent["receive_timestamp"]) + ent["duration_sec"]
+
+                    #     prev_end = ent["output_time_sec"] + ent["duration_sec"]
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+                    prev_heard_end = 0.0
                     for ent in self.tgt_timeline:
-                        # 观测到的接收时间（相对 first_send）
-                        recv_base = ent["receive_timestamp"] - self.first_send_timestamp
+                        recv_ts = ent["receive_timestamp"]
+                        dur = ent["duration_sec"]
 
-                        # 如果没有真实播放时间，就用“单调下界”补齐
+                        if ent.get("heard_start") is None:
+                            ent["heard_start"] = float(max(recv_ts, prev_heard_end))
+                            ent["heard_end"] = float(ent["heard_start"] + dur)
+                        if ent.get("write_before") is None:
+                            ent["write_before"] = ent["heard_start"]
+                        if ent.get("write_after") is None:
+                            ent["write_after"] = ent["heard_end"]
                         if ent.get("output_time_sec") is None:
-                            base = max(recv_base, prev_end)
-                            ent["output_time_sec"] = float(base)
+                            ent["output_time_sec"] = float(ent["heard_start"] - self.first_send_timestamp)
 
-                        # play_timestamp 没有的话，给个兜底（可选）
-                        if ent.get("play_timestamp") is None:
-                            ent["play_timestamp"] = float(ent["receive_timestamp"])
-
-                        prev_end = ent["output_time_sec"] + ent["duration_sec"]
+                        prev_heard_end = ent["heard_end"]
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
 
                     timeline_copy = list(self.tgt_timeline)  # ✅ NEW: 在锁内复制
             else:
