@@ -784,28 +784,6 @@ python main_new.py `
 --bleu_tokenizer 13a --offset_delays
 '''
 
-def _to_milliseconds_if_needed(x):
-    """
-    让 source_length 和 delays 在同一单位（ms）。
-    - delays 基本一定是 ms
-    - source_length 你的 instances.log 里可能是秒(float)，也可能是 ms
-    经验判断：
-      - 如果是 0 < x < 1e4，通常是秒（比如 737.44）
-      - 如果是 >= 1e4，通常是 ms（比如 737440）
-    """
-    if x is None:
-        return INF
-    try:
-        v = float(x)
-    except Exception:
-        return INF
-    if v <= 0:
-        return INF
-    if v < 1e4:   # 很像秒
-        return v * 1000.0
-    return v      # 很像毫秒
-
-
 
 if __name__ == "__main__":
 

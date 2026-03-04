@@ -398,7 +398,7 @@ def load_hypothesis(hypothesis_file, char_level, segmentation_order):
     for i, (h, l) in enumerate(zip(hypotheses, source_lengths)):
         prediction = normalize_unicode(h["prediction"])
         units = list(prediction) if char_level else prediction.split()
-        assert len(units) == len(
+        assert len(units) == len(  # "我是，奶龙！" 6    我，是，奶，龙 4
             h["delays"]
         ), f"Number of units and delays do not match for hypothesis {i}: {len(units)} vs {len(h['delays'])}"
         assert len(units) == len(

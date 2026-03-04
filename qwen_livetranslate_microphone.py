@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 import base64
 import asyncio
@@ -55,6 +55,17 @@ conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_microp
 
 os.environ["DASHSCOPE_API_KEY"] = "sk-34274543fd8e4e8e863a96b1293d1f58"
 
+# --------------------------------------------------------------------------
+def pick_output_device(p):
+    print("=== Output devices ===")
+    for i in range(p.get_device_count()):
+        info = p.get_device_info_by_index(i)
+        if info.get("maxOutputChannels", 0) > 0:
+            print(i, info["name"])
+    idx = input("Choose output device index (enter=default): ").strip()
+    return int(idx) if idx else None
+# --------------------------------------------------------------------------
+
 class LiveTranslateClient:
     def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True):
         if not api_key:
@@ -69,7 +80,7 @@ class LiveTranslateClient:
         
         # 音频输入配置 (来自麦克风)
         self.input_rate = 16000
-        self.input_chunk = 1600
+        self.input_chunk = 3200
         self.input_format = pyaudio.paInt16
         self.input_channels = 1
         
@@ -86,6 +97,16 @@ class LiveTranslateClient:
         self.pyaudio_instance = pyaudio.PyAudio()
 
         self.audio_bytes = bytearray()  # ⭐ 用于累积接收到的 PCM 音频数据
+
+        # self.output_device_index = pick_output_device(self.pyaudio_instance)
+        default_output = self.pyaudio_instance.get_default_output_device_info()
+        self.output_device_index = default_output["index"]
+        print("Using default output device:", default_output["name"])
+
+        # ===========================================================\
+        self.first_send_timestamp = None
+        # ===========================================================/
+
 
     async def connect(self):
         """建立到翻译服务的 WebSocket 连接。"""
@@ -131,6 +152,9 @@ class LiveTranslateClient:
         """将音频数据块编码并发送到服务端。"""
         if not self.is_connected:
             return
+
+        if self.first_send_timestamp is None:  ###
+            self.first_send_timestamp = time.time()  ###
             
         event = {
             "event_id": f"event_{int(time.time() * 1000)}",
@@ -165,14 +189,23 @@ class LiveTranslateClient:
             rate=self.output_rate,
             output=True,
             frames_per_buffer=self.output_chunk,
+            output_device_index=self.output_device_index ###
         )
         try:
             while self.is_connected or not self.audio_playback_queue.empty():
                 try:
                     audio_chunk = self.audio_playback_queue.get(timeout=0.1)
+
+                    t_get = time.time()  ###
+                    
                     if audio_chunk is None: # 结束信号
                         break
-                    stream.write(audio_chunk)
+                    stream.write(bytes(audio_chunk))
+
+                    t_written = time.time()  ###
+                    print("queue_get", t_get - self.first_send_timestamp,  ###
+                        "written", t_written - self.first_send_timestamp)  ###
+
                     self.audio_playback_queue.task_done()
                 except queue.Empty:
                     continue
@@ -243,6 +276,9 @@ class LiveTranslateClient:
             input=True,
             frames_per_buffer=self.input_chunk
         )
+
+        self.first_send_timestamp = None  ###
+        
         print("麦克风已启动，请开始说话...")
         try:
             while self.is_connected:
