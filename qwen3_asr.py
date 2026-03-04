@@ -45,7 +45,7 @@ import types
 
 '''
 conda activate s2s_latency
-python qwen3_asr.py --manifest data/output_qwen_livetranslate/manifest.jsonl --out_dir data/output_qwen_asr
+python qwen3_asr.py --manifest data/output_qwen_livetranslate3/manifest.jsonl --out_dir data/output_qwen_asr3
 '''
 
 ASR_MODEL_PATH = "Qwen/Qwen3-ASR-1.7B"
@@ -164,9 +164,19 @@ def _wav_time_to_session_sec(wav_sec: float, timeline: list, t0: float) -> float
         o = t["offset_sec"]
         d = t["duration_sec"]
         if o <= wav_sec < o + d:
-            return (t["receive_timestamp"] - t0) + (wav_sec - o)
-    return (timeline[-1]["receive_timestamp"] - t0) + max(0, wav_sec - (timeline[-1]["offset_sec"] + timeline[-1]["duration_sec"]))
+            return (t["heard_start"] - t0) + (wav_sec - o)
+    return (timeline[-1]["heard_start"] - t0) + max(0, wav_sec - (timeline[-1]["offset_sec"] + timeline[-1]["duration_sec"]))
 
+    # for i, t in enumerate(timeline):
+    #     o = t["offset_sec"]
+    #     if i == len(timeline) - 1:
+    #         d = t["duration_sec"]
+    #     else:
+    #         # 👈 min(duration, next_play - this_play)
+    #         d = min(t["duration_sec"], timeline[i+1]["play_timestamp_before"] - t["play_timestamp_before"])
+    #     if o <= wav_sec < o + d + 1e-9:
+    #         return (t["play_timestamp_before"] - t0) + (wav_sec - o)
+    # return (timeline[-1]["play_timestamp_before"] - t0) + max(0.0, wav_sec - (timeline[-1]["offset_sec"] + timeline[-1]["duration_sec"]))
 
 # 根据 manifest.jsonl 里列出的每条「译文 wav」，对每个 tgt wav 跑一次 Qwen3 ASR（带词级时间戳）
 # 并把转写结果和两种时间戳写到对应的 .json
@@ -283,13 +293,20 @@ def run_tgt_asr_from_manifest(
                     session_sec = []
                     for t in ts_list:
                         start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
-                        dur_s = max(0.0, t["end_time"] - t["start_time"])  # 👈 end_time 不要直接用_wav_time_to_session_sec，不然会导致 end < start
+                        dur_s = max(0.0, t["end_time"] - t["start_time"])
                         session_sec.append({
                             "text": t["text"],
                             "start_time": start_s,
-                            "end_time": start_s + dur_s,  # 👈 end_time 不要直接用_wav_time_to_session_sec，不然会导致 end < start
+                            "end_time": start_s + dur_s,
                         })
-                    out["time_stamps"] = session_sec  # ⭐ 存到这里 ！
+                    # 单调修正：映射后可能 start[i+1] < end[i]，强制后移保证不回退
+                    for j in range(1, len(session_sec)):
+                        prev_end = session_sec[j - 1]["end_time"]
+                        if session_sec[j]["start_time"] < prev_end:
+                            dur_j = session_sec[j]["end_time"] - session_sec[j]["start_time"]
+                            session_sec[j]["start_time"] = prev_end
+                            session_sec[j]["end_time"] = prev_end + dur_j
+                    out["time_stamps"] = session_sec
                     out["t0_reference"] = t0_ref  # 以什么为基准：send / receive
                     out["time_reference"] = "tgt wav no gap; use timeline for gap; use (t0=%s) for t0" % t0_ref
             else:
