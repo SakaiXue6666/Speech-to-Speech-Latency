@@ -791,11 +791,11 @@ cd d:\Li_Lab\Speech-to-Speech-Latency
 $env:PYTHONPATH = "d:\Li_Lab\Speech-to-Speech-Latency;d:\Li_Lab\Speech-to-Speech-Latency\SEGALE"
 
 python segale_align.py `
-  --system_file  data/output_segale/hyp.jsonl `
-  --ref_file     data/output_segale/ref.jsonl `
+  --system_file  data/output_segale3/hyp.jsonl `
+  --ref_file     data/output_segale3/ref.jsonl `
   --segmenter    spacy `
   --task_lang    zh `
-  --embedding_model  sentence-transformers/LaBSE `
+  --embedding_model  BAAI/bge-m3 `
   --proc_device  cuda
 '''
 

@@ -137,63 +137,17 @@ def test_batch_with_timestamps(asr: Qwen3ASRModel) -> None:
     _print_result("batch (forced language + timestamps)", results)
 
 
-# ===========================================================\
-# ⭐ 转换到真实时间 ！！！
-def _wav_time_to_session_sec(wav_sec: float, timeline: list, t0: float) -> float:
-    """把「无 gap 的 wav 内时间」映射为「考虑 gap 的会话相对时间」(秒)。
-
-    t0 的两种取法：
-    - 若 t0 = 第一个 tgt 的 receive_timestamp：表示「相对第一个译文 chunk 到达」的秒数。
-    - 若 t0 = first_send_timestamp（src 开始发送时间）：表示「相对源语开始」的秒数。
-
-    例：tgt wav 由多段首尾拼接，无静音。
-    timeline 片段:
-      [0] offset_sec=0,    duration_sec=0.32, receive_timestamp=100.0
-      [1] offset_sec=0.32, duration_sec=0.32, receive_timestamp=100.1
-      [2] offset_sec=0.64, duration_sec=0.08, receive_timestamp=100.2
-      [3] offset_sec=0.72, duration_sec=0.32, receive_timestamp=105.0   # 中间有约 4.8s gap
-    如果 t0 = 98.0:
-    - wav_sec=0.16 → 落在片段 0 [o0, o0+d0] → session = (100.0-98.0) + (0.16-0) = 2.0 + 0.16 = 2.16
-    - wav_sec=0.50 → 落在片段 1 [o1, o1+d1] → session = (100.1-98.0) + (0.50-0.32) = 2.1 + 0.18 = 2.28
-    - wav_sec=0.80 → 落在片段 3 [o3, o3+d3] → session = (105.0-98.0) + (0.80-0.72) = 7.0 + 0.08 = 7.08
-
-    - wav_sec → 落在片段 [oi, oi + di]，因为 oi <= wav_sec < oi + di
-              → session = (ri - t0) + (wav_sec - oi)
-    """
-    for t in timeline:
-        o = t["offset_sec"]
-        d = t["duration_sec"]
-        if o <= wav_sec < o + d:
-            return (t["heard_start"] - t0) + (wav_sec - o)
-    return (timeline[-1]["heard_start"] - t0) + max(0, wav_sec - (timeline[-1]["offset_sec"] + timeline[-1]["duration_sec"]))
-
-    # for i, t in enumerate(timeline):
-    #     o = t["offset_sec"]
-    #     if i == len(timeline) - 1:
-    #         d = t["duration_sec"]
-    #     else:
-    #         # 👈 min(duration, next_play - this_play)
-    #         d = min(t["duration_sec"], timeline[i+1]["play_timestamp_before"] - t["play_timestamp_before"])
-    #     if o <= wav_sec < o + d + 1e-9:
-    #         return (t["play_timestamp_before"] - t0) + (wav_sec - o)
-    # return (timeline[-1]["play_timestamp_before"] - t0) + max(0.0, wav_sec - (timeline[-1]["offset_sec"] + timeline[-1]["duration_sec"]))
-
 # 根据 manifest.jsonl 里列出的每条「译文 wav」，对每个 tgt wav 跑一次 Qwen3 ASR（带词级时间戳）
 # 并把转写结果和两种时间戳写到对应的 .json
 def run_tgt_asr_from_manifest(
     manifest_path: str,
     asr: Qwen3ASRModel,
     tgt_language: str = "Chinese",
-    use_timeline_for_gap: bool = True,
-    use_first_src_send_for_t0: bool = True,
     out_dir: str = "data/output_qwen_asr",
 ) -> None:
     """
-    读 manifest.jsonl，对每条 tgt wav 跑 ASR（带时间戳），写出 out_dir/{basename}_asr.json
-    time_stamps：相对 wav 起点的连续时间（无 gap）
-
-    若有 tgt_timeline 且 use_timeline_for_gap：
-    额外写出 time_stamps_with_gap（会话相对时间）；t0 优先 first_send_timestamp，否则首段 receive。
+    读 manifest.jsonl，对每条 tgt wav 跑 ASR（带时间戳），写出 out_dir/{basename}_asr.json。
+    只输出 wav 相对时间（time_stamps_no_gap / time_stamps）；会话时间映射由 build_instances_log 负责。
 
     长音频说明：Qwen3 ASR 内部按 chunk 处理，结果有时会少最后几秒（最后一 chunk 未返回）。
     若出现「ASR 比 wav 短约 Xs」的提示，可查阅 qwen_asr 是否支持 chunk_length_s / max_duration 等参数，
@@ -263,57 +217,10 @@ def run_tgt_asr_from_manifest(
             "tgt_timeline": rec.get("tgt_timeline", ""),
             "text": r.text or "",
             "time_stamps_no_gap": ts_list,
-            "time_reference": "tgt wav no gap",
+            "time_stamps": ts_list,
+            "time_reference": "tgt wav no gap (ASR only; session mapping in build_instances_log)",
         }
-
-        # ⭐ 4. 可选：考虑 gap 的会话时间
-        if use_timeline_for_gap:
-            # timeline 路径
-            tgt_timeline_path = rec.get("tgt_timeline")
-            if tgt_timeline_path and os.path.isfile(os.path.normpath(tgt_timeline_path)):
-                # 加载 timeline
-                with open(os.path.normpath(tgt_timeline_path), "r", encoding="utf-8") as f:
-                    tl_data = json.load(f)
-                timeline = tl_data.get("timeline") or []
-                # timeline 不为空
-                if timeline:
-                    # t0：默认优先 src send，否则用第一个 tgt receive
-                    if not use_first_src_send_for_t0:
-                        t0 = timeline[0]["receive_timestamp"]
-                        t0_ref = "first_tgt_receive"
-                    else:
-                        t0_send = tl_data.get("first_send_timestamp")
-                        if t0_send is not None:
-                            t0 = float(t0_send)
-                            t0_ref = "first_src_send"
-                        else:
-                            t0 = timeline[0]["receive_timestamp"]
-                            t0_ref = "first_tgt_receive"
-                    # 只对 start_time 做 wav→session 映射；end_time = start_time + duration，避免映射后 end < start
-                    session_sec = []
-                    for t in ts_list:
-                        start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
-                        dur_s = max(0.0, t["end_time"] - t["start_time"])
-                        session_sec.append({
-                            "text": t["text"],
-                            "start_time": start_s,
-                            "end_time": start_s + dur_s,
-                        })
-                    # 单调修正：映射后可能 start[i+1] < end[i]，强制后移保证不回退
-                    for j in range(1, len(session_sec)):
-                        prev_end = session_sec[j - 1]["end_time"]
-                        if session_sec[j]["start_time"] < prev_end:
-                            dur_j = session_sec[j]["end_time"] - session_sec[j]["start_time"]
-                            session_sec[j]["start_time"] = prev_end
-                            session_sec[j]["end_time"] = prev_end + dur_j
-                    out["time_stamps"] = session_sec
-                    out["t0_reference"] = t0_ref  # 以什么为基准：send / receive
-                    out["time_reference"] = "tgt wav no gap; use timeline for gap; use (t0=%s) for t0" % t0_ref
-            else:
-                out["_note"] = "tgt_timeline missing or not file; only wav-relative timestamps saved (no gap)."
-        
-        # 👈 prediction_length 用最后一个 token 的结束时间？
-        last_end = out["time_stamps"][-1]["end_time"]
+        last_end = ts_list[-1]["end_time"] if ts_list else 0.0
         out["prediction_length"] = round(last_end, 2)
 
         # 5. 保存结果
@@ -340,18 +247,6 @@ def main() -> None:
         type=str,
         default="Chinese",
         help="manifest 模式下 tgt 音频的语言，如 Chinese / English（默认 Chinese）",
-    )
-    parser.add_argument(
-        "--use_timeline_for_gap",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="根据 tgt_timeline 算会话时间（默认开启；--no-use_timeline_for_gap 可关闭）",
-    )
-    parser.add_argument(
-        "--use_first_src_send_for_t0",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="t0 取 first_send_timestamp（默认开启；--no-use_first_src_send_for_t0 则用首段 tgt receive）",
     )
     parser.add_argument(
         "--out_dir",
@@ -441,8 +336,6 @@ def main() -> None:
             args.manifest,
             asr,
             tgt_language=args.tgt_language,
-            use_timeline_for_gap=args.use_timeline_for_gap,
-            use_first_src_send_for_t0=args.use_first_src_send_for_t0,
             out_dir=args.out_dir,
         )
         return
