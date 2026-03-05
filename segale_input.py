@@ -2,6 +2,10 @@ import json
 import yaml
 import os
 
+'''
+python segale_input.py
+'''
+
 def get_jsonl(src_text, tgt_ref_text, ref_segments, instances):
     with open(src_text, "r", encoding="utf-8") as f:
         src_text_lines = [line.rstrip("\n") for line in f]
@@ -56,7 +60,7 @@ ref_dicts, hyp_dicts = get_jsonl(
     "data/input/ACL.6060.dev.en-xx.en.txt", 
     "data/input/ACL.6060.dev.en-xx.zh.txt", 
     "data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml", 
-    "data/output_qwen_asr/instances.log")
+    "data/output_qwen_asr3_debug/instances2.log")
 
 # 保存 jsonl
 def save_jsonl(dict_list, out_path):
@@ -66,7 +70,7 @@ def save_jsonl(dict_list, out_path):
             f.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
 # 输出到 data/segale/
-save_jsonl(ref_dicts, "data/output_segale/ref.jsonl")
-save_jsonl(hyp_dicts, "data/output_segale/hyp.jsonl")
+save_jsonl(ref_dicts, "data/output_segale3/ref2.jsonl")
+save_jsonl(hyp_dicts, "data/output_segale3/hyp2.jsonl")
 
-print("saved:", "data/output_segale/ref.jsonl", "data/output_segale/hyp.jsonl")
+print("saved:", "data/output_segale3/ref2.jsonl", "data/output_segale3/hyp2.jsonl")

@@ -22,11 +22,13 @@ def _qwen_units(text: str, language: str) -> List[str]:
 python main_new3.py `
   --yaml_file data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml `
   --source_sentences_file data/input/ACL.6060.dev.en-xx.en.txt `
-  --instances_log data/output_qwen_asr/instances.log `
-  --segale_file data/output_segale/hyp/aligned_spacy_hyp.jsonl `
-  --asr_dir data/output_qwen_asr `
-  --output_folder data/output_longyaal `
+  --instances_log data/output_qwen_asr3/instances.log `
+  --segale_file data/output_segale3/hyp/aligned_spacy_hyp.jsonl `
+  --asr_dir data/output_qwen_asr3 `
+  --output_folder data/output_longyaal3 `
   --bleu_tokenizer zh 
+
+python main_new3.py
 '''
 
 logger = logging.getLogger(__name__)
@@ -47,13 +49,13 @@ class Instance:
         for key, value in info.items():
             setattr(self, key, value)
 
-        self.reference = info.get("reference", "")
-        self.prediction = info.get("prediction", "")
+        self.reference = info.get("reference", "")  # 文本
+        self.prediction = info.get("prediction", "")  # 文本
         self.latency_unit = latency_unit
         self.metrics = {}
 
     @property
-    def reference_length(self) -> int:
+    def reference_length(self) -> int:  # ref 文本长度
         return self.string_to_len(self.reference, self.latency_unit)
 
     @staticmethod
@@ -65,7 +67,7 @@ class Instance:
         else:
             assert False, f"Unknown latency unit: {latency_unit}"
 
-
+# --------------------------------------------------------------
 class SacreBLEUScorer:
     def __init__(self, tokenizer: str = "13a") -> None:
         super().__init__()
@@ -86,7 +88,7 @@ class SacreBLEUScorer:
             self.logger.error(str(e))
             return 0
 
-
+# --------------------------------------------------------------
 class YAALScorer:
     r"""
     YAAL: Yet Another Average Lagging
@@ -99,7 +101,7 @@ class YAALScorer:
     def __init__(self, computation_aware: bool = False, is_longform: bool = False, force_unit_target_len: bool = True):
         self.computation_aware = computation_aware
         self.is_longform = is_longform
-        self.force_unit_target_len = force_unit_target_len
+        self.force_unit_target_len = force_unit_target_len  # NEW: 强制用 unit 数作为 target_length（不管 ref 文本长度），适合 s2s/unit 场景
 
     def get_delays_lengths(self, ins: Instance):
         timestamp_type = "delays" if not self.computation_aware else "elapsed"
@@ -120,17 +122,24 @@ class YAALScorer:
         delays, source_length, target_length = self.get_delays_lengths(ins)
 
         is_longform = hasattr(ins, "longform") or self.is_longform
-        recording_end = ins.recording_end if hasattr(ins, "recording_end") else float("inf")
+        
+        recording_end = (
+            ins.recording_end if hasattr(ins, "recording_end") else float("inf")
+        )
 
-        if (delays[0] >= source_length and not is_longform) or (delays[0] >= recording_end):
+        if (delays[0] >= source_length and not is_longform) or (
+            delays[0] >= recording_end
+        ):
             return None
 
         LAAL = 0
         gamma = max(len(delays), target_length) / source_length
         tau = 0
         for t_minus_1, d in enumerate(delays):
+
             if (d >= source_length and not is_longform) or (d >= recording_end):
                 break
+
             LAAL += d - t_minus_1 / gamma
             tau = t_minus_1 + 1
 
@@ -151,9 +160,11 @@ class YAALScorer:
             scores.append(score)
 
         return mean(scores) if len(scores) > 0 else float("nan")
+# --------------------------------------------------------------
 
-
-def evaluate_instances(resegmented_instances: List[Instance], tokenizer: str) -> Dict[str, float]:
+def evaluate_instances(
+    resegmented_instances: List[Instance], tokenizer: str
+) -> Dict[str, float]:
     ca_unaware_yaal_scorer = YAALScorer(is_longform=True, force_unit_target_len=True)
     ca_aware_yaal_scorer  = YAALScorer(computation_aware=True, is_longform=True, force_unit_target_len=True)
     bleu_scorer = SacreBLEUScorer(tokenizer)
@@ -162,7 +173,6 @@ def evaluate_instances(resegmented_instances: List[Instance], tokenizer: str) ->
     ca_unaware_yaal_score = ca_unaware_yaal_scorer(resegmented_instances_dict)
     ca_aware_yaal_score = ca_aware_yaal_scorer(resegmented_instances_dict)
 
-    # s2s 你可能不需要 BLEU，但我保留；你也可以不传 ref 就会算 0 或跳过
     bleu_score = bleu_scorer(resegmented_instances_dict)
 
     return {
@@ -604,7 +614,14 @@ def resegment(
 
             # 如果这段匹配不到 unit，就跳过（否则 YAAL 没意义）
             if not seg_delays:
-                logger.warning(f"[skip] empty matched units: doc={doc_id} seg_id={seg.get('seg_id')}")
+                logger.warning(
+                    "[skip][empty-matched-units] doc=%s seg_id=%s cursor_unit=%d u_start=%d u_end=%d "
+                    "len(asr_units)=%d len(delays_all)=%d len(elapsed_all)=%d seg_tgt_len=%d",
+                    doc_id, seg.get("seg_id"),
+                    cursor_unit, u_start, u_end,
+                    len(asr_units), len(delays_all), len(elapsed_all),
+                    len((seg_tgt or "").strip()),
+                )
                 continue
 
             # 3.3 把 delays/elapsed 变为“相对 segment 起点”的时间
@@ -644,16 +661,22 @@ def resegment(
 
             # 注意：这里 latency_unit="word" 其实不重要，
             # 因为 reference=None 时，YAAL 用的是 len(delays) 作为 tgt_len
-            instances.append(Instance(new_seg_dict, latency_unit="word"))
+            instances.append(
+                Instance(new_seg_dict, latency_unit="word")
+            )
 
             global_idx += 1
 
     # 4) write instances + scores
-    with open(os.path.join(output_folder, "instances.resegmented.json"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(output_folder, "instances.resegmented.json"), "w", encoding="utf-8"
+    ) as f:
         f.write(json.dumps(instances_dict, ensure_ascii=False, indent=2) + "\n")
 
     scores = evaluate_instances(instances, bleu_tokenizer)
-    with open(os.path.join(output_folder, "scores.resegmented.csv"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(output_folder, "scores.resegmented.csv"), "w", encoding="utf-8"
+    ) as f:
         f.write("\t".join(scores.keys()) + "\n")
         f.write("\t".join([f"{v:.4f}" for v in scores.values()]) + "\n")
 
@@ -688,10 +711,10 @@ if __name__ == "__main__":
 
     yaml_file = "data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     source_sentences_file = "data/input/ACL.6060.dev.en-xx.en.txt"
-    instances_log = "data/output_qwen_asr/instances.log"
-    segale_file = "data/output_segale/hyp/aligned_spacy_hyp.jsonl"
-    asr_dir = "data/output_qwen_asr"
-    output_folder = "data/output_longyaal"
+    instances_log = "data/output_qwen_asr3/instances.log"
+    segale_file = "data/output_segale3/hyp/aligned_spacy_hyp.jsonl"
+    asr_dir = "data/output_qwen_asr3"
+    output_folder = "data/output_longyaal3"
     bleu_tokenizer = "zh"
 
     resegment(

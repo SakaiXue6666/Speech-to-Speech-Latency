@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 import base64
 import asyncio
@@ -80,7 +80,7 @@ class LiveTranslateClient:
         
         # 音频输入配置 (来自麦克风)
         self.input_rate = 16000
-        self.input_chunk = 3200
+        self.input_chunk = 1600
         self.input_format = pyaudio.paInt16
         self.input_channels = 1
         

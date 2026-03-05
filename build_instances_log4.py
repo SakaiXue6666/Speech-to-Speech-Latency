@@ -100,7 +100,89 @@ def _get_wav_duration_sec(wav_path: str) -> float:
         return 0.0
 
 
-def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: str) -> None:
+def _wav_time_to_session_sec(wav_sec: float, timeline: list, t0: float) -> float:
+    """把「无 gap 的 wav 内时间」映射为「考虑 gap 的会话相对时间」(秒)。"""
+    for t in timeline:
+        o = t["offset_sec"]
+        d = t["duration_sec"]
+        if o <= wav_sec < o + d:
+            heard = t.get("heard_start") or t.get("write_before") or t.get("play_timestamp_before") or t.get("receive_timestamp")
+            return (heard - t0) + (wav_sec - o)
+    last = timeline[-1]
+    heard_last = last.get("heard_start") or last.get("write_before") or last.get("play_timestamp_before") or last.get("receive_timestamp")
+    return (heard_last - t0) + max(0.0, wav_sec - last["offset_sec"])
+
+
+def _asr_to_session_timestamps(asr_data: dict, use_first_src_send_for_t0: bool = True):
+    """
+    若 asr 含 tgt_timeline 且文件存在，用 timeline 把 time_stamps_no_gap 映射为会话相对时间（秒）。
+    返回 (session_sec_list, prediction_length_sec) 或 (None, None) 表示用 wav 相对即可。
+    """
+    # timeline 路径
+    tgt_timeline_path = asr_data.get("tgt_timeline")
+    if not tgt_timeline_path or not os.path.isfile(os.path.normpath(tgt_timeline_path)):
+        return None, None
+    
+    # time_stamls_no_gap
+    ts_list = asr_data.get("time_stamps_no_gap") or asr_data.get("time_stamps") or []
+    if not ts_list:
+        return None, None
+    
+    # 加载 timeline
+    with open(os.path.normpath(tgt_timeline_path), "r", encoding="utf-8") as f:
+        tl_data = json.load(f)
+    timeline = tl_data.get("timeline") or []
+    
+    if not timeline:
+        return None, 
+    # timeline 不为空
+    # t0：默认优先 src send，否则用第一个 tgt receive
+    if use_first_src_send_for_t0 and tl_data.get("first_send_timestamp") is not None:
+        t0 = float(tl_data["first_send_timestamp"])
+    else:
+        t0 = timeline[0].get("receive_timestamp")
+    # 只对 start_time 做 wav→session 映射；end_time = start_time + duration，避免映射后 end < start
+    session_sec = []
+    # for t in ts_list:
+    #     start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
+    #     dur_s = max(0.0, t["end_time"] - t["start_time"])
+    #     session_sec.append({
+    #         "text": t["text"], 
+    #         "start_time": start_s, 
+    #         "end_time": start_s + dur_s
+    #     })
+    # 单调修正：映射后可能 start[i+1] < end[i]，强制后移保证不回退
+    # for j in range(1, len(session_sec)):
+    #     prev_end = session_sec[j - 1]["end_time"]
+    #     if session_sec[j]["start_time"] < prev_end:
+    #         dur_j = session_sec[j]["end_time"] - session_sec[j]["start_time"]
+    #         session_sec[j]["start_time"] = prev_end
+    #         session_sec[j]["end_time"] = prev_end + dur_j
+
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+    prev_heard_end = 0.0  # 上一个 token/片段 “听完”的会话相对时间（秒）
+
+    for t in ts_list:
+        mapped_start = _wav_time_to_session_sec(t["start_time"], timeline, t0)
+        dur_s = max(0.0, float(t["end_time"]) - float(t["start_time"]))
+
+        # 单调修正（代码2风格）：下一段开始 = max(映射出来的开始, 上一段听完)
+        heard_start = max(float(mapped_start), float(prev_heard_end))
+        heard_end = heard_start + dur_s
+        prev_heard_end = heard_end
+        
+        session_sec.append({
+            "text": t["text"],
+            "start_time": heard_start,
+            "end_time": heard_end,
+        })
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
+
+    last_end = session_sec[-1]["end_time"] if session_sec else 0.0
+    return session_sec, last_end
+
+
+def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: str, out_dir: str) -> None:
     """
     从 ref_segments.yaml + asr_dir 下的 *_asr.json 生成 s2s 格式 instances.log。
     yaml 的 wav 与 asr 的 src 按 basename 匹配；每条记录对应一个 source（src wav）。
@@ -144,13 +226,40 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
         if asr is None:
             continue
 
-        # 时间戳：优先 wav 相对 time_stamps，否则 time_stamps_with_gap
-        ts = asr.get("time_stamps") or asr.get("time_stamps_with_gap") or []
+        # 时间戳：若有 tgt_timeline 则做 wav→session 映射（build 里做），否则用 asr 的 wav 相对
+        session_ts, session_pred_len = _asr_to_session_timestamps(asr, use_first_src_send_for_t0=True)
+        if session_ts is not None:
+            ts = session_ts
+            prediction_length_sec = session_pred_len
 
-        # delays
+            # 👇 如果指定了输出目录，就把映射后的 asr 存进去
+            if out_dir:
+                os.makedirs(out_dir, exist_ok=True)
+
+                out = dict(asr)  # 复制一份
+                out["time_stamps"] = session_ts
+                out["prediction_length"] = float(session_pred_len or 0.0)
+
+                tgt_wav = asr.get("tgt") or ""
+                base_name = os.path.basename(os.path.splitext(tgt_wav)[0])
+                out_path = os.path.join(out_dir, base_name + "_asr.json")
+
+                with open(out_path, "w", encoding="utf-8") as f:
+                    json.dump(out, f, ensure_ascii=False, indent=2)
+
+                print(f"  已保存: {out_path}")
+
+        else:
+            ts = asr.get("time_stamps") or asr.get("time_stamps_no_gap") or []
+            prediction_length_sec = asr.get("prediction_length")
+            if prediction_length_sec is None and ts:
+                prediction_length_sec = ts[-1].get("end_time", ts[-1]["start_time"])
+            prediction_length_sec = float(prediction_length_sec or 0.0)
+
+        # delays (ms)
         delays = [int(round(t["start_time"] * 1000)) for t in ts]
 
-        # durations
+        # durations (ms)
         durations = [int(round((t.get("end_time", t["start_time"]) - t["start_time"]) * 1000)) for t in ts]
 
         # intervals
@@ -159,8 +268,8 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
         # prediction_offset
         prediction_offset = delays[0] if delays else 0
 
-        # prediction_length：优先用 asr 里已写好的 prediction_length（qwen3_asr 用 timeline 算的），否则再读 timeline / wav / time_stamps
-        prediction_length = asr.get("prediction_length") or 0.0
+        # prediction_length：会话相对时长（秒），供 longyaal 等用
+        prediction_length = prediction_length_sec
 
         tgt_path = asr.get("tgt") or ""
 
@@ -197,7 +306,7 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
             f.write(json.dumps(rec, ensure_ascii=False))
 
 '''
-python build_instances_log.py
+python build_instances_log4.py
 '''
 
 def main():
@@ -205,8 +314,9 @@ def main():
     yaml_file = "data/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     asr_dir = "data/output_qwen_asr3"
     output_file = "data/output_qwen_asr3/instances.log"
+    out_dir = "data/output_qwen_asr3"
     if s2s and yaml_file and asr_dir and output_file:
-        _build_instances_log_s2s(yaml_file, asr_dir, output_file)
+        _build_instances_log_s2s(yaml_file, asr_dir, output_file, out_dir)
         return
     if not s2s or not yaml_file or not asr_dir or not output_file:
         pass
