@@ -12,6 +12,8 @@ import traceback
 import numpy as np
 import soundfile as sf
 
+import glob
+
 '''
 conda activate s2s_latency
 conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav3.py
@@ -257,6 +259,7 @@ class LiveTranslateClient:
             except OSError:
                 pass
 
+
     def start_audio_player(self):
         """启动音频播放线程（仅当启用音频输出时）。"""
         if not self.audio_enabled:
@@ -385,6 +388,14 @@ class LiveTranslateClient:
 
     # ------------------------------------------------------------
     # wav
+    def _drain_playback_queue(self):
+        """丢弃播放队列里残留的 chunk，避免多音频串音/串时间线。"""
+        while True:
+            try:
+                self.audio_playback_queue.get_nowait()
+            except queue.Empty:
+                break
+
     # Client -> Server，用到 send_audio_chunk 的 input_audio_buffer.append
     async def start_wav_streaming(self, audio_path: str = "data/2022.acl-long.268.wav"):
         """从 wav 文件读取音频并按流式方式传输到服务端。"""
@@ -399,6 +410,9 @@ class LiveTranslateClient:
         with self._timeline_lock:
             self._chunk_id = 0
             self._timeline_by_id.clear()
+
+        # ✅ 加在这里：清空上一轮残留的播放队列
+        self._drain_playback_queue()
         # ===========================================================/
 
         print(f"开始从文件流式发送音频: {audio_path}")
@@ -582,7 +596,7 @@ class LiveTranslateClient:
                 json.dump(payload, f, ensure_ascii=False, indent=2)
             print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
 
-        # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslate2/manifest.jsonl
+        # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslateX/manifest.jsonl
         if self.manifest_src_path and self.save_tgt_wav_path and self.save_timeline_path:
             manifest_path = os.path.join(os.path.dirname(self.save_tgt_wav_path), "manifest.jsonl")
             os.makedirs(os.path.dirname(manifest_path) or ".", exist_ok=True)
@@ -653,26 +667,19 @@ def get_user_config():
         voice = voice_map.get(voice_choice, "Cherry")
     return target_language, voice, audio_enabled
 
-async def main(audio_path: str = "data/2022.acl-long.268.wav", out_dir: str = "data/output_qwen_livetranslate"):
-    """主程序入口"""
-    print_banner()
+async def process_one(audio_path: str, target_language: str, voice: str, audio_enabled: bool, out_dir: str):
+    print("\n" + "=" * 60)
+    print(f"[JOB] 处理: {audio_path}")
+    print("=" * 60)
     
     api_key = os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
         print("[ERROR] 请设置环境变量 DASHSCOPE_API_KEY")
         print("  例如: export DASHSCOPE_API_KEY='your_api_key_here'")
         return
-        
-    target_language, voice, audio_enabled = get_user_config()
-    print("\n配置完成:")
-    print(f"  - 目标语言: {target_language}")
-    if audio_enabled:
-        print(f"  - 合成声音: {voice}")
-    else:
-        print("  - 输出模式: 仅文本")
     
     # ===========================================================\
-    # ⭐ 若需保存本轮的 tgt 音频与时间线，存到 {音频所在目录}/output_qwen_livetranslate2/{文件名}_tgt.wav
+    # ⭐ 若需保存本轮的 tgt 音频与时间线，存到 data/output_qwen_livetranslateX/{文件名}_tgt.wav
     base, _ = os.path.splitext(audio_path)
     save_tgt_wav_path = os.path.join(out_dir, os.path.basename(base) + "_tgt.wav")
     save_timeline_path = os.path.join(out_dir, os.path.basename(base) + "_timeline.json")
@@ -723,5 +730,27 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav", out_dir: str = "d
         await client.close()
         print("程序已退出。")
 
+
+async def main_multi(
+    input_dir: str = "data",
+    pattern: str = "*.wav",
+    out_dir: str = "output_qwen_livetranslate4",
+):
+    print_banner()
+
+    # 模式只问一次
+    target_language, voice, audio_enabled = get_user_config()
+
+    wav_list = sorted(glob.glob(os.path.join(input_dir, pattern)))
+    if not wav_list:
+        print(f"[ERROR] 没找到音频: {input_dir}/{pattern}")
+        return
+
+    print(f"\n[INFO] 共找到 {len(wav_list)} 个音频，将顺序处理。")
+
+    for i, wav_path in enumerate(wav_list, 1):
+        print(f"\n[{i}/{len(wav_list)}] 开始")
+        await process_one(wav_path, target_language, voice, audio_enabled, out_dir)
+
 if __name__ == "__main__":
-    asyncio.run(main(audio_path="data/input/acl_6060_dev/2022.acl-long.117.wav", out_dir="data/output_qwen_livetranslate4"))
+    asyncio.run(main_multi(input_dir="data", pattern="*.wav", out_dir="data/output_qwen_livetranslate4"))
