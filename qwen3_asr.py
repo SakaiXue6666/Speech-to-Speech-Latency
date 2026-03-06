@@ -253,8 +253,8 @@ def run_tgt_asr_from_manifest(
                     "start_time": getattr(ts, "start_time", 0.0),
                     "end_time": getattr(ts, "end_time", 0.0),
                 }
-            for ts in r.time_stamps
-        ]
+                for ts in r.time_stamps
+            ]
         # ================================================/
         
         out = {
@@ -291,29 +291,51 @@ def run_tgt_asr_from_manifest(
                             t0_ref = "first_tgt_receive"
                     # 只对 start_time 做 wav→session 映射；end_time = start_time + duration，避免映射后 end < start
                     session_sec = []
+                    # for t in ts_list:
+                    #     start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
+                    #     dur_s = max(0.0, t["end_time"] - t["start_time"])
+                    #     session_sec.append({
+                    #         "text": t["text"],
+                    #         "start_time": start_s,
+                    #         "end_time": start_s + dur_s,
+                    #     })
+                    # # 单调修正：映射后可能 start[i+1] < end[i]，强制后移保证不回退
+                    # for j in range(1, len(session_sec)):
+                    #     prev_end = session_sec[j - 1]["end_time"]
+                    #     if session_sec[j]["start_time"] < prev_end:
+                    #         dur_j = session_sec[j]["end_time"] - session_sec[j]["start_time"]
+                    #         session_sec[j]["start_time"] = prev_end
+                    #         session_sec[j]["end_time"] = prev_end + dur_j
+
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\
+                    prev_heard_end = 0.0  # 上一个 token/片段 “听完”的会话相对时间（秒）
+
                     for t in ts_list:
-                        start_s = _wav_time_to_session_sec(t["start_time"], timeline, t0)
-                        dur_s = max(0.0, t["end_time"] - t["start_time"])
+                        mapped_start = _wav_time_to_session_sec(t["start_time"], timeline, t0)
+                        dur_s = max(0.0, float(t["end_time"]) - float(t["start_time"]))
+
+                        # 单调修正：下一段开始 = max(映射出来的开始, 上一段听完)
+                        heard_start = max(float(mapped_start), float(prev_heard_end))
+                        heard_end = heard_start + dur_s
+                        prev_heard_end = heard_end
+                        
                         session_sec.append({
                             "text": t["text"],
-                            "start_time": start_s,
-                            "end_time": start_s + dur_s,
+                            "start_time": heard_start,
+                            "end_time": heard_end,
                         })
-                    # 单调修正：映射后可能 start[i+1] < end[i]，强制后移保证不回退
-                    for j in range(1, len(session_sec)):
-                        prev_end = session_sec[j - 1]["end_time"]
-                        if session_sec[j]["start_time"] < prev_end:
-                            dur_j = session_sec[j]["end_time"] - session_sec[j]["start_time"]
-                            session_sec[j]["start_time"] = prev_end
-                            session_sec[j]["end_time"] = prev_end + dur_j
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/
+
                     out["time_stamps"] = session_sec
                     out["t0_reference"] = t0_ref  # 以什么为基准：send / receive
                     out["time_reference"] = "tgt wav no gap; use timeline for gap; use (t0=%s) for t0" % t0_ref
             else:
                 out["_note"] = "tgt_timeline missing or not file; only wav-relative timestamps saved (no gap)."
         
-        # 👈 prediction_length 用最后一个 token 的结束时间？
-        last_end = out["time_stamps"][-1]["end_time"]
+        # 👈 prediction_length 用最后一个 token 的结束时间
+        ts_for_len =  out.get("time_stamps") or out.get("time_stamps_no_gap") or []
+        if ts_for_len: last_end = ts_for_len[-1]["end_time"]
+        else: last_end = 0.0
         out["prediction_length"] = round(last_end, 2)
 
         # 5. 保存结果
@@ -325,6 +347,35 @@ def run_tgt_asr_from_manifest(
             json.dump(out, f, ensure_ascii=False, indent=2)
         print(f"  已保存: {out_path}")
 # ===========================================================/
+
+def step1(
+    manifest, 
+    tgt_language, 
+    use_timeline_for_gap, 
+    use_first_src_send_for_t0, 
+    out_dir
+):
+    asr = Qwen3ASRModel.from_pretrained(
+        ASR_MODEL_PATH,
+        dtype=torch.bfloat16,
+        device_map="cuda:0",
+        forced_aligner=FORCED_ALIGNER_PATH,
+        forced_aligner_kwargs=dict(
+            dtype=torch.bfloat16,
+            device_map="cuda:0",
+        ),
+        max_inference_batch_size=32,
+        max_new_tokens=1024,
+    )
+    
+    run_tgt_asr_from_manifest(
+        manifest,
+        asr,
+        tgt_language=tgt_language,
+        use_timeline_for_gap=use_timeline_for_gap,
+        use_first_src_send_for_t0=use_first_src_send_for_t0,
+        out_dir=out_dir,
+    )
 
 
 def main() -> None:
