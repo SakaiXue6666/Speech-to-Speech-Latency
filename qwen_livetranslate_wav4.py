@@ -14,7 +14,7 @@ import soundfile as sf
 
 '''
 conda activate s2s_latency
-conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav3.py
+conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav4.py
 '''
 
 
@@ -499,17 +499,49 @@ class LiveTranslateClient:
             print("WebSocket 连接已关闭。")
         
         # ===========================================================\
-        # ⭐ 若设置了保存路径，将本轮的 tgt 音频拼成 wav、时间线写成 json
-        # 保存 tgt 音频 wav
+        # ⭐ 若设置了保存路径，将本轮的 tgt 音频按真实播放时间轴渲染成 wav（gap 填静音）
         if self.save_tgt_wav_path and self.tgt_audio_chunks:
-            # 把多段 PCM 按顺序拼成一段完整字节流
-            pcm = b"".join(self.tgt_audio_chunks)
-            # 把这串字节按 16 位整数解析成为 numpy 数组
-            samples = np.frombuffer(pcm, dtype=np.int16)
-            # 保存为 wav 文件
             os.makedirs(os.path.dirname(self.save_tgt_wav_path) or ".", exist_ok=True)
-            sf.write(self.save_tgt_wav_path, samples, self.output_rate, subtype="PCM_16")
-            print(f"[INFO] 已保存 tgt 音频: {self.save_tgt_wav_path}")
+            t0 = self.first_send_timestamp or 0.0
+
+            # 先补齐 timeline（和下面保存 json 一样的逻辑），确保每条都有 heard_start
+            with self._timeline_lock:
+                prev_heard_end_ts = t0
+                for ent in self.tgt_timeline:
+                    if ent.get("heard_start") is None:
+                        ent["heard_start"] = float(max(ent["receive_timestamp"], prev_heard_end_ts))
+                        ent["heard_end"] = float(ent["heard_start"] + ent["duration_sec"])
+                    prev_heard_end_ts = ent["heard_end"]
+
+            # 按 heard_start 时间轴渲染：gap 填静音，overlap 紧接
+            write_cursor = 0  # 当前已写到的采样点位置
+            rendered_parts: list[np.ndarray] = []
+            rate = self.output_rate
+
+            for i, chunk_bytes in enumerate(self.tgt_audio_chunks):
+                chunk_samples = np.frombuffer(chunk_bytes, dtype=np.int16)
+                ent = self.tgt_timeline[i] if i < len(self.tgt_timeline) else None
+
+                if ent is not None and ent.get("heard_start") is not None:
+                    target_pos = int(round((ent["heard_start"] - t0) * rate))
+                else:
+                    target_pos = write_cursor
+
+                if target_pos > write_cursor:
+                    silence_len = target_pos - write_cursor
+                    rendered_parts.append(np.zeros(silence_len, dtype=np.int16))
+                    write_cursor += silence_len
+
+                rendered_parts.append(chunk_samples)
+                write_cursor += len(chunk_samples)
+
+            if rendered_parts:
+                samples = np.concatenate(rendered_parts)
+            else:
+                samples = np.array([], dtype=np.int16)
+
+            sf.write(self.save_tgt_wav_path, samples, rate, subtype="PCM_16")
+            print(f"[INFO] 已保存 tgt 音频（含 gap 静音）: {self.save_tgt_wav_path}")
 
         # 保存 tgt 音频时间线 json（含 first_send_timestamp，供以「发送」为参考的物理时间）
         if self.save_timeline_path and self.tgt_timeline:
@@ -724,4 +756,4 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav", out_dir: str = "d
         print("程序已退出。")
 
 if __name__ == "__main__":
-    asyncio.run(main(audio_path="data/input/acl_6060_dev/2022.acl-long.117.wav", out_dir="data/output_qwen_wav4"))
+    asyncio.run(main(audio_path="data/input/acl_6060_dev/2022.acl-long.268.wav", out_dir="data/output_qwen_wav5"))

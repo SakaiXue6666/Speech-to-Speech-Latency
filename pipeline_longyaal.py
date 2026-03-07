@@ -454,7 +454,80 @@ def _match_src_span_for_seg(segale_src_seg: str,
     return list_j + 1, 1, float(s_ms), float(e_ms)
     # ---------------------------------------------------/
 
+def _match_src_span_for_seg_by_ids(
+    src_ref_ids: List[int],
+    src_sent_list: List[Tuple[int, float, float, List[str]]],
+) -> Tuple[int, int, float, float]:
+    """
+    根据 segale 中保存的 src_ref_ids，直接确定该 segment 的源时间跨度。
+    返回: (new_cursor_sent, num_sent_used, start_ms, end_ms)
+
+    假设：
+    - src_ref_ids 来自 ref.jsonl 的 seg_id，为全局 1-based 段号（整语料从 1 递增）
+    - src_sent_list 每项为 (global_0based_index, start_ms, end_ms, tokens)，仅含当前 doc 的句子
+    """
+    if not src_ref_ids:
+        raise ValueError("src_ref_ids is empty")
+
+    # # 这里假设 seg_id 从 1 开始，对应 src_sent_list 的下标 + 1
+    # indices = [int(x) - 1 for x in src_ref_ids]
+
+    # valid_indices = [i for i in indices if 0 <= i < len(src_sent_list)]
+    # if not valid_indices:
+    #     raise ValueError(f"Invalid src_ref_ids: {src_ref_ids}")
+
+    # start_idx = min(valid_indices)
+    # end_idx = max(valid_indices)
+
+    # 当前 doc 内 global_0based -> local_0based 的映射
+    global_to_local = {t[0]: i for i, t in enumerate(src_sent_list)}
+    # 将全局 1-based seg_id 转为当前 doc 内的 0-based 下标
+    indices = []
+    for sid in src_ref_ids:
+        g0 = int(sid) - 1
+        if g0 in global_to_local:
+            indices.append(global_to_local[g0])
+    if not indices:
+        raise ValueError(f"Invalid src_ref_ids: {src_ref_ids} (not in this doc's segments)")
+
+    start_idx = min(indices)
+    end_idx = max(indices)
+
+    _, start_ms, _, _ = src_sent_list[start_idx]
+    _, _, end_ms, _ = src_sent_list[end_idx]
+
+    new_cursor_sent = end_idx + 1
+    num_sent_used = end_idx - start_idx + 1
+    return new_cursor_sent, num_sent_used, float(start_ms), float(end_ms)
+
+
 # 假设 segale_tgt_seg = n * tgt_asr_unit
+def _match_tgt_units_for_seg_by_char_span(
+    full_doc_tgt_norm: str,
+    asr_units: List[str],
+    seg_char_start: int,
+    seg_char_end: int,
+) -> Optional[Tuple[int, int]]:
+    """
+    用「整段 tokenize + 字符跨度」确定 segment 在 asr_units 中的 [u_start, u_end)。
+    避免按句单独 tokenize 导致边界不一致（如整段 "QED。QED。" -> ['QEDQED']，按句 -> ['QED'],['QED']）。
+    若整段 tokenize 结果与 asr_units 一致则返回 (u_start, u_end)，否则返回 None 走 needle 匹配。
+    """
+    if seg_char_start < 0 or seg_char_end <= seg_char_start:
+        return None
+    units_with_offsets = qwen_tok.encode_timestamp_with_offsets(full_doc_tgt_norm, "chinese")
+    if len(units_with_offsets) != len(asr_units):
+        return None
+    if not all(u[0] == a for u, a in zip(units_with_offsets, asr_units)):
+        return None
+    # 找与 [seg_char_start, seg_char_end) 有交集的 unit 下标范围
+    i_start = next((i for i in range(len(units_with_offsets)) if units_with_offsets[i][2] > seg_char_start), None)
+    i_end = next((i for i in range(len(units_with_offsets) - 1, -1, -1) if units_with_offsets[i][1] < seg_char_end), None)
+    if i_start is None or i_end is None or i_start > i_end:
+        return None
+    return (i_start, i_end + 1)
+
+
 def _match_tgt_units_for_seg(segale_tgt_seg: str,
                             tgt_asr_units: List[str],
                             unit_i: int,
@@ -516,7 +589,7 @@ def _match_tgt_units_for_seg(segale_tgt_seg: str,
 # 问题2：
 # 中文标点
 # -----------------------------------
-def resegment(
+def step3_longyaal(
     yaml_file: str,
     source_sentences_file: str,   # ✅ 用 source.txt 来确定 seg 的源时间跨度
     instances_log: str,           # ✅ 用 delays/durations/elapsed
@@ -590,23 +663,72 @@ def resegment(
 
         doc_sent_list = sent_by_doc[doc_id]
 
+        # 整段 tgt + 每段在全文中的字符跨度，用于「整段 tokenize + 字符跨度」对齐，避免按句 tokenize 边界不一致
+        full_doc_tgt = _norm(inst.get("prediction_text") or "")
+        search_start = 0
+        seg_char_spans: List[Tuple[int, int]] = []
         for seg in segs:
+            seg_tgt = seg.get("tgt", "")
+            seg_norm = _norm(seg_tgt).strip()
+            if not seg_norm:
+                seg_char_spans.append((-1, -1))
+                continue
+            idx = full_doc_tgt.find(seg_norm, search_start)
+            if idx >= 0:
+                seg_char_spans.append((idx, idx + len(seg_norm)))
+                search_start = idx + len(seg_norm)
+            else:
+                seg_char_spans.append((-1, -1))
+
+        for seg_idx, seg in enumerate(segs):
             seg_src = seg.get("src", "")
             seg_tgt = seg.get("tgt", "")
             seg_ref = seg.get("ref", "")
 
             # 3.1 用 seg_src 在 source.txt 里顺序匹配，得到该 segment 的源时间范围
-            cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg(
-                seg_src, doc_sent_list, cursor_sent
-            )
+            # cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg(
+            #     seg_src, doc_sent_list, cursor_sent
+            # )
+            # ---------------------------------------------------\
+            src_ref_ids = seg.get("src_ref_ids") or []
+
+            if src_ref_ids:
+                try:
+                    cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg_by_ids(
+                        src_ref_ids, doc_sent_list
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "[fallback][src-ref-ids-invalid] doc=%s seg_id=%s src_ref_ids=%s err=%s",
+                        doc_id, seg.get("seg_id"), src_ref_ids, e
+                    )
+                    # cursor_sent 为 1-based，_match_src_span_for_seg 需要 0-based 起始下标，且不能越界
+                    list_j = max(0, min(cursor_sent - 1, len(doc_sent_list) - 1)) #
+                    cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg(
+                        # seg_src, doc_sent_list, cursor_sent
+                        seg_src, doc_sent_list, list_j
+                    )
+            else:
+                list_j = max(0, min(cursor_sent - 1, len(doc_sent_list) - 1)) #
+                cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg(
+                    # seg_src, doc_sent_list, cursor_sent
+                    seg_src, doc_sent_list, list_j
+                )
+            # ---------------------------------------------------/
             # 该 segment 的源长度（ms），至少为 1ms 防止除零/异常
             seg_source_len_ms = max(1.0, seg_end_ms - seg_start_ms)
 
-            # 3.2 用 seg_tgt 在 asr_units 里找连续子串，得到 unit 区间 [u_start, u_end)
-            cursor_unit, u_start, u_end = _match_tgt_units_for_seg(
-                seg_tgt, asr_units, cursor_unit,
-                doc_id=doc_id, seg_id=seg.get("seg_id")
-            )
+            # 3.2 用 seg_tgt 在 asr_units 里找 unit 区间 [u_start, u_end)：优先整段 tokenize+字符跨度，否则按句 needle 匹配
+            char_start, char_end = seg_char_spans[seg_idx] if seg_idx < len(seg_char_spans) else (-1, -1)
+            hit = _match_tgt_units_for_seg_by_char_span(full_doc_tgt, asr_units, char_start, char_end)
+            if hit is not None:
+                u_start, u_end = hit
+                cursor_unit = u_end
+            else:
+                cursor_unit, u_start, u_end = _match_tgt_units_for_seg(
+                    seg_tgt, asr_units, cursor_unit,
+                    doc_id=doc_id, seg_id=seg.get("seg_id")
+                )
 
             # 从全音频 delays/elapsed 切出这个 segment 的 unit 时间序列
             seg_delays = delays_all[u_start:u_end]
@@ -681,48 +803,3 @@ def resegment(
         f.write("\t".join([f"{v:.4f}" for v in scores.values()]) + "\n")
 
     logger.info(f"Done. segments={len(instances)}. Output -> {output_folder}")
-
-
-# ============================================================
-# CLI
-# ============================================================
-if __name__ == "__main__":
-    # parser = ArgumentParser(description="Compute YAAL on SEGALE segments for S2S (unit-level)")
-
-    # parser.add_argument("--yaml_file", type=str, required=True, help="ref_segments.yaml")
-    # parser.add_argument("--source_sentences_file", type=str, required=True, help="source.txt (line-aligned to yaml)")
-    # parser.add_argument("--instances_log", type=str, required=True, help="instances.log")
-    # parser.add_argument("--segale_file", type=str, required=True, help="segale.jsonl")
-    # parser.add_argument("--asr_dir", type=str, required=True, help="dir contains asr/*.json with time_stamps")
-    # parser.add_argument("--output_folder", type=str, required=True, help="output folder")
-    # parser.add_argument("--bleu_tokenizer", type=str, default="13a", help="Tokenizer for BLEU scorer (optional)")
-
-    # args = parser.parse_args()
-
-    # resegment(
-    #     yaml_file=args.yaml_file,
-    #     source_sentences_file=args.source_sentences_file,
-    #     instances_log=args.instances_log,
-    #     segale_file=args.segale_file,
-    #     asr_dir=args.asr_dir,
-    #     output_folder=args.output_folder,
-    #     bleu_tokenizer=args.bleu_tokenizer,
-    # )
-
-    yaml_file = "data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
-    source_sentences_file = "data/input/ACL.6060.dev.en-xx.en.txt"
-    instances_log = "data/output_qwen_asr3/instances.log"
-    segale_file = "data/output_segale3/hyp/aligned_spacy_hyp.jsonl"
-    asr_dir = "data/output_qwen_asr3"
-    output_folder = "data/output_longyaal3"
-    bleu_tokenizer = "zh"
-
-    resegment(
-        yaml_file=yaml_file,
-        source_sentences_file=source_sentences_file,
-        instances_log=instances_log,
-        segale_file=segale_file,
-        asr_dir=asr_dir,
-        output_folder=output_folder,
-        bleu_tokenizer=bleu_tokenizer,
-    )

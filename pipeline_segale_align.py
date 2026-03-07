@@ -577,6 +577,9 @@ def merge_ref_entries(entries):
         )
         info["ref"] = "\n".join([info["ref_list"][i] for i in sorted_indices])
         info["src"] = "\n".join([info["src_list"][i] for i in sorted_indices])
+
+        # 新增：保留排序后的原始 seg_id 顺序
+        info["src_ref_ids"] = [info["seg_ids"][i] for i in sorted_indices]
     return merged
 
 
@@ -595,6 +598,7 @@ def combine_system_ref(system_merged, ref_merged):
                 "ref": ref_merged.get(doc_id, {}).get("ref", ""),
                 "src_list": ref_merged.get(doc_id, {}).get("src_list", ""),
                 "ref_list": ref_merged.get(doc_id, {}).get("ref_list", ""),
+                "src_ref_ids": ref_merged.get(doc_id, {}).get("src_ref_ids", ""),  # 新增：保留排序后的原始 seg_id 顺序
             }
         )
     return combined
@@ -616,7 +620,27 @@ def aggregate_doc_id(doc_windows_list, window_key):
     return aggregated_lines, mapping
 
 
-def clean_lists(primary_list, secondary_list, doc_id):
+# def clean_lists(primary_list, secondary_list, doc_id):
+#     if len(primary_list) != len(secondary_list):
+#         raise ValueError("Both lists must have the same length.")
+#     indices_to_remove = [index for index, item in enumerate(primary_list) if item == ""]
+#     if indices_to_remove:
+#         print(f"WARNING: Empty string detected in source, doc_id = {doc_id}. dropped.")
+#     # Remove items from both lists based on identified indices
+#     primary_list = [
+#         item
+#         for index, item in enumerate(primary_list)
+#         if index not in indices_to_remove
+#     ]
+#     secondary_list = [
+#         item
+#         for index, item in enumerate(secondary_list)
+#         if index not in indices_to_remove
+#     ]
+#     return primary_list, secondary_list
+
+
+def clean_lists(primary_list, secondary_list, src_ref_ids, doc_id):
     if len(primary_list) != len(secondary_list):
         raise ValueError("Both lists must have the same length.")
     indices_to_remove = [index for index, item in enumerate(primary_list) if item == ""]
@@ -633,7 +657,12 @@ def clean_lists(primary_list, secondary_list, doc_id):
         for index, item in enumerate(secondary_list)
         if index not in indices_to_remove
     ]
-    return primary_list, secondary_list
+    src_ref_ids = [
+        item 
+        for index, item in enumerate(src_ref_ids)
+        if index not in indices_to_remove
+    ]
+    return primary_list, secondary_list, src_ref_ids
 
 
 # -----------------------------------------------------------------------------
@@ -644,11 +673,14 @@ def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8
     """
     Process a single merged document to prepare alignment windows.
     """
+    src_ref_ids = doc["src_ref_ids"]  ##
+
     doc_id = doc["doc_id"]
     src_sentences = doc["src_list"]
     ref_sentences = doc["ref_list"]
-    src_sentences, ref_sentences = clean_lists(src_sentences, ref_sentences, doc_id)
+    src_sentences, ref_sentences, src_ref_ids = clean_lists(src_sentences, ref_sentences, src_ref_ids, doc_id)  ##
     tgt_text = doc["tgt"]
+
 
     if SPACY != "spacy":
         mt_sentences = segment_sentences_by_ersatz(tgt_text)
@@ -688,7 +720,10 @@ def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8
         aligned_mt = (
             " ".join([mt_sentences[i] for i in mt_indices]) if mt_indices else ""
         )
-        aligned_tuple.append((aligned_src, aligned_ref, aligned_mt))
+
+        aligned_src_ref_ids = [src_ref_ids[i] for i in src_indices] if src_indices else []  ##
+
+        aligned_tuple.append((aligned_src, aligned_ref, aligned_mt, aligned_src_ref_ids))
         aligned_qe_tuple.append((aligned_src, aligned_mt))
 
     result_dict = {
@@ -718,7 +753,7 @@ def save_align_info(data, filename):
     """
     with open(filename, "w", encoding="utf-8") as f:
         for entry in data:
-            for i, (aligned_src, aligned_ref, aligned_mt) in enumerate(
+            for i, (aligned_src, aligned_ref, aligned_mt, aligned_src_ref_ids) in enumerate(
                 entry["ref_aligned"]
             ):
                 record = {
@@ -728,6 +763,7 @@ def save_align_info(data, filename):
                     "ref": aligned_ref,
                     "tgt": aligned_mt,
                     "seg_id": i + 1,
+                    "src_ref_ids": aligned_src_ref_ids,  ##
                 }
                 json.dump(record, f, ensure_ascii=False)
                 f.write("\n")

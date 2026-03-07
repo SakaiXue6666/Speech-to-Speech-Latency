@@ -273,8 +273,8 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 # Example usage
 async def main():
     conf = Config(ws_url="wss://openspeech.bytedance.com/api/v4/ast/v2/translate",
-                   app_key="xxxxxxxxx",
-                   access_key="xxxxxxxxxxxxxxxxxxxxx",
+                   app_key="2476390117",
+                   access_key="J0QUKxRJb9j32MYmWOgoQ7d-n_jLI5Uk",
                   resource_id="volc.service_type.10053")
     start = time.time()
     task = asyncio.create_task(translate_v4(conf, "test_audio.wav", 1))
