@@ -1,7 +1,7 @@
 import os
-from qwen3_asr_pipeline import step1_asr
-from segale_align_pipeline import step2_segale
-from longyaal_pipeline import step3_longyaal
+from pipeline_qwen3_asr2 import step1_asr
+from pipeline_segale_align import step2_segale
+from pipeline_longyaal3 import step3_longyaal
 
 import argparse
 import json
@@ -66,44 +66,36 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
             continue
 
         # 时间戳：优先 wav 相对 time_stamps，否则 time_stamps_no_gap
-        ts = asr.get("time_stamps") or asr.get("time_stamps_no_gap") or []
+        ts = asr.get("time_stamps") or []
 
-        # delays
-        delays = [int(round(t["start_time"] * 1000)) for t in ts]
-
-        # durations
-        durations = [int(round((t.get("end_time", t["start_time"]) - t["start_time"]) * 1000)) for t in ts]
-
-        # intervals
-        intervals = [[d, dur] for d, dur in zip(delays, durations)]
+        # delays  # len(delays) == len(units)
+        delays = [int(round(t["end_time"] * 1000)) for t in ts]
 
         # prediction_offset
         prediction_offset = delays[0] if delays else 0
 
-        # prediction_length：优先用 asr 里已写好的 prediction_length（qwen3_asr 用 timeline 算的），否则再读 timeline / wav / time_stamps
-        prediction_length = asr.get("prediction_length") or 0.0
-
-        tgt_path = asr.get("tgt") or ""
-
-        # source_length
+        tgt_path = os.path.normpath(asr.get("tgt") or "")
         src_path = os.path.normpath(asr.get("src", ""))
+
+        # prediction_length / source_length：统一用 wav 文件时长（秒）
+        prediction_length = _get_wav_duration_sec(tgt_path) if tgt_path else 0.0
         source_length_sec = _get_wav_duration_sec(src_path)
 
         prediction_text = asr.get("text") or ""
+        prediction_units = [t["text"] for t in ts if t.get("text")]
 
         rec = {
             "index": idx,
+            "source": src_path,
+            "reference": src_path,
             "prediction": tgt_path,
             "delays": delays,
-            "durations": durations,
             "elapsed": [],
-            "intervals": intervals,
             "prediction_offset": prediction_offset,
             "prediction_length": prediction_length,
             "source_length": source_length_sec,
-            "reference": src_path,
-            "source": src_path,
             "prediction_text": prediction_text,
+            "prediction_units": prediction_units,
         }
         instances.append(rec)
 
@@ -133,42 +125,46 @@ def asr_to_instances(
 # ============================================================================\
 
 def get_jsonl(src_txt, tgt_ref_txt, src_segments_yaml, instances):
+    # [src_row1, src_row2, ...]
     with open(src_txt, "r", encoding="utf-8") as f:
         src_text_lines = [line.rstrip("\n") for line in f]
-
+    # [ref_row1, ref_row2, ...]
     with open(tgt_ref_txt, "r", encoding="utf-8") as f:
         tgt_ref_text_lines = [line.rstrip("\n") for line in f]
-
+    # [{wav1, start_time_row1: end_time_row1}, {wav1, start_time_row2: end_time_row2}, ...]
     with open(src_segments_yaml, "r", encoding="utf-8") as f:
-        src_info_lines = yaml.safe_load(f)
+        src_yaml_lines = yaml.safe_load(f)
 
     src_for_hyp_docs = []
     ref_dicts = []
     curr_doc = None
 
-    for i in range(len(src_info_lines)):
+    for i in range(len(src_yaml_lines)):
         ref_dict = {
-            "src": src_text_lines[i],
-            "tgt": tgt_ref_text_lines[i],
+            "src": src_text_lines[i],  # src_row*
+            "tgt": tgt_ref_text_lines[i],  # ref_row*
             "sys_id": None,
-            "doc_id": src_info_lines[i]['wav'],
-            "seg_id": i + 1
+            "doc_id": src_yaml_lines[i]['wav'],  # {wav?, start_time_row*: end_time_row*}
+            "seg_id": i + 1  # * + 1
         }
         ref_dicts.append(ref_dict)
         # -----------------------------------------------------------
-        if src_info_lines[i]['wav'] != curr_doc:
-            src_for_hyp_docs.append({"doc_id": src_info_lines[i]['wav'], "src": ""})
-            curr_doc = src_info_lines[i]['wav']
+        # 给 hyp.jsonl 用的，把同一个 doc_id 的 src 拼在一起
+        if src_yaml_lines[i]['wav'] != curr_doc:
+            src_for_hyp_docs.append({"doc_id": src_yaml_lines[i]['wav'], "src": ""})
+            curr_doc = src_yaml_lines[i]['wav']
         src_for_hyp_docs[-1]["src"] += " " + src_text_lines[i]
     # -----------------------------------------------------------
     with open(instances, "r", encoding="utf-8") as f:
         instances_lines = [line.rstrip("\n") for line in f]
     
     hyp_dicts = []
+    # [({source1, prediction_text1, ...}), ({source2, prediction_text2, ...}), ...]
     for j in range(len(instances_lines)):
         instance_dict = json.loads(instances_lines[j])
         hyp_text = instance_dict["prediction_text"]
         for src_for_hyp_doc in src_for_hyp_docs:
+            # wav? 和 source? 都按 basename 匹配
             if src_for_hyp_doc["doc_id"] == os.path.basename(str(instance_dict["source"] or "")).replace("\\", "/"):
                 hyp_dict = {
                     "src": src_for_hyp_doc["src"],
@@ -211,61 +207,59 @@ def instances_to_segale(
 
 
 def main():
-    manifest = "data/output_volcengine_wav/manifest.jsonl"
+    manifest = "data/output_qwen_wav5/manifest.jsonl"
     tgt_language = "Chinese"
-    use_timeline_for_gap = True
-    use_first_src_send_for_t0 = True
-    output_dir_asr = "data/output_volcengine_asr"
+    output_dir_asr = "data/output_qwen_asr6"
+    batch_size = 10
 
     # print("\n" + "=" * 60)
     # print("Starting ASR...")
     # step1_asr(
     #     manifest=manifest,
     #     tgt_language=tgt_language,
-    #     use_timeline_for_gap=use_timeline_for_gap,
-    #     use_first_src_send_for_t0=use_first_src_send_for_t0,
     #     out_dir=output_dir_asr,
+    #     batch_size=batch_size,
     # )
     # print("ASR finished.")
 
     src_segments_yaml = "data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     output_path_instances = os.path.join(output_dir_asr, "instances.log")
 
-    # asr_to_instances(
-    #     s2s=True,
-    #     yaml_file=src_segments_yaml,
-    #     asr_dir=output_dir_asr,
-    #     output_file=output_path_instances,
-    # )
-
-    src_txt = "data/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt = "data/ACL.6060.dev.en-xx.zh.txt"
-    output_dir_segale = "data/output_volcengine_segale"
-
-    instances_to_segale(
-        src_txt=src_txt, 
-        tgt_ref_txt=tgt_ref_txt, 
-        src_segments_yaml=src_segments_yaml, 
-        instances=output_path_instances,
-        out_dir=output_dir_segale
+    asr_to_instances(
+        s2s=True,
+        yaml_file=src_segments_yaml,
+        asr_dir=output_dir_asr,
+        output_file=output_path_instances,
     )
+
+    src_txt = "data/input/ACL.6060.dev.en-xx.en.txt"
+    tgt_ref_txt = "data/input/ACL.6060.dev.en-xx.zh.txt"
+    output_dir_segale = "data/output_qwen_segale6"
+
+    # instances_to_segale(
+    #     src_txt=src_txt, 
+    #     tgt_ref_txt=tgt_ref_txt, 
+    #     src_segments_yaml=src_segments_yaml, 
+    #     instances=output_path_instances,
+    #     out_dir=output_dir_segale
+    # )
 
     task_lang = "zh"
 
-    print("\n" + "=" * 60)
-    print("Starting Segale...")
-    step2_segale(
-        system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
-        ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
-        segmenter="spacy",
-        task_lang=task_lang,
-        proc_device="cuda",
-        embedding_model="BAAI/bge-m3"
-    )
-    print("Segale finished.")
+    # print("\n" + "=" * 60)
+    # print("Starting Segale...")
+    # step2_segale(
+    #     system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
+    #     ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
+    #     segmenter="spacy",
+    #     task_lang=task_lang,
+    #     proc_device="cuda",
+    #     embedding_model="BAAI/bge-m3"
+    # )
+    # print("Segale finished.")
 
     segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
-    output_dir_longyaal = "data/output_volcengine_longyaal"
+    output_dir_longyaal = "data/output_qwen_longyaal6"
 
     print("\n" + "=" * 60)
     print("Starting Longyaal...")
@@ -274,7 +268,6 @@ def main():
         source_sentences_file=src_txt,
         instances_log=output_path_instances,
         segale_file=segale_file,
-        asr_dir=output_dir_asr,
         output_folder=output_dir_longyaal,
         bleu_tokenizer=task_lang,
     )

@@ -784,7 +784,7 @@ python main_new.py `
 --bleu_tokenizer 13a --offset_delays
 '''
 
-
+0
 if __name__ == "__main__":
 
     parser = ArgumentParser(description="Better MWER Segmenter")

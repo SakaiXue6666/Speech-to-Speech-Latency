@@ -145,7 +145,7 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
             continue
 
         # 时间戳：优先 wav 相对 time_stamps，否则 time_stamps_with_gap
-        ts = asr.get("time_stamps") or asr.get("time_stamps_with_gap") or []
+        ts = asr.get("time_stamps") or asr.get("time_stamps_no_gap") or []
 
         # delays
         delays = [int(round(t["start_time"] * 1000)) for t in ts]
