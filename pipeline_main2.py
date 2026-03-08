@@ -1,4 +1,6 @@
+import gc
 import os
+import torch
 from pipeline_qwen3_asr2 import step1_asr
 from pipeline_segale_align import step2_segale
 from pipeline_longyaal3 import step3_longyaal
@@ -212,17 +214,21 @@ def main():
     output_dir_asr = "data/output_qwen_asr6"
     batch_size = 10
 
-    # print("\n" + "=" * 60)
-    # print("Starting ASR...")
-    # step1_asr(
-    #     manifest=manifest,
-    #     tgt_language=tgt_language,
-    #     out_dir=output_dir_asr,
-    #     batch_size=batch_size,
-    # )
-    # print("ASR finished.")
+    print("\n" + "=" * 60)
+    print("Starting ASR...")
+    step1_asr(
+        manifest=manifest,
+        tgt_language=tgt_language,
+        out_dir=output_dir_asr,
+        batch_size=batch_size,
+    )
+    ### 释放显存
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    print("ASR finished.")
 
-    src_segments_yaml = "data/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
+    src_segments_yaml = "data/input2/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     output_path_instances = os.path.join(output_dir_asr, "instances.log")
 
     asr_to_instances(
@@ -232,31 +238,31 @@ def main():
         output_file=output_path_instances,
     )
 
-    src_txt = "data/input/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt = "data/input/ACL.6060.dev.en-xx.zh.txt"
+    src_txt = "data/input2/ACL.6060.dev.en-xx.en.txt"
+    tgt_ref_txt = "data/input2/ACL.6060.dev.en-xx.zh.txt"
     output_dir_segale = "data/output_qwen_segale6"
 
-    # instances_to_segale(
-    #     src_txt=src_txt, 
-    #     tgt_ref_txt=tgt_ref_txt, 
-    #     src_segments_yaml=src_segments_yaml, 
-    #     instances=output_path_instances,
-    #     out_dir=output_dir_segale
-    # )
+    instances_to_segale(
+        src_txt=src_txt, 
+        tgt_ref_txt=tgt_ref_txt, 
+        src_segments_yaml=src_segments_yaml, 
+        instances=output_path_instances,
+        out_dir=output_dir_segale
+    )
 
     task_lang = "zh"
 
-    # print("\n" + "=" * 60)
-    # print("Starting Segale...")
-    # step2_segale(
-    #     system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
-    #     ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
-    #     segmenter="spacy",
-    #     task_lang=task_lang,
-    #     proc_device="cuda",
-    #     embedding_model="BAAI/bge-m3"
-    # )
-    # print("Segale finished.")
+    print("\n" + "=" * 60)
+    print("Starting Segale...")
+    step2_segale(
+        system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
+        ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
+        segmenter="spacy",
+        task_lang=task_lang,
+        proc_device="cuda",
+        embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
+    )
+    print("Segale finished.")
 
     segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
     output_dir_longyaal = "data/output_qwen_longyaal6"
@@ -275,12 +281,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-

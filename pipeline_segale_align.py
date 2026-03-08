@@ -676,6 +676,8 @@ def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8
     src_ref_ids = doc["src_ref_ids"]  ##
 
     doc_id = doc["doc_id"]
+    # 首文档 embedding 计算量大且 GPU 首次推理会触发 CUDA 初始化，易被误认为卡住
+    print(f"  [doc] {doc_id} ...", flush=True)
     src_sentences = doc["src_list"]
     ref_sentences = doc["ref_list"]
     src_sentences, ref_sentences, src_ref_ids = clean_lists(src_sentences, ref_sentences, src_ref_ids, doc_id)  ##
@@ -877,13 +879,14 @@ def step2_segale(
     # Uncomment to use the pre-defined parameters
     # align_paras = load_alignment_summary(None)
 
-    print("align_paras: ", align_paras)
+    print("align_paras: ", align_paras, flush=True)
     STOP_JUMP = align_paras["min_jump"]
     COST_MAX = align_paras["cost_max"]
     COST_MIN = align_paras["cost_min"]
     MAX_OVERLAP = align_paras["overlap"]
 
     # 5. 读入并合并数据
+    print("Segale: reading jsonl and merging docs...", flush=True)
     system_entries = read_jsonl(system_file)
     ref_entries = read_jsonl(ref_file)
 
@@ -891,8 +894,11 @@ def step2_segale(
     ref_merged = merge_ref_entries(ref_entries)
 
     combined_docs = combine_system_ref(system_merged, ref_merged)
+    
+    print(f"Segale: {len(combined_docs)} docs.", flush=True)
 
     # 6. 加载 Embedding 模型
+    print("Loading embedding model...", flush=True)
     if embedding_model is None:
         try:
             from laser_encoders import LaserEncoderPipeline
@@ -908,6 +914,7 @@ def step2_segale(
         tokenizer, model = load_alternative_model(
             proc_device, embedding_model
         )
+    print("Embedding model ready.", flush=True)
 
     # 7. 逐文档对齐
     sequential_results = []

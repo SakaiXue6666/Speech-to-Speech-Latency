@@ -12,11 +12,6 @@ import traceback
 import numpy as np
 import soundfile as sf
 
-'''
-conda activate s2s_latency
-conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav4.py
-'''
-
 
 # [INFO] 翻译文本完成。
 # [INFO] 翻译文本: 我是你爸爸，我是你爸爸。你是谁？
@@ -609,10 +604,10 @@ class LiveTranslateClient:
                 "timeline": timeline_copy,   # ✅ 用复制的，不直接用 self.tgt_timeline
             }
             # 保存为 json 文件
-            os.makedirs(os.path.dirname(self.save_timeline_path) or ".", exist_ok=True)
-            with open(self.save_timeline_path, "w", encoding="utf-8") as f:
-                json.dump(payload, f, ensure_ascii=False, indent=2)
-            print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
+            # os.makedirs(os.path.dirname(self.save_timeline_path) or ".", exist_ok=True)
+            # with open(self.save_timeline_path, "w", encoding="utf-8") as f:
+            #     json.dump(payload, f, ensure_ascii=False, indent=2)
+            # print(f"[INFO] 已保存 tgt 时间线: {self.save_timeline_path}")
 
         # 若设置了 src/tgt/timeline 路径，追加一条记录到 output_qwen_livetranslate2/manifest.jsonl
         if self.manifest_src_path and self.save_tgt_wav_path and self.save_timeline_path:
@@ -621,7 +616,7 @@ class LiveTranslateClient:
             record = {
                 "src": self.manifest_src_path,
                 "tgt": self.save_tgt_wav_path,
-                "tgt_timeline": self.save_timeline_path,
+                # "tgt_timeline": self.save_timeline_path,
             }
             with open(manifest_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -755,5 +750,10 @@ async def main(audio_path: str = "data/2022.acl-long.268.wav", out_dir: str = "d
         await client.close()
         print("程序已退出。")
 
+'''
+conda activate s2s_latency
+conda run --no-capture-output -n s2s_latency python -u qwen_livetranslate_wav4.py
+'''
+
 if __name__ == "__main__":
-    asyncio.run(main(audio_path="data/input/acl_6060_dev/2022.acl-long.268.wav", out_dir="data/output_qwen_wav5"))
+    asyncio.run(main(audio_path="data/input/acl_6060_dev/2022.acl-long.117.wav", out_dir="data/output_qwen_wav5"))
