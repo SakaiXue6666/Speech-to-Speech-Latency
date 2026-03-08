@@ -29,6 +29,7 @@ Covers:
 
 import argparse
 import base64
+import gc
 import io
 import json
 import os
@@ -374,3 +375,9 @@ def step1_asr(
         out_dir=out_dir,
         batch_size=batch_size,
     )
+
+    ### 释放显存
+    del asr
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
