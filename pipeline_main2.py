@@ -3,7 +3,7 @@ import os
 import torch
 from pipeline_qwen3_asr2 import step1_asr
 from pipeline_segale_align import step2_segale
-from pipeline_longyaal3 import step3_longyaal
+from pipeline_longyaal5 import step3_longyaal
 
 import argparse
 import json
@@ -207,65 +207,69 @@ def instances_to_segale(
     print("saved:", out_path_ref, out_path_hyp)
 # ============================================================================/
 
+input_name = "input"
+output_name = "output"
+model_name = "volcengine"
+version = "2_100ms"
 
 def main():
-    manifest = "data/output_qwen_wav5/manifest.jsonl"
+    manifest = f"data/{output_name}_{model_name}_wav{version}/manifest.jsonl"
     tgt_language = "Chinese"
-    output_dir_asr = "data/output_qwen_asr6"
+    output_dir_asr = f"data/{output_name}_{model_name}_asr{version}"
     batch_size = 10
 
-    print("\n" + "=" * 60)
-    print("Starting ASR...")
-    step1_asr(
-        manifest=manifest,
-        tgt_language=tgt_language,
-        out_dir=output_dir_asr,
-        batch_size=batch_size,
-    )
-    ### 释放显存
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    print("ASR finished.")
+    # print("\n" + "=" * 60)
+    # print("Starting ASR...")
+    # step1_asr(
+    #     manifest=manifest,
+    #     tgt_language=tgt_language,
+    #     out_dir=output_dir_asr,
+    #     batch_size=batch_size,
+    # )
+    # ### 释放显存
+    # gc.collect()
+    # if torch.cuda.is_available():
+    #     torch.cuda.empty_cache()
+    # print("ASR finished.")
 
-    src_segments_yaml = "data/input2/ACL.ACLdev2023.en-xx.gold_segments.yaml"
+    src_segments_yaml = f"data/{input_name}/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     output_path_instances = os.path.join(output_dir_asr, "instances.log")
 
-    asr_to_instances(
-        s2s=True,
-        yaml_file=src_segments_yaml,
-        asr_dir=output_dir_asr,
-        output_file=output_path_instances,
-    )
+    # asr_to_instances(
+    #     s2s=True,
+    #     yaml_file=src_segments_yaml,
+    #     asr_dir=output_dir_asr,
+    #     output_file=output_path_instances,
+    # )
 
-    src_txt = "data/input2/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt = "data/input2/ACL.6060.dev.en-xx.zh.txt"
-    output_dir_segale = "data/output_qwen_segale6"
+    src_txt = f"data/{input_name}/ACL.6060.dev.en-xx.en.txt"
+    tgt_ref_txt = f"data/{input_name}/ACL.6060.dev.en-xx.zh.txt"
+    output_dir_segale = f"data/{output_name}_{model_name}_segale{version}"
 
-    instances_to_segale(
-        src_txt=src_txt, 
-        tgt_ref_txt=tgt_ref_txt, 
-        src_segments_yaml=src_segments_yaml, 
-        instances=output_path_instances,
-        out_dir=output_dir_segale
-    )
+    # instances_to_segale(
+    #     src_txt=src_txt, 
+    #     tgt_ref_txt=tgt_ref_txt, 
+    #     src_segments_yaml=src_segments_yaml, 
+    #     instances=output_path_instances,
+    #     out_dir=output_dir_segale
+    # )
 
     task_lang = "zh"
 
-    print("\n" + "=" * 60)
-    print("Starting Segale...")
-    step2_segale(
-        system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
-        ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
-        segmenter="spacy",
-        task_lang=task_lang,
-        proc_device="cuda",
-        embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
-    )
-    print("Segale finished.")
+    # print("\n" + "=" * 60)
+    # print("Starting Segale...")
+    # step2_segale(
+    #     system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
+    #     ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
+    #     segmenter="spacy",
+    #     task_lang=task_lang,
+    #     proc_device="cuda",
+    #     embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
+    # )
+    # print("Segale finished.")
 
     segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
-    output_dir_longyaal = "data/output_qwen_longyaal6"
+    output_dir_longyaal = f"data/{output_name}_{model_name}_longyaal{version}"
 
     print("\n" + "=" * 60)
     print("Starting Longyaal...")
