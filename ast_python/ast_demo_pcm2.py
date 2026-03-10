@@ -425,8 +425,9 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 
     # Save results
     if recv_audio:
+        tgt_stem = f"{Path(audio_path).stem}_tgt"
         # os.makedirs(out_dir, exist_ok=True)
-        # output_path = Path(out_dir) / f"translate_audio_{n:05}.opus"
+        # output_path = Path(out_dir) / f"{tgt_stem}.opus"
         # try:
         #     with open(output_path, 'wb') as f:
         #         f.write(recv_audio)
@@ -455,7 +456,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
         logging.info(f"FINAL AUDIO signature={sig}, total_bytes={len(recv_audio)}")
 
         # 1) 永远先把原始返回落盘，方便排查
-        raw_path = Path(out_dir) / f"translate_audio_{n:05}.bin"
+        raw_path = Path(out_dir) / f"{tgt_stem}.bin"
         # with open(raw_path, 'wb') as f:
         #     f.write(recv_audio)
         # logging.info(f"Raw bytes saved as: {raw_path}")
@@ -463,7 +464,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
         # 2) 如果看起来像 OGG，就按 OGG 保存
         manifest_tgt = None
         if sig == "ogg":
-            opus_path = Path(out_dir) / f"translate_audio_{n:05}.opus"
+            opus_path = Path(out_dir) / f"{tgt_stem}.opus"
             with open(opus_path, 'wb') as f:
                 f.write(recv_audio)
             logging.warning(f"Requested PCM but got OGG-like data. Saved as: {opus_path}")
@@ -488,7 +489,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 
         # 3) 如果看起来像 WAV，就按 WAV 保存
         elif sig == "wav":
-            wav_path = Path(out_dir) / f"translate_audio_{n:05}.wav"
+            wav_path = Path(out_dir) / f"{tgt_stem}.wav"
             with open(wav_path, 'wb') as f:
                 f.write(recv_audio)
             logging.warning(f"Requested PCM but got WAV-like data. Saved as: {wav_path}")
@@ -496,13 +497,13 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 
         # 4) 否则按 PCM 处理，并给两份 wav 猜测版
         else:
-            pcm_path = Path(out_dir) / f"translate_audio_{n:05}.pcm"
+            pcm_path = Path(out_dir) / f"{tgt_stem}.pcm"
             # with open(pcm_path, 'wb') as f:
             #     f.write(recv_audio)
             # logging.info(f"PCM/raw bytes saved as: {pcm_path}")
 
             # 假设 24k / mono / int16
-            wav16_path = Path(out_dir) / f"translate_audio_{n:05}_24k_s16.wav"
+            wav16_path = Path(out_dir) / f"{tgt_stem}_24k_s16.wav"
             # try:
             #     save_pcm_as_wav(
             #         recv_audio,
@@ -515,7 +516,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
             # except Exception as e:
             #     logging.warning(f"Wrap PCM -> WAV(16-bit) failed: {e}")
 
-            gap_output_path = Path(out_dir) / f"translate_audio_{n:05}_gap.wav"
+            gap_output_path = Path(out_dir) / f"{tgt_stem}.wav"
             try:
                 t0 = first_send_timestamp if first_send_timestamp else (timeline[0]["heard_start"] if timeline else 0.0)
 
@@ -541,7 +542,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
                 logging.warning(f"Build gap WAV failed: {e}")
                 manifest_tgt = str(wav16_path)
 
-            timeline_path = Path(out_dir) / f"translate_audio_{n:05}_timeline.json"
+            timeline_path = Path(out_dir) / f"{tgt_stem}_timeline.json"
             try:
                 payload = {
                     "first_send_timestamp": first_send_timestamp,
