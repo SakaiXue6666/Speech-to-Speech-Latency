@@ -1,11 +1,13 @@
 import asyncio
-import subprocess
+import audioop
+import contextlib
+import io
 import uuid
 import os
 from pathlib import Path
 from dataclasses import dataclass
 import logging
-from typing import Optional, List
+from typing import Optional, List, Callable, Tuple
 import websockets
 from websockets import Headers
 import sys
@@ -13,6 +15,9 @@ import time
 import json
 from google.protobuf.json_format import MessageToDict
 from websockets.legacy.exceptions import InvalidStatusCode
+import pyaudio
+import wave as wf
+import numpy as np
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +31,9 @@ sys.path.append(protogen_dir)
 # 现在可以直接导入所有模块
 from products.understanding.ast.ast_service_pb2 import TranslateRequest, ReqParams, TranslateResponse
 from common.events_pb2 import Type
+
+# 根据 try.py 检测结果固定为 True：服务端 PCM 更像 big-endian，播放前需 byteswap
+PCM_BYTESWAP = True
 
 # Configuration
 @dataclass
@@ -69,11 +77,14 @@ class TranslateResponseData:
 
 
 async def read_audio_chunks(audio_path: str, chunk_size: int) -> List[bytes]:
-    """Read audio file in chunks"""
+    """Read 16k/16bit/mono WAV PCM chunks."""
     chunks = []
-    with open(audio_path, 'rb') as f:
+    with wf.open(audio_path, "rb") as wav_in:
+        if wav_in.getnchannels() != 1 or wav_in.getsampwidth() != 2 or wav_in.getframerate() != 16000:
+            raise ValueError("输入必须是 16kHz/16bit/单声道 WAV")
+        frames_per_chunk = chunk_size // 2  # 16-bit
         while True:
-            chunk = f.read(chunk_size)
+            chunk = wav_in.readframes(frames_per_chunk)
             if not chunk:
                 break
             chunks.append(chunk)
@@ -94,13 +105,16 @@ async def send_request(ws, request: TranslateRequestData):
     request_data.user.uid = "ast_py_client"
     request_data.user.did = "ast_py_client"
     request_data.source_audio.format = "wav"
+    request_data.source_audio.codec = "raw"
     request_data.source_audio.rate = 16000
     request_data.source_audio.bits = 16
     request_data.source_audio.channel = 1
     if request.source_audio.binary_data:
         request_data.source_audio.binary_data = request.source_audio.binary_data
-    request_data.target_audio.format = "ogg_opus"
+    request_data.target_audio.format = "pcm"
     request_data.target_audio.rate = 24000
+    request_data.target_audio.bits = 16
+    request_data.target_audio.channel = 1
     request_data.request.mode = "s2s"
     request_data.request.source_language = "zh"
     request_data.request.target_language = "en"
@@ -145,11 +159,110 @@ async def build_http_headers(conf: Config, conn_id: str) -> Headers:
     })
     return headers
 
+
+def decode_ogg_chunk_to_pcm(opus_chunk: bytes):
+    """Decode a single ogg_opus chunk to int16 mono PCM bytes."""
+    try:
+        import av
+    except Exception:
+        return b""
+
+
+def _smoothness_score_i16(arr_i16: np.ndarray) -> float:
+    if arr_i16.size < 3:
+        return 1e9
+    diff = np.abs(np.diff(arr_i16.astype(np.int32))).mean()
+    amp = np.abs(arr_i16.astype(np.int32)).mean() + 1.0
+    zcr = np.mean(np.abs(np.diff(np.signbit(arr_i16)).astype(np.float32)))
+    # 越小越像语音（更平滑、过零率更低）
+    return float(diff / amp + zcr * 2.0)
+
+
+def _pcm_decoder_candidates(raw: bytes) -> List[Tuple[str, Callable[[bytes], bytes]]]:
+    cands = []
+
+    # int16 mono/stereo little/big
+    def mk_i16_decoder(dtype_str: str, channels: int):
+        def _decode(b: bytes):
+            if len(b) < 2:
+                return b""
+            b2 = b[: len(b) - (len(b) % 2)]
+            x = np.frombuffer(b2, dtype=np.dtype(dtype_str))
+            if channels == 2 and x.size >= 2:
+                x = x[: x.size - (x.size % 2)].reshape(-1, 2).mean(axis=1).astype(np.int16)
+            else:
+                x = x.astype(np.int16)
+            return x.tobytes()
+        return _decode
+
+    cands.append(("i16-le-mono", mk_i16_decoder("<i2", 1)))
+    cands.append(("i16-be-mono", mk_i16_decoder(">i2", 1)))
+    cands.append(("i16-le-stereo", mk_i16_decoder("<i2", 2)))
+    cands.append(("i16-be-stereo", mk_i16_decoder(">i2", 2)))
+
+    # float32 mono/stereo little/big
+    def mk_f32_decoder(dtype_str: str, channels: int):
+        def _decode(b: bytes):
+            if len(b) < 4:
+                return b""
+            b4 = b[: len(b) - (len(b) % 4)]
+            x = np.frombuffer(b4, dtype=np.dtype(dtype_str))
+            if channels == 2 and x.size >= 2:
+                x = x[: x.size - (x.size % 2)].reshape(-1, 2).mean(axis=1)
+            x = np.clip(x, -1.0, 1.0)
+            x = (x * 32767.0).astype(np.int16)
+            return x.tobytes()
+        return _decode
+
+    cands.append(("f32-le-mono", mk_f32_decoder("<f4", 1)))
+    cands.append(("f32-be-mono", mk_f32_decoder(">f4", 1)))
+    cands.append(("f32-le-stereo", mk_f32_decoder("<f4", 2)))
+    cands.append(("f32-be-stereo", mk_f32_decoder(">f4", 2)))
+
+    return cands
+
+
+def select_best_pcm_decoder(first_chunk: bytes) -> Tuple[str, Callable[[bytes], bytes]]:
+    best_name = "raw-passthrough"
+    best_decoder = lambda b: b
+    best_score = 1e18
+
+    for name, decoder in _pcm_decoder_candidates(first_chunk):
+        pcm = decoder(first_chunk)
+        if len(pcm) < 320:
+            continue
+        arr = np.frombuffer(pcm, dtype=np.int16)
+        score = _smoothness_score_i16(arr)
+        if score < best_score:
+            best_score = score
+            best_name = name
+            best_decoder = decoder
+    return best_name, best_decoder
+    try:
+        container = av.open(io.BytesIO(opus_chunk), format="ogg")
+        stream = container.streams.audio[0]
+        out = []
+        for frame in container.decode(stream):
+            arr = frame.to_ndarray()
+            if arr.dtype.kind == "f":
+                arr = (arr * 32767).clip(-32768, 32767).astype(np.int16)
+            elif arr.dtype != np.int16:
+                arr = arr.astype(np.int16)
+            if arr.ndim > 1:
+                arr = arr.mean(axis=0).astype(np.int16)
+            out.append(arr)
+        container.close()
+        if not out:
+            return b""
+        return np.concatenate(out).tobytes()
+    except Exception:
+        return b""
+
 async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "output"):
     """Main translation function"""
     # Read audio chunks
     try:
-        audio_chunks = await read_audio_chunks(audio_path, 3200)  # 100ms chunks
+        audio_chunks = await read_audio_chunks(audio_path, 2560)  # 80ms chunks
     except Exception as e:
         logging.error(f"Read audio chunks from file: {e}")
         return
@@ -180,7 +293,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
         session_id=session_id,
         event="Type_StartSession",
         source_audio=Audio(format="wav", rate=16000, bits=16, channel=1),
-        target_audio=Audio(format="ogg_opus", rate=24000),
+        target_audio=Audio(format="pcm", rate=24000, bits=16, channel=1),
         mode="s2s",
         source_language="zh",
         target_language="en"
@@ -212,7 +325,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
                     source_audio=Audio(binary_data=chunk)
                 )
                 await send_request(conn, chunk_request)
-                await asyncio.sleep(0.1)  # 100ms delay
+                await asyncio.sleep(len(chunk) / (16000 * 2))
             # Send finish session
             finish_request = TranslateRequestData(
                 session_id=session_id,
@@ -230,6 +343,17 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
     # Receive responses
     recv_audio = bytearray()
     recv_text = []
+    p = pyaudio.PyAudio()
+    stream = p.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=24000,
+        output=True
+    )
+    session_failed = False
+    audio_mode = "unknown"  # unknown/pcm/ogg
+    pcm_decoder_name = None
+    pcm_decoder: Optional[Callable[[bytes], bytes]] = None
 
     try:
         while True:
@@ -242,45 +366,63 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
             )
             if resp.event == Type.SessionFailed or resp.event == Type.SessionCanceled:
                 logging.error(f"Session failed, message: {resp.message} logid: {log_id} event: {resp.event} message: {resp.message}")
-                raise Exception("Session faild")
+                session_failed = True
                 break
 
             if resp.event == Type.SessionFinished:
                 break
-            if resp.event != Type.UsageResponse:  # Skip append UsageResponse message to recv_text
-                recv_audio.extend(resp.data)  ## ✌
+            if resp.event == Type.TTSResponse and resp.data:
+                pcm_bytes = resp.data
+                if audio_mode == "unknown":
+                    audio_mode = "ogg" if pcm_bytes.startswith(b"OggS") else "pcm"
+                    logging.info(f"Detected TTS audio mode: {audio_mode}")
+                if audio_mode == "ogg":
+                    pcm_bytes = decode_ogg_chunk_to_pcm(resp.data)
+                    if not pcm_bytes:
+                        continue
+                else:
+                    if pcm_decoder is None:
+                        pcm_decoder_name, pcm_decoder = select_best_pcm_decoder(resp.data)
+                        logging.info(f"Selected PCM decoder: {pcm_decoder_name}")
+                    pcm_bytes = pcm_decoder(resp.data) if pcm_decoder else resp.data
+                if len(pcm_bytes) % 2 == 1:
+                    pcm_bytes = pcm_bytes[:-1]
+                if pcm_bytes:
+                    # 仅在原始 int16 PCM 通路时使用 byteswap；自动解码器若已按端序处理则不再重复 swap
+                    if audio_mode == "pcm" and PCM_BYTESWAP and pcm_decoder_name in ("i16-le-mono", "i16-le-stereo"):
+                        pcm_bytes = audioop.byteswap(pcm_bytes, 2)
+                    await asyncio.to_thread(stream.write, pcm_bytes)
+                    recv_audio.extend(pcm_bytes)
+            if resp.event != Type.UsageResponse and resp.text:
                 recv_text.append(resp.text)
     except Exception as e:
         logging.error(f"Receive message error: {e}")
     finally:
-        await sender_task  # Ensure sender completes
+        if session_failed and not sender_task.done():
+            sender_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await sender_task
         await conn.close()
+        try:
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+        except Exception:
+            pass
 
     # Save results
     if recv_audio:
         os.makedirs(out_dir, exist_ok=True)
-        output_path = Path(out_dir) / f"translate_audio_{n:05}.opus"
+        output_path = Path(out_dir) / f"translate_audio_{n:05}.wav"
         try:
-            with open(output_path, 'wb') as f:
-                f.write(recv_audio)
+            with open(str(output_path), "wb") as f:
+                with wf.open(f, "wb") as wav_out:
+                    wav_out.setnchannels(1)
+                    wav_out.setsampwidth(2)
+                    wav_out.setframerate(24000)
+                    wav_out.writeframes(bytes(recv_audio))
             logging.info(f"Session finished, audio is saved as: {output_path}")
             logging.info(f"Session finished, text is: {' '.join(recv_text)}")
-            # 再转一份 wav 便于直接播放（优先用 imageio_ffmpeg 自带的 ffmpeg，免装系统 ffmpeg）
-            wav_path = output_path.with_suffix(".wav")
-            try:
-                try:
-                    import imageio_ffmpeg
-                    _ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-                except Exception:
-                    _ffmpeg = "ffmpeg"
-                subprocess.run(
-                    [_ffmpeg, "-y", "-i", str(output_path), str(wav_path)],
-                    check=True,
-                    capture_output=True,
-                )
-                logging.info(f"Session finished, wav is saved as: {wav_path}")
-            except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logging.warning(f"opus -> wav failed. pip install imageio-ffmpeg or install ffmpeg: {e}")
         except Exception as e:
             logging.error(f"Save audio file: {e}")
     else:
@@ -288,7 +430,7 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 
 '''
 pip install imageio-ffmpeg
-python ast_python/ast_demo.py
+python ast_python/ast_demo_pcm.py
 '''
 
 # Example usage
@@ -298,7 +440,7 @@ async def main():
                    access_key="J0QUKxRJb9j32MYmWOgoQ7d-n_jLI5Uk",
                   resource_id="volc.service_type.10053")
     start = time.time()
-    task = asyncio.create_task(translate_v4(conf, "data/input/acl_6060_dev/2022.acl-long.268.wav", 1, "ast_python/output_demo_268"))
+    task = asyncio.create_task(translate_v4(conf, "ast_python/test_audio.wav", 1, "ast_python/output2"))
     
     await  task
     end = time.time()

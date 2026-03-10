@@ -2,6 +2,7 @@ import asyncio
 import subprocess
 import uuid
 import os
+import io
 from pathlib import Path
 from dataclasses import dataclass
 import logging
@@ -13,6 +14,9 @@ import time
 import json
 from google.protobuf.json_format import MessageToDict
 from websockets.legacy.exceptions import InvalidStatusCode
+import numpy as np
+import wave as wf
+import pyaudio
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -145,6 +149,34 @@ async def build_http_headers(conf: Config, conn_id: str) -> Headers:
     })
     return headers
 
+
+def decode_ogg_chunk_to_pcm(opus_chunk: bytes):
+    """Decode a single ogg_opus chunk to int16 mono PCM bytes."""
+    try:
+        import av
+    except Exception:
+        return b""
+    try:
+        container = av.open(io.BytesIO(opus_chunk), format="ogg")
+        stream = container.streams.audio[0]
+        out = []
+        for frame in container.decode(stream):
+            arr = frame.to_ndarray()
+            if arr.dtype.kind == "f":
+                arr = (arr * 32767).clip(-32768, 32767).astype(np.int16)
+            elif arr.dtype != np.int16:
+                arr = arr.astype(np.int16)
+            if arr.ndim > 1:
+                arr = arr.mean(axis=0).astype(np.int16)
+            out.append(arr)
+        container.close()
+        if not out:
+            return b""
+        return np.concatenate(out).tobytes()
+    except Exception:
+        return b""
+
+
 async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "output"):
     """Main translation function"""
     # Read audio chunks
@@ -200,12 +232,18 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
         logging.error(f"Start session: {e}")
         await conn.close()
         return
+    
+    # Send audio chunks
+    first_send_timestamp = None
 
     # Send audio chunks
     async def send_audio_chunks():
+        nonlocal first_send_timestamp
         try:
             for i, chunk in enumerate(audio_chunks):
                 logging.info(f"Sending chunk: {len(chunk)}")
+                if first_send_timestamp is None:
+                    first_send_timestamp = time.time()
                 chunk_request = TranslateRequestData(
                     session_id=session_id,
                     event="Type_TaskRequest",
@@ -227,9 +265,22 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
     # Start sender task
     sender_task = asyncio.create_task(send_audio_chunks())
 
+    # Initialize audio playback
+    p = pyaudio.PyAudio()
+    stream = p.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=24000,
+        output=True
+    )
+
     # Receive responses
     recv_audio = bytearray()
     recv_text = []
+    timeline = []
+    chunk_id = 0
+    prev_heard_end = 0.0
+    first_send_timestamp = None  # 会在发送开始时设置
 
     try:
         while True:
@@ -247,40 +298,151 @@ async def translate_v4(conf: Config,audio_path: str, n: int, out_dir: str = "out
 
             if resp.event == Type.SessionFinished:
                 break
-            if resp.event != Type.UsageResponse:  # Skip append UsageResponse message to recv_text
-                recv_audio.extend(resp.data)  ## ✌
+            if resp.event == Type.TTSResponse and resp.data:
+                # 记录接收时间戳
+                receive_ts = time.time()
+                
+                # 用 len(resp.data) 计算估算时长
+                # Opus 24kHz 压缩比通常 6:1 到 20:1，根据数据大小动态调整
+                data_size_kb = len(resp.data) / 1024.0
+                if data_size_kb < 2:  # 小块，假设高压缩比
+                    bytes_per_sec = 3000.0  # ~15:1 压缩比
+                elif data_size_kb < 5:  # 中等块
+                    bytes_per_sec = 4000.0  # ~12:1 压缩比  
+                else:  # 大块，假设低压缩比
+                    bytes_per_sec = 6000.0  # ~8:1 压缩比
+                
+                estimated_duration_sec = len(resp.data) / bytes_per_sec
+                
+                # 使用接收时间和duration估计真实听到时间
+                heard_start = max(receive_ts, prev_heard_end)
+                heard_end = heard_start + estimated_duration_sec
+                prev_heard_end = heard_end
+                
+                # 记录 timeline
+                timeline.append({
+                    "chunk_id": chunk_id,
+                    "receive_timestamp": float(receive_ts),
+                    "estimated_duration_sec": float(estimated_duration_sec),
+                    "data_length": len(resp.data),
+                    "heard_start": float(heard_start),
+                    "heard_end": float(heard_end),
+                    "output_time_sec": float(heard_start - first_send_timestamp) if first_send_timestamp else None,
+                    "receive_time_sec": float(receive_ts - first_send_timestamp) if first_send_timestamp else None,
+                })
+                
+                # 可选：实时播放（需要PCM解码，影响性能）
+                # 如果不需要实时播放，可以注释掉下面这部分以提高性能
+                # pcm_bytes = decode_ogg_chunk_to_pcm(resp.data)
+                # if pcm_bytes:
+                #     await asyncio.to_thread(stream.write, pcm_bytes)
+                
+                recv_audio.extend(resp.data)
+                chunk_id += 1
+                
+            if resp.event != Type.UsageResponse and resp.text:
                 recv_text.append(resp.text)
     except Exception as e:
         logging.error(f"Receive message error: {e}")
     finally:
         await sender_task  # Ensure sender completes
         await conn.close()
+        try:
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+        except Exception:
+            pass
 
     # Save results
     if recv_audio:
         os.makedirs(out_dir, exist_ok=True)
-        output_path = Path(out_dir) / f"translate_audio_{n:05}.opus"
+        opus_output_path = Path(out_dir) / f"translate_audio_{n:05}.opus"
         try:
-            with open(output_path, 'wb') as f:
+            # 1) 保存原始 opus 文件
+            with open(opus_output_path, 'wb') as f:
                 f.write(recv_audio)
-            logging.info(f"Session finished, audio is saved as: {output_path}")
-            logging.info(f"Session finished, text is: {' '.join(recv_text)}")
-            # 再转一份 wav 便于直接播放（优先用 imageio_ffmpeg 自带的 ffmpeg，免装系统 ffmpeg）
-            wav_path = output_path.with_suffix(".wav")
+            logging.info(f"[INFO] 已保存原始 opus 音频: {opus_output_path}")
+
+            # 2) 用 ffmpeg 转成 wav
+            wav_output_path = opus_output_path.with_suffix(".wav")
             try:
                 try:
                     import imageio_ffmpeg
-                    _ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+                    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
                 except Exception:
-                    _ffmpeg = "ffmpeg"
-                subprocess.run(
-                    [_ffmpeg, "-y", "-i", str(output_path), str(wav_path)],
-                    check=True,
-                    capture_output=True,
-                )
-                logging.info(f"Session finished, wav is saved as: {wav_path}")
+                    ffmpeg_exe = "ffmpeg"
+                subprocess.run([
+                    ffmpeg_exe, "-y", "-i", str(opus_output_path), 
+                    "-acodec", "pcm_s16le", "-ar", "24000", "-ac", "1", str(wav_output_path)
+                ], check=True, capture_output=True)
+                logging.info(f"[INFO] 已转码为 wav: {wav_output_path}")
             except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logging.warning(f"opus -> wav failed. pip install imageio-ffmpeg or install ffmpeg: {e}")
+                logging.warning(f"opus -> wav 转换失败: {e}")
+                wav_output_path = None
+
+            # 3) 根据 timeline 补齐 gap（使用估算的时长信息）
+            if timeline and first_send_timestamp and wav_output_path and wav_output_path.exists():
+                t0 = first_send_timestamp
+                
+                # 读取完整的WAV文件
+                with wf.open(str(wav_output_path), "rb") as wav_in:
+                    sample_rate = wav_in.getframerate()
+                    channels = wav_in.getnchannels()
+                    frames = wav_in.readframes(wav_in.getnframes())
+                    all_samples = np.frombuffer(frames, dtype=np.int16)
+                    if channels == 2:
+                        all_samples = all_samples.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                
+                # 使用 timeline 中的估算时长来分割音频
+                rendered_parts = []
+                write_cursor = 0
+                
+                for ent in timeline:
+                    # 根据估算的时长计算这块音频应该有多少采样点
+                    estimated_samples = int(round(ent["estimated_duration_sec"] * sample_rate))
+                    
+                    # 从完整音频中取出对应长度的片段
+                    chunk_audio = all_samples[write_cursor:write_cursor + estimated_samples]
+                    
+                    # 计算在时间轴上的目标位置
+                    target_pos = int(round((ent["heard_start"] - t0) * sample_rate))
+                    
+                    # 补齐 gap
+                    if target_pos > write_cursor:
+                        silence_len = target_pos - write_cursor
+                        rendered_parts.append(np.zeros(silence_len, dtype=np.int16))
+                        write_cursor += silence_len
+                    
+                    # 添加音频块
+                    rendered_parts.append(chunk_audio)
+                    write_cursor += len(chunk_audio)
+                
+                if rendered_parts:
+                    rendered = np.concatenate(rendered_parts)
+                    gap_output_path = Path(out_dir) / f"translate_audio_{n:05}_gap.wav"
+                    with open(str(gap_output_path), "wb") as f:
+                        with wf.open(f, "wb") as wav_out:
+                            wav_out.setnchannels(1)
+                            wav_out.setsampwidth(2)
+                            wav_out.setframerate(sample_rate)
+                            wav_out.writeframes(rendered.tobytes())
+                    logging.info(f"[INFO] 已保存 gap 补齐音频: {gap_output_path}")
+
+            logging.info(f"Session finished, opus is saved as: {opus_output_path}")
+            if wav_output_path:
+                logging.info(f"Session finished, wav is saved as: {wav_output_path}")
+            logging.info(f"Session finished, text is: {' '.join(recv_text)}")
+
+            # 保存 manifest.jsonl
+            manifest_path = Path(out_dir) / "manifest.jsonl"
+            manifest_record = {
+                "src": audio_path,
+                "tgt": str(gap_output_path) if 'gap_output_path' in locals() and gap_output_path.exists() else str(wav_output_path or opus_output_path),
+            }
+            with open(str(manifest_path), "a", encoding="utf-8") as f:
+                f.write(json.dumps(manifest_record, ensure_ascii=False) + "\n")
+            logging.info(f"[INFO] 已追加记录到: {manifest_path}")
         except Exception as e:
             logging.error(f"Save audio file: {e}")
     else:
