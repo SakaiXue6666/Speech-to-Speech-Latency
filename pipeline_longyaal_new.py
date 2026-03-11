@@ -13,6 +13,8 @@ import yaml
 import json
 import os
 
+from dataclasses import dataclass
+
 from pipeline_qwen3_forcealign_tokenizer2 import Qwen3ForceAlignTokenizer
 
 qwen_tok = Qwen3ForceAlignTokenizer()
@@ -225,24 +227,6 @@ def _is_latin_token(tok: str) -> bool:
     return all(0x20 <= ord(c) < 0x4E00 for c in tok)
 
 
-# def _token_match_loose(n_tok: str, h_tok: str) -> bool:
-#     n = (n_tok or "").strip()
-#     h = (h_tok or "").strip()
-#     if not n:
-#         return True
-#     if n == h or h.startswith(n):
-#         return True
-
-#     n_norm = _normalize_token_for_match(n)
-#     h_norm = _normalize_token_for_match(h)
-#     if not n_norm:
-#         return True
-
-#     return (
-#         n_norm == h_norm
-#         or h_norm.startswith(n_norm)
-#         or n_norm.startswith(h_norm)
-#     )
 def _token_match_loose(n_tok: str, h_tok: str) -> bool:
     """
     更保守的 loose match：
@@ -312,91 +296,6 @@ def _find_sublist_loose(
 def _concat_norm(tokens: List[str]) -> str:
     return "".join(_normalize_token_for_match(t) for t in tokens if t is not None)
 
-
-# def _try_align_from_start(
-#     hay_norm: List[str],
-#     needle_norm: List[str],
-#     start_i: int,
-#     max_hay_skip: int = 2,
-#     max_needle_skip: int = 1,
-# ) -> Optional[Tuple[int, int, float, int, int]]:
-#     """
-#     从 hay[start_i] 开始，做一个“顺序、受限”的对齐：
-#     - 1:1
-#     - 2(needle):1(hay)
-#     - 1(needle):2(hay)
-#     - 少量 skip
-#     返回 (u_start, u_end, score, matched_needle_count, consumed_hay_count)
-#     只有在“needle 全部吃完”时才返回。
-#     """
-#     j = start_i
-#     k = 0
-#     used_hay_skip = 0
-#     used_needle_skip = 0
-#     matched_needle = 0
-
-#     while k < len(needle_norm) and j < len(hay_norm):
-#         hn = hay_norm[j]
-#         nn = needle_norm[k]
-
-#         # 跳过空规范 token（不计匹配）
-#         if not hn:
-#             j += 1
-#             continue
-#         if not nn:
-#             k += 1
-#             continue
-
-#         # 1:1
-#         if hn == nn or hn.startswith(nn) or nn.startswith(hn):
-#             j += 1
-#             k += 1
-#             matched_needle += 1
-#             continue
-
-#         # 2 needle -> 1 hay
-#         if k + 1 < len(needle_norm):
-#             nn2 = needle_norm[k] + needle_norm[k + 1]
-#             if nn2 and (hn == nn2 or hn.startswith(nn2) or nn2.startswith(hn)):
-#                 j += 1
-#                 k += 2
-#                 matched_needle += 2
-#                 continue
-
-#         # 1 needle -> 2 hay
-#         if j + 1 < len(hay_norm):
-#             hn2 = hay_norm[j] + hay_norm[j + 1]
-#             if hn2 and (hn2 == nn or hn2.startswith(nn) or nn.startswith(hn2)):
-#                 j += 2
-#                 k += 1
-#                 matched_needle += 1
-#                 continue
-
-#         # skip 一个 hay token
-#         if used_hay_skip < max_hay_skip:
-#             used_hay_skip += 1
-#             j += 1
-#             continue
-
-#         # skip 一个 needle token
-#         if used_needle_skip < max_needle_skip:
-#             used_needle_skip += 1
-#             k += 1
-#             continue
-
-#         break
-
-#     # 末尾继续吞掉空 needle_norm
-#     while k < len(needle_norm) and not needle_norm[k]:
-#         k += 1
-
-#     if k < len(needle_norm):
-#         return None
-
-#     consumed_hay = max(1, j - start_i)
-#     denom = max(len([x for x in needle_norm if x]), consumed_hay)
-#     score = matched_needle / max(1, denom)
-#     return start_i, j, score, matched_needle, consumed_hay
 
 def _try_align_from_start(
     hay_norm: List[str],
@@ -639,12 +538,6 @@ def _load_yaml_and_source_sentences(
 
 
 def _load_instances_log(instances_log: str) -> Dict[str, Dict[str, Any]]:
-    """
-    关键修复：
-    - raw unit 序列长度和 delays 对齐
-    - compact unit 序列用于匹配
-    - compact_to_raw 用于把匹配区间映射回 raw delay 下标
-    """
     mp = {}
     with open(instances_log, "r", encoding="utf-8") as f:
         for line in f:
@@ -672,19 +565,27 @@ def _load_instances_log(instances_log: str) -> Dict[str, Dict[str, Any]]:
             if intervals:
                 intervals = list(intervals[:m])
 
-            ts = h.get("prediction_units") or []
+            ts = list((h.get("prediction_units") or [])[:m])
+            starts_ends = list((h.get("prediction_unit_char_starts_ends") or [])[:m])
 
             raw_units: List[str] = []
+            raw_starts_ends: List[Tuple[int, int]] = []
             compact_units: List[str] = []
             compact_to_raw: List[int] = []
+            compact_starts_ends: List[Tuple[int, int]] = []
 
             for raw_idx in range(m):
                 x = ts[raw_idx] if raw_idx < len(ts) else ""
                 u = _norm(x)
+                se = starts_ends[raw_idx] if raw_idx < len(starts_ends) else (-1, -1)
+
                 raw_units.append(u)
-                if u:
+                raw_starts_ends.append(tuple(se))
+
+                if u and u.strip():
                     compact_to_raw.append(raw_idx)
                     compact_units.append(u)
+                    compact_starts_ends.append(tuple(se))
 
             h["_doc_id"] = doc_id
             h["_source_length_ms"] = _to_ms(h.get("source_length", INF))
@@ -693,17 +594,18 @@ def _load_instances_log(instances_log: str) -> Dict[str, Dict[str, Any]]:
             h["_elapsed"] = elapsed
             h["_intervals"] = intervals
 
-            # 两套坐标系
             h["_raw_units"] = raw_units
+            h["_raw_starts_ends"] = raw_starts_ends
             h["_asr_units"] = compact_units
             h["_compact_to_raw"] = compact_to_raw
+            h["_compact_starts_ends"] = compact_starts_ends
 
             mp[doc_id] = h
     return mp
 
 
 # ============================================================
-# source span
+# # Segale src 和 yaml 的匹配
 # ============================================================
 def _match_src_span_for_seg(
     segale_src_seg: str,
@@ -770,161 +672,222 @@ def _match_src_span_for_seg_by_ids(
 
 
 # ============================================================
-# target span
+# Segale tgt 和 ASR unit 的匹配
 # ============================================================
-# import unicodedata
-# from dataclasses import dataclass
-# from typing import List, Optional, Tuple
+
+def _match_tgt_units_for_seg_by_raw_char_span(
+    raw_starts_ends: List[Tuple[int, int]],
+    compact_to_raw: List[int],
+    seg_char_start: int,
+    seg_char_end: int,
+    cursor_unit: int,
+) -> Optional[Tuple[int, int]]:
+    """
+    根据 seg 的字符区间 [seg_char_start, seg_char_end)，
+    在 raw unit char spans 里找所有“有重叠”的 unit，
+    再映射回 compact unit span [c_start, c_end)。
+
+    判定重叠条件：
+        unit_s < seg_char_end and unit_e > seg_char_start
+    """
+    if seg_char_start < 0 or seg_char_end <= seg_char_start:
+        return None
+    if not raw_starts_ends or not compact_to_raw:
+        return None
+
+    # 从当前 compact cursor 对应的 raw 下标开始往后找
+    raw_cursor = (
+        compact_to_raw[cursor_unit]
+        if 0 <= cursor_unit < len(compact_to_raw)
+        else 0
+    )
+
+    matched_raw = []
+
+    for raw_i in range(raw_cursor, len(raw_starts_ends)):
+        unit_s, unit_e = raw_starts_ends[raw_i]
+
+        # 跳过无效 span
+        if unit_s < 0 or unit_e <= unit_s:
+            continue
+
+        # 若 unit 已经完全在 seg 后面了，可以停
+        if unit_s >= seg_char_end:
+            break
+
+        # 区间相交：这个 unit 属于当前 seg
+        if unit_s < seg_char_end and unit_e > seg_char_start:
+            matched_raw.append(raw_i)
+
+    # logger.info(
+    #     "[raw-overlap] seg=(%d,%d) raw_cursor=%d matched_raw=%s",
+    #     seg_char_start,
+    #     seg_char_end,
+    #     raw_cursor,
+    #     matched_raw[:20],
+    # )
+
+    if not matched_raw:
+        return None
+
+    raw_start_found = matched_raw[0]
+    raw_end_found = matched_raw[-1]
+
+    # raw -> compact
+    c_start = next(
+        (c for c, r in enumerate(compact_to_raw) if r >= raw_start_found),
+        None,
+    )
+    c_end_inclusive = next(
+        (c for c in range(len(compact_to_raw) - 1, -1, -1)
+         if compact_to_raw[c] <= raw_end_found),
+        None,
+    )
+
+    if c_start is None or c_end_inclusive is None or c_end_inclusive < c_start:
+        return None
+
+    # 不允许回退
+    c_start = max(c_start, cursor_unit)
+    if c_end_inclusive < c_start:
+        return None
+
+    return c_start, c_end_inclusive + 1
+
+# ------------------------------------------------------------
+# # normalize helpers for char-stream matching
+# ------------------------------------------------------------
+
+def _is_kept_char(ch: str) -> bool:
+    if ch == "'":  # 单引号
+        return True
+    cat = unicodedata.category(ch)
+    return cat.startswith("L") or cat.startswith("N")  # 字母或数字
 
 
-# def is_kept_char(ch: str) -> bool:
-#     # 尽量对齐你贴的 processor 逻辑
-#     if ch == "'":
-#         return True
-#     cat = unicodedata.category(ch)
-#     return cat.startswith("L") or cat.startswith("N")
+def _norm_char_stream(text: str) -> str:
+    """
+    把一段文本转成一个适合做字符流匹配的“规范串”："hello world!" -> "helloworld"
+    - NFKC
+    - 仅保留字母/数字/单引号
+    - 英文转小写
+    """
+    text = _norm(text)
+    return "".join(ch.lower() for ch in text if _is_kept_char(ch))
 
 
-# def normalize_text(text: str) -> str:
-#     # 去掉所有非字母/数字/' 的字符；英文统一小写，中文不受影响
-#     return "".join(ch.lower() for ch in text if is_kept_char(ch))
+# ------------------------------------------------------------
+# # data structures
+# ------------------------------------------------------------
+
+@dataclass
+class CompactCharIndex:
+    """
+    基于 compact units 构建的字符流索引。
+
+    norm_units:
+        每个 compact unit 规范化后的字符串
+    global_norm:
+        全部 norm_units 直接拼接后的全局串
+    global_pos_to_unit:
+        global_norm 的每个字符对应哪个 compact unit
+    global_pos_to_char_in_unit:
+        global_norm 的每个字符在对应 compact unit 里的偏移
+    unit_start_global:
+        每个 compact unit 在 global_norm 中的起始位置
+    unit_end_global:
+        每个 compact unit 在 global_norm 中的结束位置（开区间）
+    """
+    norm_units: List[str]
+    global_norm: str
+    global_pos_to_unit: List[int]
+    global_pos_to_char_in_unit: List[int]
+    unit_start_global: List[int]
+    unit_end_global: List[int]
 
 
-# @dataclass
-# class TokenCharSpan:
-#     token_idx: int
-#     start_char_in_token: int   # 在 normalized token 内的起始 offset，闭区间左端
-#     end_char_in_token: int     # 在 normalized token 内的结束 offset，开区间右端
+@dataclass
+class UnitMatchResult:
+    """
+    统一的匹配结果。
+
+    new_cursor_unit:
+        下一个 segment 从哪个 compact unit 开始继续找
+    u_start, u_end:
+        命中的 compact unit span，开区间 [u_start, u_end)
+    start_offset:
+        在 u_start 这个 unit 的 norm token 内起始偏移
+    end_offset:
+        在 u_end-1 这个 unit 的 norm token 内结束偏移（开区间）
+    method:
+        strict / loose / skip_latin / char_exact / merge_split / empty / not_found
+    score:
+        对 strict/loose/char_exact 可固定为 1.0；fuzzy 用真实分数
+    """
+    new_cursor_unit: int
+    u_start: int
+    u_end: int
+    start_offset: int = 0
+    end_offset: int = 0
+    method: str = ""
+    score: float = 0.0
 
 
-# @dataclass
-# class MatchResult:
-#     sentence: str
-#     normalized_sentence: str
+# ------------------------------------------------------------
+# # build char index over compact units
+# ------------------------------------------------------------
 
-#     global_start: int          # 在全局 normalized 串里的起始位置，闭区间左端
-#     global_end: int            # 在全局 normalized 串里的结束位置，开区间右端
+def _build_compact_char_index(asr_units: List[str]) -> CompactCharIndex:
+    norm_units: List[str] = []
+    global_parts: List[str] = []
+    global_pos_to_unit: List[int] = []
+    global_pos_to_char_in_unit: List[int] = []
+    unit_start_global: List[int] = []
+    unit_end_global: List[int] = []
 
-#     start_token_idx: int
-#     end_token_idx: int
+    g = 0
+    for i, unit in enumerate(asr_units):
+        nu = _norm_char_stream(unit)
+        norm_units.append(nu)
+        unit_start_global.append(g)
 
-#     start_char_in_token: int   # 在起始 token 的 normalized token 内 offset
-#     end_char_in_token: int     # 在结束 token 的 normalized token 内 offset（开区间）
+        for j, ch in enumerate(nu):
+            global_parts.append(ch)
+            global_pos_to_unit.append(i)
+            global_pos_to_char_in_unit.append(j)
+            g += 1
 
-#     matched_norm: str
+        unit_end_global.append(g)
 
-#     def token_span(self) -> Tuple[int, int]:
-#         return self.start_token_idx, self.end_token_idx
+    return CompactCharIndex(
+        norm_units=norm_units,
+        global_norm="".join(global_parts),
+        global_pos_to_unit=global_pos_to_unit,
+        global_pos_to_char_in_unit=global_pos_to_char_in_unit,
+        unit_start_global=unit_start_global,
+        unit_end_global=unit_end_global,
+    )
 
 
-# class RobustSentenceLocator:
-#     """
-#     核心思路：
-#     1. 把 token list 规范化成一个 global normalized string
-#     2. 建立 global char pos -> token idx / token 内 offset 的映射
-#     3. 每个句子也规范化
-#     4. 按顺序在 global normalized string 里查找
-#     """
+def _unit_cursor_to_char_cursor(index: CompactCharIndex, unit_i: int) -> int:
+    if unit_i <= 0:
+        return 0
+    if not index.unit_start_global:
+        return 0
+    if unit_i >= len(index.unit_start_global):
+        return len(index.global_norm)
+    return index.unit_start_global[unit_i]
 
-#     def __init__(self, tokens: List[str]):
-#         self.original_tokens = tokens
 
-#         self.norm_tokens: List[str] = []
-#         self.global_norm_parts: List[str] = []
-
-#         # global_norm 的每个字符，来自哪个 token、token 内哪个位置
-#         self.global_pos_to_token: List[int] = []
-#         self.global_pos_to_char_in_token: List[int] = []
-
-#         for token_idx, tok in enumerate(tokens):
-#             norm_tok = normalize_text(tok)
-#             self.norm_tokens.append(norm_tok)
-
-#             for char_idx, ch in enumerate(norm_tok):
-#                 self.global_norm_parts.append(ch)
-#                 self.global_pos_to_token.append(token_idx)
-#                 self.global_pos_to_char_in_token.append(char_idx)
-
-#         self.global_norm = "".join(self.global_norm_parts)
-
-#     def _global_range_to_token_range(self, start: int, end: int) -> MatchResult:
-#         raise NotImplementedError("Use locate_one / locate_all instead.")
-
-#     def locate_one(
-#         self,
-#         sentence: str,
-#         search_start_global: int = 0,
-#     ) -> Optional[MatchResult]:
-#         """
-#         从 global_norm 的 search_start_global 开始，找 sentence 的 normalized 串。
-#         """
-#         query = normalize_text(sentence)
-#         if not query:
-#             return None
-
-#         pos = self.global_norm.find(query, search_start_global)
-#         if pos == -1:
-#             return None
-
-#         start = pos
-#         end = pos + len(query)  # 开区间
-
-#         start_token_idx = self.global_pos_to_token[start]
-#         start_char_in_token = self.global_pos_to_char_in_token[start]
-
-#         end_last_char_global = end - 1
-#         end_token_idx = self.global_pos_to_token[end_last_char_global]
-#         end_last_char_in_token = self.global_pos_to_char_in_token[end_last_char_global]
-#         end_char_in_token = end_last_char_in_token + 1  # 开区间
-
-#         return MatchResult(
-#             sentence=sentence,
-#             normalized_sentence=query,
-#             global_start=start,
-#             global_end=end,
-#             start_token_idx=start_token_idx,
-#             end_token_idx=end_token_idx,
-#             start_char_in_token=start_char_in_token,
-#             end_char_in_token=end_char_in_token,
-#             matched_norm=self.global_norm[start:end],
-#         )
-
-#     def locate_all(self, sentences: List[str]) -> List[Optional[MatchResult]]:
-#         """
-#         按顺序依次查找，后一句只从前一句匹配结束之后开始找。
-#         """
-#         results: List[Optional[MatchResult]] = []
-#         cursor = 0
-
-#         for sent in sentences:
-#             match = self.locate_one(sent, search_start_global=cursor)
-#             results.append(match)
-
-#             if match is not None:
-#                 cursor = match.global_end
-
-#         return results
-
-#     def pretty_print_match(self, match: MatchResult) -> str:
-#         """
-#         方便查看结果。
-#         """
-#         token_slice = self.original_tokens[match.start_token_idx: match.end_token_idx + 1]
-#         return (
-#             f"sentence={match.sentence!r}\n"
-#             f"normalized={match.normalized_sentence!r}\n"
-#             f"global=[{match.global_start}, {match.global_end})\n"
-#             f"token_span=[{match.start_token_idx}, {match.end_token_idx}]\n"
-#             f"start_offset_in_token={match.start_char_in_token}\n"
-#             f"end_offset_in_token={match.end_char_in_token}\n"
-#             f"matched_tokens={token_slice}\n"
-#             f"matched_norm={match.matched_norm!r}"
-#         )
+# ------------------------------------------------------------
+# # optional original char-span helper
+# ------------------------------------------------------------
 
 def _build_units_with_offsets_cached(full_doc_tgt_norm: str, asr_units: List[str]):
     """
     这里输入的是 compact asr_units。
-    只有当整段 tokenize 后和 compact units 完全一致时，才启用 char-span。
+    只有当整段 tokenize 后和 compact units 完全一致时，才启用这个“原文字符跨度 -> unit”快速映射。
+    注意：这不再是唯一 char 通道。即使这里失败，也可以走 compact-unit char-stream。
     """
     units_with_offsets = qwen_tok.encode_timestamp_with_offsets(full_doc_tgt_norm, "chinese")
     if len(units_with_offsets) != len(asr_units):
@@ -961,82 +924,54 @@ def _match_tgt_units_for_seg_by_char_span(
     return i_start, i_end + 1
 
 
-def _match_tgt_units_for_seg(
-    segale_tgt_seg: str,
-    tgt_asr_units: List[str],
+# ------------------------------------------------------------
+# # char-stream exact matcher over compact units
+# ------------------------------------------------------------
+
+def _find_by_char_stream_exact(
+    seg_text: str,
+    char_index: CompactCharIndex,
     unit_i: int,
-    doc_id: str,
-    seg_id: str,
-) -> Tuple[int, int, int]:
+) -> Optional[Tuple[int, int, int, int]]:
     """
-    返回 compact unit 空间下的:
-    (new_cursor_unit, u_start, u_end)
+    在 compact units 构建出的 global normalized char stream 里做 exact match。
+
+    返回:
+        (u_start, u_end, start_offset, end_offset)
+
+    其中:
+    - unit span 是 [u_start, u_end)
+    - start_offset 是 u_start 这个 unit 内的起始偏移
+    - end_offset 是 u_end-1 这个 unit 内的结束偏移（开区间）
     """
-    segale_tgt_seg = _fix_decimal_for_segale_text(segale_tgt_seg)
-    needle = _qwen_units(segale_tgt_seg, "chinese")
+    needle_norm = _norm_char_stream(seg_text)
+    if not needle_norm:
+        return None
 
-    if not needle:
-        return unit_i, unit_i, unit_i
+    if not char_index.global_norm:
+        return None
 
-    # 1) strict
-    hit = _find_sublist(tgt_asr_units, needle, unit_i)
+    char_cursor = _unit_cursor_to_char_cursor(char_index, unit_i)
+    pos = char_index.global_norm.find(needle_norm, char_cursor)
+    if pos == -1:
+        return None
 
-    # 2) loose
-    if hit is None:
-        hit = _find_sublist_loose(tgt_asr_units, needle, unit_i)
+    start = pos
+    end = pos + len(needle_norm)  # 开区间
 
-    # 3) skip leading latin tokens
-    if hit is None:
-        max_skip = min(3, len(needle) - 1)
-        for skip in range(1, max_skip + 1):
-            if not _is_latin_token(needle[skip - 1]):
-                break
-            sub = needle[skip:]
-            if not sub:
-                break
+    start_unit = char_index.global_pos_to_unit[start]
+    start_offset = char_index.global_pos_to_char_in_unit[start]
 
-            h = _find_sublist(tgt_asr_units, sub, unit_i)
-            if h is None:
-                h = _find_sublist_loose(tgt_asr_units, sub, unit_i)
-            if h is not None:
-                hit = h
-                break
+    last = end - 1
+    end_unit_inclusive = char_index.global_pos_to_unit[last]
+    end_offset = char_index.global_pos_to_char_in_unit[last] + 1  # 开区间
 
-    # 4) merge/split local alignment
-    if hit is None:
-        fuzzy = _find_sublist_merge_split_window(
-            tgt_asr_units,
-            needle,
-            unit_i,
-            window_size=240,
-            min_score=0.90,
-            max_hay_skip=2,
-            max_needle_skip=1,
-            max_start_drift=160,
-        )
-        if fuzzy is not None:
-            f_start, f_end, f_score = fuzzy
-            hit = (f_start, f_end)
-            logger.info(
-                "[match][merge-split] doc=%s seg_id=%s cursor=%d start=%d end=%d score=%.3f needle_len=%d",
-                doc_id, seg_id, unit_i, f_start, f_end, f_score, len(needle)
-            )
+    return start_unit, end_unit_inclusive + 1, start_offset, end_offset
 
-    if hit is None:
-        logger.warning(
-            "[skip][tgt-not-found] doc=%s seg_id=%s cursor=%d needle_len=%d needle=%s asr_ctx=%s",
-            doc_id,
-            seg_id,
-            unit_i,
-            len(needle),
-            needle[:20],
-            tgt_asr_units[unit_i:min(len(tgt_asr_units), unit_i + 60)],
-        )
-        return unit_i, unit_i, unit_i
 
-    u_start, u_end = hit
-    return u_end, u_start, u_end
-
+# ------------------------------------------------------------
+# # raw/compact span mapping
+# ------------------------------------------------------------
 
 def _compact_span_to_raw_span(
     compact_to_raw: List[int],
@@ -1057,6 +992,252 @@ def _compact_span_to_raw_span(
     r_end = compact_to_raw[c_end - 1] + 1
     return r_start, r_end
 
+
+# ------------------------------------------------------------
+# # main matcher
+# 依赖以下外部函数/对象已经在你的工程里存在：
+#   _fix_decimal_for_segale_text
+#   _find_sublist
+#   _find_sublist_loose
+#   _find_sublist_merge_split_window
+#   _is_latin_token
+#   logger
+# ------------------------------------------------------------
+
+def _match_tgt_units_for_seg(
+    segale_tgt_seg: str,
+    tgt_asr_units: List[str],
+    unit_i: int,
+    doc_id: str,
+    seg_id: str,
+    char_index: Optional[CompactCharIndex] = None,
+) -> UnitMatchResult:
+    """
+    返回 compact unit 空间下的匹配结果。
+
+    优先级：
+    1) strict
+    2) loose
+    3) skip leading latin tokens
+    4) char-stream exact
+    5) merge/split local alignment
+    """
+    segale_tgt_seg = _fix_decimal_for_segale_text(segale_tgt_seg)
+    needle = _qwen_units(segale_tgt_seg, "chinese")
+
+    if not needle:
+        return UnitMatchResult(
+            new_cursor_unit=unit_i,
+            u_start=unit_i,
+            u_end=unit_i,
+            start_offset=0,
+            end_offset=0,
+            method="empty",
+            score=1.0,
+        )
+
+    # --------------------------------------------------------
+    # 1) strict
+    # --------------------------------------------------------
+    hit = _find_sublist(tgt_asr_units, needle, unit_i)
+    if hit is not None:
+        u_start, u_end = hit
+        return UnitMatchResult(
+            new_cursor_unit=u_end,
+            u_start=u_start,
+            u_end=u_end,
+            start_offset=0,
+            end_offset=len(_norm_char_stream(tgt_asr_units[u_end - 1])) if u_end > u_start else 0,
+            method="strict",
+            score=1.0,
+        )
+
+    # --------------------------------------------------------
+    # 2) loose
+    # --------------------------------------------------------
+    hit = _find_sublist_loose(tgt_asr_units, needle, unit_i)
+    if hit is not None:
+        u_start, u_end = hit
+        return UnitMatchResult(
+            new_cursor_unit=u_end,
+            u_start=u_start,
+            u_end=u_end,
+            start_offset=0,
+            end_offset=len(_norm_char_stream(tgt_asr_units[u_end - 1])) if u_end > u_start else 0,
+            method="loose",
+            score=1.0,
+        )
+
+    # --------------------------------------------------------
+    # 3) skip leading latin tokens
+    # --------------------------------------------------------
+    max_skip = min(3, len(needle) - 1)
+    for skip in range(1, max_skip + 1):
+        if not _is_latin_token(needle[skip - 1]):
+            break
+
+        sub = needle[skip:]
+        if not sub:
+            break
+
+        h = _find_sublist(tgt_asr_units, sub, unit_i)
+        if h is None:
+            h = _find_sublist_loose(tgt_asr_units, sub, unit_i)
+
+        if h is not None:
+            u_start, u_end = h
+            return UnitMatchResult(
+                new_cursor_unit=u_end,
+                u_start=u_start,
+                u_end=u_end,
+                start_offset=0,
+                end_offset=len(_norm_char_stream(tgt_asr_units[u_end - 1])) if u_end > u_start else 0,
+                method=f"skip_latin_{skip}",
+                score=1.0,
+            )
+
+    # --------------------------------------------------------
+    # 4) char-stream exact over compact units
+    # --------------------------------------------------------
+    if char_index is not None:
+        char_hit = _find_by_char_stream_exact(segale_tgt_seg, char_index, unit_i)
+        if char_hit is not None:
+            u_start, u_end, start_offset, end_offset = char_hit
+            try:
+                logger.info(
+                    "[match][char-exact] doc=%s seg_id=%s cursor=%d start=%d end=%d so=%d eo=%d needle_len=%d seg_tgt=%s",
+                    doc_id,
+                    seg_id,
+                    unit_i,
+                    u_start,
+                    u_end,
+                    start_offset,
+                    end_offset,
+                    len(needle),
+                    repr(segale_tgt_seg[:200]),
+                )
+            except Exception:
+                pass
+
+            return UnitMatchResult(
+                new_cursor_unit=u_end,
+                u_start=u_start,
+                u_end=u_end,
+                start_offset=start_offset,
+                end_offset=end_offset,
+                method="char_exact",
+                score=1.0,
+            )
+
+    # --------------------------------------------------------
+    # 5) merge/split local alignment
+    # --------------------------------------------------------
+    fuzzy = _find_sublist_merge_split_window(
+        tgt_asr_units,
+        needle,
+        unit_i,
+        # window_size=240,
+        # min_score=0.90,
+        # max_hay_skip=2,
+        # max_needle_skip=1,
+        # max_start_drift=160,
+        window_size=280,
+        min_score=0.86,
+        max_hay_skip=3,
+        max_needle_skip=2,
+        max_start_drift=180,
+    )
+    if fuzzy is not None:
+        f_start, f_end, f_score = fuzzy
+        try:
+            logger.info(
+                "[match][merge-split] doc=%s seg_id=%s cursor=%d start=%d end=%d score=%.3f needle_len=%d seg_tgt=%s",
+                doc_id,
+                seg_id,
+                unit_i,
+                f_start,
+                f_end,
+                f_score,
+                len(needle),
+                repr(segale_tgt_seg[:200]),
+            )
+        except Exception:
+            pass
+
+        return UnitMatchResult(
+            new_cursor_unit=f_end,
+            u_start=f_start,
+            u_end=f_end,
+            start_offset=0,
+            end_offset=len(_norm_char_stream(tgt_asr_units[f_end - 1])) if f_end > f_start else 0,
+            method="merge_split",
+            score=float(f_score),
+        )
+
+    # --------------------------------------------------------
+    # not found
+    # --------------------------------------------------------
+    try:
+        logger.warning(
+            "[skip][tgt-not-found] doc=%s seg_id=%s cursor=%d needle_len=%d "
+            "seg_tgt=%s needle=%s asr_ctx=%s",
+            doc_id,
+            seg_id,
+            unit_i,
+            len(needle),
+            repr(segale_tgt_seg[:200]),
+            needle[:20],
+            tgt_asr_units[unit_i:min(len(tgt_asr_units), unit_i + 60)],
+        )
+    except Exception:
+        pass
+
+    return UnitMatchResult(
+        new_cursor_unit=unit_i,
+        u_start=unit_i,
+        u_end=unit_i,
+        start_offset=0,
+        end_offset=0,
+        method="not_found",
+        score=0.0,
+    )
+
+
+# ------------------------------------------------------------
+# optional helper: full pipeline usage
+# ------------------------------------------------------------
+
+def build_target_matcher_context(tgt_asr_units: List[str]) -> CompactCharIndex:
+    """
+    在处理整篇文档前调用一次即可。
+    """
+    return _build_compact_char_index(tgt_asr_units)
+
+
+def match_segment_and_map_raw(
+    segale_tgt_seg: str,
+    tgt_asr_units: List[str],
+    compact_to_raw: List[int],
+    unit_i: int,
+    doc_id: str,
+    seg_id: str,
+    char_index: Optional[CompactCharIndex] = None,
+):
+    """
+    一个方便上层直接调用的包装函数。
+    返回:
+        match_result, raw_span
+    """
+    mr = _match_tgt_units_for_seg(
+        segale_tgt_seg=segale_tgt_seg,
+        tgt_asr_units=tgt_asr_units,
+        unit_i=unit_i,
+        doc_id=doc_id,
+        seg_id=seg_id,
+        char_index=char_index,
+    )
+    raw_span = _compact_span_to_raw_span(compact_to_raw, mr.u_start, mr.u_end)
+    return mr, raw_span
 
 # ============================================================
 # 主流程
@@ -1092,6 +1273,9 @@ def step3_longyaal(
 
         asr_units = inst.get("_asr_units", [])
         compact_to_raw = inst.get("_compact_to_raw", [])
+
+        raw_starts_ends = inst.get("_raw_starts_ends", [])
+
         if not asr_units:
             logger.warning(f"[skip] doc missing asr units in instances.log: {doc_id}")
             continue
@@ -1124,33 +1308,12 @@ def step3_longyaal(
             compact_to_raw = compact_to_raw[:valid_compact_len]
             asr_units = asr_units[:valid_compact_len]
 
+        char_index = build_target_matcher_context(asr_units)
+
         cursor_unit = 0
         cursor_sent = 0
         doc_sent_list = sent_by_doc[doc_id]
 
-        full_doc_tgt = _fix_decimal_for_segale_text(_norm(inst.get("prediction_text") or ""))
-        units_with_offsets, char_span_ok = _build_units_with_offsets_cached(full_doc_tgt, asr_units)
-        if not char_span_ok:
-            logger.warning(
-                "[warn][char-span-fallback] doc=%s 整段 tokenize 与 compact asr_units 不一致，退化为 token 匹配。 full_tok_len=%d asr_units_len=%d",
-                doc_id, len(units_with_offsets), len(asr_units),
-            )
-
-        search_start = 0
-        seg_char_spans: List[Tuple[int, int]] = []
-        for seg in segs:
-            seg_tgt = seg.get("tgt", "")
-            seg_norm = _fix_decimal_for_segale_text(_norm(seg_tgt).strip())
-            if not seg_norm:
-                seg_char_spans.append((-1, -1))
-                continue
-
-            idx = full_doc_tgt.find(seg_norm, search_start)
-            if idx >= 0:
-                seg_char_spans.append((idx, idx + len(seg_norm)))
-                search_start = idx + len(seg_norm)
-            else:
-                seg_char_spans.append((-1, -1))
 
         for seg_idx, seg in enumerate(segs):
             seg_src = seg.get("src", "")
@@ -1182,28 +1345,78 @@ def step3_longyaal(
             seg_source_len_ms = max(1.0, seg_end_ms - seg_start_ms)
 
             # 3.2 tgt -> compact unit span
-            char_start, char_end = seg_char_spans[seg_idx] if seg_idx < len(seg_char_spans) else (-1, -1)
-            if char_span_ok:
-                hit = _match_tgt_units_for_seg_by_char_span(
-                    units_with_offsets, char_start, char_end, cursor_unit
-                )
-            else:
-                hit = None
+            char_start = seg.get("mt_char_start", -1)
+            char_end = seg.get("mt_char_end", -1)
+
+            cursor_unit_before = cursor_unit
+
+            hit = _match_tgt_units_for_seg_by_raw_char_span(
+                raw_starts_ends=raw_starts_ends,
+                compact_to_raw=compact_to_raw,
+                seg_char_start=char_start,
+                seg_char_end=char_end,
+                cursor_unit=cursor_unit,
+            )
 
             if hit is not None:
                 c_start, c_end = hit
                 cursor_unit = c_end
+                match_method = "char_span_from_segale"
+                start_offset = 0
+                end_offset = len(_norm_char_stream(asr_units[c_end - 1])) if c_end > c_start else 0
+
+                # logger.info(
+                #     "[match][segale-char-span] doc=%s seg_id=%s char_start=%s char_end=%s "
+                #     "cursor_unit=%d c_start=%d c_end=%d seg_tgt=%s",
+                #     doc_id,
+                #     seg.get("seg_id"),
+                #     char_start,
+                #     char_end,
+                #     cursor_unit_before,
+                #     c_start,
+                #     c_end,
+                #     repr(seg_tgt[:200]),
+                # )
             else:
-                cursor_unit, c_start, c_end = _match_tgt_units_for_seg(
-                    seg_tgt,
-                    asr_units,
-                    cursor_unit,
+                logger.warning(
+                    "[fallback][segale-char-span-miss] doc=%s seg_id=%s char_start=%s char_end=%s "
+                    "cursor_unit=%d seg_tgt=%s",
+                    doc_id,
+                    seg.get("seg_id"),
+                    char_start,
+                    char_end,
+                    cursor_unit_before,
+                    repr(seg_tgt[:200]),
+                )
+
+                mr = _match_tgt_units_for_seg(
+                    segale_tgt_seg=seg_tgt,
+                    tgt_asr_units=asr_units,
+                    unit_i=cursor_unit,
                     doc_id=doc_id,
                     seg_id=str(seg.get("seg_id")),
+                    char_index=char_index,
                 )
+                cursor_unit = mr.new_cursor_unit
+                c_start = mr.u_start
+                c_end = mr.u_end
+                match_method = mr.method
+                start_offset = mr.start_offset
+                end_offset = mr.end_offset
 
             # compact -> raw
             r_start, r_end = _compact_span_to_raw_span(compact_to_raw, c_start, c_end)
+            # logger.info(
+            #     "[seg-result] doc=%s seg_id=%s method=%s c_start=%d c_end=%d r_start=%d r_end=%d seg_tgt=%s",
+            #     doc_id,
+            #     seg.get("seg_id"),
+            #     match_method,
+            #     c_start,
+            #     c_end,
+            #     r_start,
+            #     r_end,
+            #     repr(seg_tgt[:200]),
+            # )
 
             seg_delays = delays_all[r_start:r_end]
             seg_elapsed = elapsed_all[r_start:r_end]
@@ -1235,7 +1448,7 @@ def step3_longyaal(
                 "doc_id": doc_id,
                 "seg_id": seg.get("seg_id"),
 
-                "prediction": seg.get("tgt", ""),
+                "source": seg_src,
                 "reference": seg_ref,
 
                 "source_length": seg_source_len_ms,
@@ -1249,8 +1462,13 @@ def step3_longyaal(
                 "_raw_u_end": r_end,
                 "_seg_start_ms": seg_start_ms,
                 "_seg_end_ms": seg_end_ms,
-                "_ref_text": seg_ref,
-                "_src_text": seg_src,
+
+                "_match_method": match_method,
+                "_start_offset": start_offset,
+                "_end_offset": end_offset,
+
+                "prediction": seg.get("tgt", ""),
+                "raw_units": inst["_raw_units"][r_start:r_end]
             }
 
             instances_dict.append(new_seg_dict)
