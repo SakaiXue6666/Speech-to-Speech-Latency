@@ -3,7 +3,7 @@ import os
 import torch
 from pipeline_qwen3_asr2 import step1_asr
 from pipeline_segale_align_new import step2_segale
-from pipeline_longyaal6 import step3_longyaal
+from pipeline_longyaal_new import step3_longyaal
 
 import argparse
 import json
@@ -12,6 +12,178 @@ import wave
 import yaml
 
 
+# ============================================================================\
+import json
+import os
+import unicodedata
+from typing import Dict, List, Tuple
+
+
+def is_kept_char(ch: str) -> bool:
+    if ch == "'":
+        return True
+    cat = unicodedata.category(ch)
+    return cat.startswith("L") or cat.startswith("N")
+
+
+def norm_char_stream_with_mapping(text: str) -> Tuple[str, List[int]]:
+    """
+    把原文 text 转成规范化字符流，并记录：
+    norm_text[i] 对应原文 raw_text 的哪个字符下标。
+
+    返回:
+        norm_text, norm_to_raw
+    """
+    raw = unicodedata.normalize("NFKC", text or "")
+    norm_chars: List[str] = []
+    norm_to_raw: List[int] = []
+
+    for raw_idx, ch in enumerate(raw):
+        if is_kept_char(ch):
+            norm_chars.append(ch.lower())
+            norm_to_raw.append(raw_idx)
+
+    return "".join(norm_chars), norm_to_raw
+
+
+def norm_unit_text(text: str) -> str:
+    raw = unicodedata.normalize("NFKC", text or "")
+    return "".join(ch.lower() for ch in raw if is_kept_char(ch))
+
+
+def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
+    context_chars = 80  ###
+
+    with open(infile, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    full_text = unicodedata.normalize("NFKC", data.get("text", "") or "")
+    ts_list: List[Dict] = data.get("time_stamps", []) or []
+
+    full_norm, norm_to_raw = norm_char_stream_with_mapping(full_text)
+
+    norm_cursor = 0
+    new_ts_list: List[Dict] = []
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++
+    last_ok_idx = -1
+    last_ok_raw_span = (-1, -1)
+    last_ok_unit_text = ""
+
+    basename = os.path.basename(infile)
+    # ++++++++++++++++++++++++++++++++++++++++++++++
+
+    for idx, ts in enumerate(ts_list):
+        unit_text = ts.get("text", "") or ""
+        unit_norm = norm_unit_text(unit_text)
+
+        new_ts = dict(ts)
+
+        if not unit_norm:
+            new_ts["char_start"] = -1
+            new_ts["char_end"] = -1
+            new_ts_list.append(new_ts)
+            # ++++++++++++++++++++++++++++++++++++++++++++++
+            print(
+                    f"[empty-unit] file={basename} idx={idx} "
+                    f"unit_text={unit_text!r}"
+                )
+            # ++++++++++++++++++++++++++++++++++++++++++++++
+            continue
+
+        pos = full_norm.find(unit_norm, norm_cursor)
+
+        if pos == -1:
+            new_ts["char_start"] = -1
+            new_ts["char_end"] = -1
+            new_ts_list.append(new_ts)
+            # ++++++++++++++++++++++++++++++++++++++++++++++
+            # norm 全文上下文
+            norm_left = max(0, norm_cursor - context_chars)
+            norm_right = min(len(full_norm), norm_cursor + context_chars)
+            norm_ctx = full_norm[norm_left:norm_right]
+
+            # raw 全文上下文（通过 norm_cursor 尽量映射到 raw）
+            if 0 <= norm_cursor < len(norm_to_raw):
+                raw_cursor = norm_to_raw[norm_cursor]
+            elif norm_to_raw:
+                raw_cursor = norm_to_raw[-1] + 1
+            else:
+                raw_cursor = 0
+
+            raw_left = max(0, raw_cursor - context_chars)
+            raw_right = min(len(full_text), raw_cursor + context_chars)
+            raw_ctx = full_text[raw_left:raw_right]
+
+            print("=" * 80)
+            print(f"[match-fail] file={basename} idx={idx}")
+            print(f"unit_text      = {unit_text!r}")
+            print(f"unit_norm      = {unit_norm!r}")
+            print(f"norm_cursor    = {norm_cursor}")
+            print(f"last_ok_idx    = {last_ok_idx}")
+            print(f"last_ok_unit   = {last_ok_unit_text!r}")
+            print(f"last_ok_span   = {last_ok_raw_span}")
+            print(f"norm_ctx       = {_clip(norm_ctx, 200)!r}")
+            print(f"raw_ctx        = {_clip(raw_ctx, 200)!r}")
+
+            # 再给一个“从头搜”的参考，看看是不是 cursor 走偏了
+            global_pos = full_norm.find(unit_norm)
+            print(f"global_find_pos= {global_pos}")
+
+            if global_pos != -1:
+                g_start = norm_to_raw[global_pos]
+                g_end = norm_to_raw[global_pos + len(unit_norm) - 1] + 1
+                print(f"global_raw_span= ({g_start}, {g_end})")
+                print(f"global_raw_txt = {_clip(full_text[g_start:g_end], 200)!r}")
+
+            print("=" * 80)
+            # ++++++++++++++++++++++++++++++++++++++++++++++
+            continue
+
+        norm_start = pos
+        norm_end = pos + len(unit_norm)   # 开区间
+
+        raw_start = norm_to_raw[norm_start]
+        raw_end = norm_to_raw[norm_end - 1] + 1   # 开区间
+
+        new_ts["char_start"] = raw_start
+        new_ts["char_end"] = raw_end
+        new_ts_list.append(new_ts)
+
+        # ++++++++++++++++++++++++++++++++++++++++++++++
+        last_ok_idx = idx
+        last_ok_raw_span = (raw_start, raw_end)
+        last_ok_unit_text = unit_text
+        # ++++++++++++++++++++++++++++++++++++++++++++++
+
+        norm_cursor = norm_end
+
+    data["text"] = full_text
+    data["time_stamps"] = new_ts_list
+
+    if outfile is None:
+        base, ext = os.path.splitext(infile)
+        outfile = base + "_charspan" + ext
+
+    with open(outfile, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    return outfile
+
+def add_char_spans_for_dir(input_dir: str, out_dir: str):
+    os.makedirs(out_dir, exist_ok=True)
+
+    for fn in os.listdir(input_dir):
+        if not fn.endswith("_asr.json"):
+            continue
+
+        infile = os.path.join(input_dir, fn)
+        outfile = os.path.join(out_dir, fn)
+
+        out = add_char_spans_to_asr_json(infile, outfile)
+        print("saved:", out)
+
+# ============================================================================/
 # ============================================================================\
 def _get_wav_duration_sec(wav_path: str) -> float:
     """读 wav 文件时长（秒）。失败返回 0.0。"""
@@ -84,7 +256,13 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
         source_length_sec = _get_wav_duration_sec(src_path)
 
         prediction_text = asr.get("text") or ""
-        prediction_units = [t["text"] for t in ts if t.get("text")]
+        prediction_units = [t.get("text", "") for t in ts]
+
+        # ++++++++++++++++++++++++++++++++++++++++++++++
+        prediction_unit_char_starts = [t.get("char_start", -1) for t in ts]
+        prediction_unit_char_ends = [t.get("char_end", -1) for t in ts]
+        prediction_unit_char_starts_ends = list(zip(prediction_unit_char_starts, prediction_unit_char_ends))
+        # ++++++++++++++++++++++++++++++++++++++++++++++
 
         rec = {
             "index": idx,
@@ -98,6 +276,7 @@ def _build_instances_log_s2s(ref_segments_yaml: str, asr_dir: str, output_file: 
             "source_length": source_length_sec,
             "prediction_text": prediction_text,
             "prediction_units": prediction_units,
+            "prediction_unit_char_starts_ends": prediction_unit_char_starts_ends,   # 新增
         }
         instances.append(rec)
 
@@ -210,12 +389,13 @@ def instances_to_segale(
 input_name = "input"
 output_name = "output"
 model_name = "volcengine"
-version = "2_100ms"
+input_version = "2_100ms"
+output_version = "2_100ms_new"
 
 def main():
-    manifest = f"data/{output_name}_{model_name}_wav{version}/manifest.jsonl"
+    manifest = f"data/{output_name}_{model_name}_wav{input_version}/manifest.jsonl"
     tgt_language = "Chinese"
-    output_dir_asr = f"data/{output_name}_{model_name}_asr{version}"
+    output_dir_asr = f"data/{output_name}_{model_name}_asr{output_version}"
     batch_size = 10
 
     # print("\n" + "=" * 60)
@@ -232,19 +412,28 @@ def main():
     #     torch.cuda.empty_cache()
     # print("ASR finished.")
 
+    output_dir_asr_ = output_dir_asr + "_"
+
+
+    # add_char_spans_for_dir(
+    #     f"data/{output_name}_{model_name}_asr{input_version}",
+    #     output_dir_asr_
+    # )
+
     src_segments_yaml = f"data/{input_name}/ACL.ACLdev2023.en-xx.gold_segments.yaml"
-    output_path_instances = os.path.join(output_dir_asr, "instances.log")
+    output_path_instances = os.path.join(output_dir_asr_, "instances.log")
+
 
     # asr_to_instances(
     #     s2s=True,
     #     yaml_file=src_segments_yaml,
-    #     asr_dir=output_dir_asr,
+    #     asr_dir=output_dir_asr_,
     #     output_file=output_path_instances,
     # )
 
     src_txt = f"data/{input_name}/ACL.6060.dev.en-xx.en.txt"
     tgt_ref_txt = f"data/{input_name}/ACL.6060.dev.en-xx.zh.txt"
-    output_dir_segale = f"data/{output_name}_{model_name}_segale{version}"
+    output_dir_segale = f"data/{output_name}_{model_name}_segale{output_version}"
 
     # instances_to_segale(
     #     src_txt=src_txt, 
@@ -256,32 +445,32 @@ def main():
 
     task_lang = "zh"
 
-    print("\n" + "=" * 60)
-    print("Starting Segale...")
-    step2_segale(
-        system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
-        ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
-        segmenter="spacy",
-        task_lang=task_lang,
-        proc_device="cuda",
-        embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
-    )
-    print("Segale finished.")
+    # print("\n" + "=" * 60)
+    # print("Starting Segale...")
+    # step2_segale(
+    #     system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
+    #     ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
+    #     segmenter="spacy",
+    #     task_lang=task_lang,
+    #     proc_device="cuda",
+    #     embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
+    # )
+    # print("Segale finished.")
 
     segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
-    output_dir_longyaal = f"data/{output_name}_{model_name}_longyaal{version}"
+    output_dir_longyaal = f"data/{output_name}_{model_name}_longyaal{output_version}"
 
-    # print("\n" + "=" * 60)
-    # print("Starting Longyaal...")
-    # step3_longyaal(
-    #     yaml_file=src_segments_yaml,
-    #     source_sentences_file=src_txt,
-    #     instances_log=output_path_instances,
-    #     segale_file=segale_file,
-    #     output_folder=output_dir_longyaal,
-    #     bleu_tokenizer=task_lang,
-    # )
-    # print("Longyaal finished.")
+    print("\n" + "=" * 60)
+    print("Starting Longyaal...")
+    step3_longyaal(
+        yaml_file=src_segments_yaml,
+        source_sentences_file=src_txt,
+        instances_log=output_path_instances,
+        segale_file=segale_file,
+        output_folder=output_dir_longyaal,
+        bleu_tokenizer=task_lang,
+    )
+    print("Longyaal finished.")
 
 if __name__ == "__main__":
     main()
