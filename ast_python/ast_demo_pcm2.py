@@ -584,7 +584,7 @@ async def main():
                    access_key="J0QUKxRJb9j32MYmWOgoQ7d-n_jLI5Uk",
                   resource_id="volc.service_type.10053")
     start = time.time()
-    task = asyncio.create_task(translate_v4(conf, "data/input/acl_6060_dev/2022.acl-long.268.wav", 1, "data/output_volcengine_wav2_100ms"))
+    task = asyncio.create_task(translate_v4(conf, "ast_python/input.wav", 1, "ast_python/output_inputWAV"))
     
     await  task
     end = time.time()
