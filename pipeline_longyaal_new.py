@@ -166,17 +166,67 @@ def evaluate_instances(
     )
     bleu_scorer = SacreBLEUScorer(tokenizer)
 
+    ending_offset_scorer = EndingOffsetScorer(
+        computation_aware=False,   # 用 delays
+        use_absolute=False         # 是否取绝对值，看你需求
+    )
+    ca_ending_offset_scorer = EndingOffsetScorer(
+        computation_aware=True,    # 用 elapsed
+        use_absolute=False
+    )
+
     resegmented_instances_dict = {i: ins for i, ins in enumerate(resegmented_instances)}
     ca_unaware_yaal_score = ca_unaware_yaal_scorer(resegmented_instances_dict)
     ca_aware_yaal_score = ca_aware_yaal_scorer(resegmented_instances_dict)
     bleu_score = bleu_scorer(resegmented_instances_dict)
+    ending_offset_score = ending_offset_scorer(resegmented_instances_dict)
+    ca_ending_offset_score = ca_ending_offset_scorer(resegmented_instances_dict)
 
     return {
         "ca_unaware_yaal": ca_unaware_yaal_score,
         "ca_aware_yaal": ca_aware_yaal_score,
         "bleu": bleu_score,
+        "ending_offset": ending_offset_score,
+        "ca_ending_offset": ca_ending_offset_score,
     }
 
+
+class EndingOffsetScorer:
+    """
+    比较句子最后一个输出 unit 的时间 和 句子结束时间 的偏差。
+    
+    默认返回:
+        last_delay - source_length
+    含义:
+        > 0  说明最后输出晚于句子结束
+        < 0  说明最后输出早于句子结束
+    """
+
+    def __init__(self, computation_aware: bool = False, use_absolute: bool = False):
+        self.computation_aware = computation_aware
+        self.use_absolute = use_absolute
+
+    def compute(self, ins: Instance):
+        timestamp_type = "elapsed" if self.computation_aware else "delays"
+        xs = getattr(ins, timestamp_type, None)
+        if xs is None or len(xs) == 0:
+            return None
+
+        last_t = float(xs[-1])
+        end_t = float(ins.source_length)
+        v = last_t - end_t
+
+        if self.use_absolute:
+            v = abs(v)
+        return v
+
+    def __call__(self, instances: Dict[int, Instance]) -> float:
+        scores = []
+        for _, ins in instances.items():
+            v = self.compute(ins)
+            if v is not None:
+                scores.append(v)
+        return mean(scores) if scores else float("nan")
 
 # ============================================================
 # 工具函数
@@ -293,8 +343,8 @@ def _find_sublist_loose(
     return None
 
 
-def _concat_norm(tokens: List[str]) -> str:
-    return "".join(_normalize_token_for_match(t) for t in tokens if t is not None)
+# def _concat_norm(tokens: List[str]) -> str:
+#     return "".join(_normalize_token_for_match(t) for t in tokens if t is not None)
 
 
 def _try_align_from_start(
@@ -883,45 +933,45 @@ def _unit_cursor_to_char_cursor(index: CompactCharIndex, unit_i: int) -> int:
 # # optional original char-span helper
 # ------------------------------------------------------------
 
-def _build_units_with_offsets_cached(full_doc_tgt_norm: str, asr_units: List[str]):
-    """
-    这里输入的是 compact asr_units。
-    只有当整段 tokenize 后和 compact units 完全一致时，才启用这个“原文字符跨度 -> unit”快速映射。
-    注意：这不再是唯一 char 通道。即使这里失败，也可以走 compact-unit char-stream。
-    """
-    units_with_offsets = qwen_tok.encode_timestamp_with_offsets(full_doc_tgt_norm, "chinese")
-    if len(units_with_offsets) != len(asr_units):
-        return units_with_offsets, False
-    if not all(u[0] == a for u, a in zip(units_with_offsets, asr_units)):
-        return units_with_offsets, False
-    return units_with_offsets, True
+# def _build_units_with_offsets_cached(full_doc_tgt_norm: str, asr_units: List[str]):
+#     """
+#     这里输入的是 compact asr_units。
+#     只有当整段 tokenize 后和 compact units 完全一致时，才启用这个“原文字符跨度 -> unit”快速映射。
+#     注意：这不再是唯一 char 通道。即使这里失败，也可以走 compact-unit char-stream。
+#     """
+#     units_with_offsets = qwen_tok.encode_timestamp_with_offsets(full_doc_tgt_norm, "chinese")
+#     if len(units_with_offsets) != len(asr_units):
+#         return units_with_offsets, False
+#     if not all(u[0] == a for u, a in zip(units_with_offsets, asr_units)):
+#         return units_with_offsets, False
+#     return units_with_offsets, True
 
 
-def _match_tgt_units_for_seg_by_char_span(
-    units_with_offsets,
-    seg_char_start: int,
-    seg_char_end: int,
-    cursor_unit: int,
-) -> Optional[Tuple[int, int]]:
-    if seg_char_start < 0 or seg_char_end <= seg_char_start:
-        return None
-    if not units_with_offsets:
-        return None
+# def _match_tgt_units_for_seg_by_char_span(
+#     units_with_offsets,
+#     seg_char_start: int,
+#     seg_char_end: int,
+#     cursor_unit: int,
+# ) -> Optional[Tuple[int, int]]:
+#     if seg_char_start < 0 or seg_char_end <= seg_char_start:
+#         return None
+#     if not units_with_offsets:
+#         return None
 
-    i_start_found = next(
-        (i for i in range(len(units_with_offsets)) if units_with_offsets[i][2] > seg_char_start),
-        None,
-    )
-    i_end_found = next(
-        (i for i in range(len(units_with_offsets) - 1, -1, -1) if units_with_offsets[i][1] < seg_char_end),
-        None,
-    )
-    if i_start_found is None or i_end_found is None:
-        return None
+#     i_start_found = next(
+#         (i for i in range(len(units_with_offsets)) if units_with_offsets[i][2] > seg_char_start),
+#         None,
+#     )
+#     i_end_found = next(
+#         (i for i in range(len(units_with_offsets) - 1, -1, -1) if units_with_offsets[i][1] < seg_char_end),
+#         None,
+#     )
+#     if i_start_found is None or i_end_found is None:
+#         return None
 
-    i_start = max(i_start_found, max(0, cursor_unit - 1))
-    i_end = max(i_end_found, i_start)
-    return i_start, i_end + 1
+#     i_start = max(i_start_found, max(0, cursor_unit - 1))
+#     i_end = max(i_end_found, i_start)
+#     return i_start, i_end + 1
 
 
 # ------------------------------------------------------------
