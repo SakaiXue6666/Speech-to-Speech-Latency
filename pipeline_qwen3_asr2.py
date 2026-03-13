@@ -354,6 +354,7 @@ def step1_asr(
     use_first_src_send_for_t0: bool = True,
     out_dir: str = "data/output_qwen_asr",
     batch_size: int = 10,
+    max_new_tokens: int = 1024,
 ):
     asr = Qwen3ASRModel.from_pretrained(
         ASR_MODEL_PATH,
@@ -365,7 +366,7 @@ def step1_asr(
             device_map="cuda:0",
         ),
         max_inference_batch_size=batch_size,
-        max_new_tokens=1024,
+        max_new_tokens=max_new_tokens,
     )
     
     run_tgt_asr_from_manifest_batch(

@@ -386,17 +386,16 @@ def instances_to_segale(
     print("saved:", out_path_ref, out_path_hyp)
 # ============================================================================/
 
-input_name = "input"
-output_name = "output"
-model_name = "volcengine"
-input_version = "2_100ms"
-output_version = "2_100ms_new"
+model_name = "seed"
+input_version = ""
+output_version = ""
 
 def main():
-    manifest = f"data/{output_name}_{model_name}_wav{input_version}/manifest.jsonl"
+    manifest = f"data2/{model_name}/output_wav{input_version}/manifest.jsonl"
     tgt_language = "Chinese"
-    output_dir_asr = f"data/{output_name}_{model_name}_asr{output_version}"
-    batch_size = 10
+    output_dir_asr = f"data2/{model_name}/output_asr{output_version}"
+    batch_size = 2
+    max_new_tokens = 1024
 
     # print("\n" + "=" * 60)
     # print("Starting ASR...")
@@ -405,6 +404,7 @@ def main():
     #     tgt_language=tgt_language,
     #     out_dir=output_dir_asr,
     #     batch_size=batch_size,
+    #     max_new_tokens=max_new_tokens,
     # )
     # ### 释放显存
     # gc.collect()
@@ -416,11 +416,11 @@ def main():
 
 
     # add_char_spans_for_dir(
-    #     f"data/{output_name}_{model_name}_asr{input_version}",
+    #     output_dir_asr,
     #     output_dir_asr_
     # )
 
-    src_segments_yaml = f"data/{input_name}/ACL.ACLdev2023.en-xx.gold_segments.yaml"
+    src_segments_yaml = f"data2/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     output_path_instances = os.path.join(output_dir_asr_, "instances.log")
 
 
@@ -431,9 +431,9 @@ def main():
     #     output_file=output_path_instances,
     # )
 
-    src_txt = f"data/{input_name}/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt = f"data/{input_name}/ACL.6060.dev.en-xx.zh.txt"
-    output_dir_segale = f"data/{output_name}_{model_name}_segale{output_version}"
+    src_txt = f"data2/input/ACL.6060.dev.en-xx.en.txt"
+    tgt_ref_txt = f"data2/input/ACL.6060.dev.en-xx.zh.txt"
+    output_dir_segale = f"data2/{model_name}/output_segale{output_version}"
 
     # instances_to_segale(
     #     src_txt=src_txt, 
@@ -458,7 +458,7 @@ def main():
     # print("Segale finished.")
 
     segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
-    output_dir_longyaal = f"data/{output_name}_{model_name}_longyaal{output_version}"
+    output_dir_longyaal = f"data2/{model_name}/output_longyaal{output_version}"
 
     print("\n" + "=" * 60)
     print("Starting Longyaal...")
