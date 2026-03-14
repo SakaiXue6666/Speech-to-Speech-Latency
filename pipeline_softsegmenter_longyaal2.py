@@ -7,7 +7,7 @@ import os
 import unicodedata
 from multiprocessing import Pool
 from statistics import mean
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import yaml
 from sacrebleu.metrics.bleu import BLEU
@@ -147,7 +147,7 @@ def _process_alignment(ref_words, hyp_words, char_level):
         return (i, ref_words[i]) if i < len(ref_words) else (i, None)
 
     new_hyp_words = []
-    matched_ref_words = []
+    matched_ref_words = []  # 与 new_hyp_words 一一对应，用于写 alignment_tokens
     last_ref, nexti = None, 0
     for i, (ref, hyp) in enumerate(zip(ref_words, hyp_words)):
         if ref is None and i >= nexti and hyp is not None:
@@ -179,11 +179,11 @@ def _process_alignment(ref_words, hyp_words, char_level):
 def _process_audio(args):
     i, ref, hyp, char_level = args
     aligned_ref, aligned_hyp = _align_sequences(ref, hyp, char_level)
-    return _process_alignment(aligned_ref, aligned_hyp, char_level)
+    return _process_alignment(aligned_ref, aligned_hyp, char_level)  # (new_hyp_words, matched_ref_words)
 
 
 def _align_words(ref_words, hyp_words, char_level):
-    """返回 (new_segmentation, ref_segmentation)。ref_segmentation[idx] 为该 segment 参与对齐的 ref token 列表。"""
+    """返回 (new_segmentation, ref_segmentation)。ref_segmentation[idx] 为该 segment 参与对齐的 ref token 列表（Word.text）。"""
     assert len(ref_words) == len(hyp_words)
     new_segmentation = {}
     ref_segmentation = {}
@@ -233,6 +233,240 @@ def _fix_elapsed(words):
 
 def _normalize_unicode(text):
     return unicodedata.normalize("NFKC", text)
+
+
+# ---------- 与 pipeline_main_new (25-193) 一致的 norm + 索引：用于 ref unit 在句内定位 ----------
+def _is_kept_char(ch: str) -> bool:
+    if ch == "'":
+        return True
+    cat = unicodedata.category(ch)
+    return cat.startswith("L") or cat.startswith("N")
+
+
+def _norm_char_stream_with_mapping(text: str) -> Tuple[str, List[int]]:
+    """与 pipeline_main_new 一致：norm 流及 norm[i] -> raw 下标。"""
+    raw = unicodedata.normalize("NFKC", text or "")
+    norm_chars: List[str] = []
+    norm_to_raw: List[int] = []
+    for raw_idx, ch in enumerate(raw):
+        if _is_kept_char(ch):
+            norm_chars.append(ch.lower())
+            norm_to_raw.append(raw_idx)
+    return "".join(norm_chars), norm_to_raw
+
+
+def _norm_unit_text(text: str) -> str:
+    raw = unicodedata.normalize("NFKC", text or "")
+    return "".join(ch.lower() for ch in raw if _is_kept_char(ch))
+
+
+def _ref_units_with_spans(
+    full_text: str,
+    ref_unitizer_language: str,
+    char_level: bool,
+) -> List[Tuple[str, int, int]]:
+    """Ref 句 full_text（已 NFKC）按 Qwen 或 char/空格拆成 units，用 pipeline_main_new 的 norm+find 得到每个 unit 的 (char_start, char_end)。"""
+    full_norm, norm_to_raw = _norm_char_stream_with_mapping(full_text)
+    if char_level:
+        return [(c, i, i + 1) for i, c in enumerate(full_text)]
+    try:
+        from pipeline_qwen3_forcealign_tokenizer2 import Qwen3ForceAlignTokenizer
+        qwen = Qwen3ForceAlignTokenizer()
+        units = qwen.encode_timestamp(full_text, ref_unitizer_language)
+    except Exception:
+        units = full_text.split()
+    if not units:
+        return []
+    result = []
+    norm_cursor = 0
+    for unit in units:
+        unit_norm = _norm_unit_text(unit)
+        if not unit_norm:
+            continue
+        pos = full_norm.find(unit_norm, norm_cursor)
+        if pos == -1:
+            pos = full_norm.find(unit_norm)
+        if pos == -1:
+            continue
+        norm_start = pos
+        norm_end = pos + len(unit_norm)
+        if norm_end > len(norm_to_raw):
+            continue
+        raw_start = norm_to_raw[norm_start]
+        raw_end = norm_to_raw[norm_end - 1] + 1
+        result.append((unit, raw_start, raw_end))
+        norm_cursor = norm_end
+    return result
+
+
+def _ref_tokens_with_punct(full_text: str, units_with_spans: List[Tuple[str, int, int]]) -> List[str]:
+    """在 units 之间用索引取标点/空隙作为 token，得到 [unit1, punct1, unit2, punct2, ...]。纯空格不加入（de/en 等不把空格当标点）。"""
+    if not units_with_spans:
+        return []
+    tokens = []
+    prev_end = 0
+    for unit_text, s, e in units_with_spans:
+        gap = full_text[prev_end:s]
+        # 仅当 gap 含非空白字符时才加入（标点如 ,.；等），纯空格不加入
+        if gap and not gap.isspace():
+            tokens.append(gap.strip() or gap)
+        tokens.append(unit_text)
+        prev_end = e
+    return tokens
+
+
+def _debug_print_ref_intermediates(seg_id: int, full_text: str, units_with_spans: List, ref_tokens: List, head: int = 50):
+    """打印 ref 中间产物：Qwen/单位+索引、加标点后的 token 序列。"""
+    if seg_id > 0:
+        return
+    print("\n" + "=" * 60)
+    print("[debug] REF 中间产物 (仅打印 seg_id=0)")
+    print("  ref_sentence(norm) 前80字:", repr(full_text[:80]) if full_text else "")
+    print("  Qwen/单位+索引 (units_with_spans) 前%d 项:" % min(head, len(units_with_spans)))
+    for j, (u, s, e) in enumerate(units_with_spans[:head]):
+        print("    [%d] %r -> (%d, %d)" % (j, u, s, e))
+    if len(units_with_spans) > head:
+        print("    ... 共 %d 个 unit" % len(units_with_spans))
+    print("  加标点后 ref_tokens 前%d 项:" % min(head, len(ref_tokens)))
+    for j, t in enumerate(ref_tokens[:head]):
+        print("    [%d] %r" % (j, t))
+    if len(ref_tokens) > head:
+        print("    ... 共 %d 个 token" % len(ref_tokens))
+    print("=" * 60 + "\n")
+
+
+def _hyp_tokens_with_punct(
+    hyp_text: str,
+    units: List[str],
+    delays: List[float],
+    elapsed: List[float],
+    starts_ends: List[Tuple[int, int]],
+) -> List[Tuple[str, float, float, Any]]:
+    """Hyp 已有 units + 在 hyp text 的 (char_start, char_end)。中间补标点，标点 delay 用前一个 unit。返回 [(token_text, delay, elapsed, unit_index_or_None), ...]。"""
+    if not units or len(delays) != len(units):
+        return []
+    n = len(units)
+    use_spans = len(starts_ends) == n
+    tokens = []
+    prev_end = 0
+    for i in range(n):
+        if use_spans:
+            s, e = int(starts_ends[i][0]), int(starts_ends[i][1])
+        else:
+            s = prev_end
+            e = min(prev_end + len(units[i]), len(hyp_text))
+        if prev_end < len(hyp_text) and s <= len(hyp_text):
+            gap = hyp_text[prev_end:s]
+            # 仅当 gap 含非空白字符时才加入（标点），纯空格不加入（de/en 等）
+            if gap and not gap.isspace():
+                d = delays[i - 1] if i > 0 else delays[0]
+                el = elapsed[i - 1] if i > 0 and i - 1 < len(elapsed) else (elapsed[0] if elapsed else d)
+                tokens.append((gap.strip() or gap, d, el, None))
+        tokens.append((units[i], delays[i], elapsed[i] if i < len(elapsed) else delays[i], i))
+        prev_end = e
+    return tokens
+
+
+def _debug_print_hyp_intermediates(doc_idx: int, hyp_text: str, units: List, token_triples: List, head: int = 50):
+    """打印 hyp 中间产物：原始 units、加标点后的 (token, delay, elapsed, unit_index)。"""
+    if doc_idx > 0:
+        return
+    print("\n" + "=" * 60)
+    print("[debug] HYP 中间产物 (仅打印 doc_idx=0)")
+    print("  hyp_text 前80字:", repr(hyp_text[:80]) if hyp_text else "")
+    print("  原始 units 前%d 个:" % min(head, len(units)))
+    for j, u in enumerate(units[:head]):
+        print("    [%d] %r" % (j, u))
+    if len(units) > head:
+        print("    ... 共 %d 个 unit" % len(units))
+    print("  加标点后 token_triples 前%d 项 (text, delay, elapsed, unit_ix):" % min(head, len(token_triples)))
+    for j, (tt, d, e, uix) in enumerate(token_triples[:head]):
+        print("    [%d] %r delay=%.0f unit_index=%s" % (j, tt, d, uix))
+    if len(token_triples) > head:
+        print("    ... 共 %d 个 token" % len(token_triples))
+    print("=" * 60 + "\n")
+
+
+def _load_reference_unit_punct(
+    yaml_file: str,
+    ref_sentences_file: str,
+    ref_unitizer_language: str,
+    char_level: bool,
+    offset_delays: bool,
+):
+    """Ref：与 longyaal 一致用 Qwen 拆 unit（不用 char_level 按字切），用 pipeline_main_new 方式获索引，再补标点；每段得到 ref token 序列。"""
+    with open(yaml_file, "r", encoding="utf-8") as f:
+        segmentation = yaml.safe_load(f) or []
+    for seg in segmentation:
+        seg["duration"] = float(seg.get("duration", 0)) * 1000
+        seg["offset"] = float(seg.get("offset", 0)) * 1000
+    with open(ref_sentences_file, "r", encoding="utf-8") as f:
+        reference_sentences = [line.strip() for line in f]
+    assert len(segmentation) == len(reference_sentences)
+    words = []
+    for i, (segment, ref_sentence) in enumerate(zip(segmentation, reference_sentences)):
+        if i == 0 or segmentation[i - 1]["wav"] != segment["wav"]:
+            first_offset = segment["offset"] if offset_delays else 0
+            words.append([])
+        if offset_delays:
+            segment["offset"] -= first_offset
+        delay = segment["offset"]
+        full_text = unicodedata.normalize("NFKC", (ref_sentence or "").strip().lower())
+        # ref 与 longyaal 一致：始终用 Qwen（nagisa/空格等）切 unit，不按 char_level 按字切
+        units_with_spans = _ref_units_with_spans(full_text, ref_unitizer_language, char_level=False)
+        ref_tokens = _ref_tokens_with_punct(full_text, units_with_spans)
+        if not ref_tokens and full_text:
+            ref_tokens = [full_text.strip()]
+        _debug_print_ref_intermediates(i, full_text, units_with_spans, ref_tokens)
+        words[-1].extend([Word(t, delay, seq_id=i) for t in ref_tokens])
+    return words, segmentation, reference_sentences
+
+
+def _load_hypothesis_unit_punct(
+    hypothesis_file: str,
+    segmentation_order: List[str],
+):
+    """Hyp：已有 units + delays + 在 hyp text 的索引；中间补标点作为 token，标点用前 unit 的 delay。"""
+    hypotheses = {}
+    source_lengths = {}
+    with open(hypothesis_file, "r", encoding="utf-8") as f:
+        for line in f:
+            h = json.loads(line.strip())
+            name = os.path.basename(h["source"][0])
+            assert name in segmentation_order, f"Missing hypothesis for {name}"
+            assert name not in hypotheses, f"Duplicate hypothesis for {name}"
+            source_lengths[name] = h.get("source_length", INF)
+            hypotheses[name] = h
+    assert len(hypotheses) == len(segmentation_order)
+    hypotheses = [hypotheses[segmentation_order[i]] for i in range(len(segmentation_order))]
+    source_lengths = [source_lengths[segmentation_order[i]] for i in range(len(segmentation_order))]
+    words = []
+    doc_mt_info = []
+    for h, l in zip(hypotheses, source_lengths):
+        hyp_text = h.get("prediction_text", "") or h.get("prediction", "")
+        if not hyp_text and h.get("prediction_units"):
+            hyp_text = " ".join(str(x) for x in h["prediction_units"])
+        units = list(h.get("prediction_units") or [])
+        delays = list(h.get("delays") or [])
+        elapsed = list(h.get("elapsed") or delays)
+        if len(elapsed) != len(delays):
+            elapsed = list(delays)
+        assert len(units) == len(delays), f"units vs delays: {len(units)} vs {len(delays)}"
+        starts_ends = list(h.get("prediction_unit_char_starts_ends") or [])
+        if len(starts_ends) != len(units):
+            starts_ends = []
+        doc_mt_info.append({
+            "prediction_text": h.get("prediction_text", ""),
+            "prediction_unit_char_starts_ends": starts_ends,
+        })
+        token_triples = _hyp_tokens_with_punct(hyp_text, units, delays, elapsed, starts_ends)
+        _debug_print_hyp_intermediates(len(words), hyp_text, units, token_triples)
+        instance_words = [
+            Word(tt, d, original_str=tt, elapsed=e, recording_length=l, unit_index=uix)
+            for tt, d, e, uix in token_triples
+        ]
+        words.append(_fix_elapsed(instance_words))
+    return words, doc_mt_info
 
 
 # Ref：用 Qwen tokenizer 把整句切成 units；Hyp：用 hypothesis 的 prediction_units + delays，不再额外 tokenize
@@ -414,15 +648,38 @@ def resegment_inline(
     bleu_tokenizer: str,
     offset_delays: bool,
     ref_unitizer_language: str,
+    use_unit_punct_tokenize: bool = True,
 ) -> None:
-    """全部逻辑在本文件：ref 用 Qwen units，hyp 用 prediction_units+delays，对齐后写出 instances。
-    若 hypothesis 带 prediction_text 与 prediction_unit_char_starts_ends，则每段 prediction 用 MT 切片，与 Segale BLEU 可比。"""
-    ref_words, segmentation, ref_sentences = _load_reference_qwen_units(
-        yaml_file, ref_sentences_file, ref_unitizer_language, offset_delays
-    )
-    segmentation_order = _get_segmentation_order(segmentation)
-    hyp_words, doc_mt_info = _load_hypothesis_prediction_units(hypothesis_file, segmentation_order)
+    """全部逻辑在本文件。
+    use_unit_punct_tokenize=True（longyaal2 默认）：ref 按 Qwen/空格拆 unit，用 pipeline_main_new 方式获索引，中间补标点；hyp 已有 unit+索引，中间补标点；ref/hyp token 对齐。
+    否则：ref 用 Qwen units，hyp 用 prediction_units+delays。"""
+    if use_unit_punct_tokenize:
+        ref_words, segmentation, ref_sentences = _load_reference_unit_punct(
+            yaml_file, ref_sentences_file, ref_unitizer_language, char_level, offset_delays
+        )
+        segmentation_order = _get_segmentation_order(segmentation)
+        hyp_words, doc_mt_info = _load_hypothesis_unit_punct(hypothesis_file, segmentation_order)
+    else:
+        ref_words, segmentation, ref_sentences = _load_reference_qwen_units(
+            yaml_file, ref_sentences_file, ref_unitizer_language, offset_delays
+        )
+        segmentation_order = _get_segmentation_order(segmentation)
+        hyp_words, doc_mt_info = _load_hypothesis_prediction_units(hypothesis_file, segmentation_order)
     new_segmentation, ref_segmentation = _align_words(ref_words, hyp_words, char_level)
+
+    def _debug_print_aligned_seg(seg_id: int, ref_sent: str, new_seg: List, prediction_str: str, head: int = 40):
+        if seg_id > 0:
+            return
+        print("\n" + "=" * 60)
+        print("[debug] 对齐后 segment 0")
+        print("  reference:", repr(ref_sent[:80]) if ref_sent else "")
+        print("  对齐到的 hyp tokens (new_seg) 前%d 个 (original, delay, unit_index):" % head)
+        for j, w in enumerate(new_seg[:head]):
+            print("    [%d] %r delay=%.0f unit_index=%s" % (j, getattr(w, "original", None), getattr(w, "delay", 0), getattr(w, "unit_index", None)))
+        if len(new_seg) > head:
+            print("    ... 共 %d 个 token" % len(new_seg))
+        print("  prediction_str 前120字:", repr(prediction_str[:120]) if prediction_str else "")
+        print("=" * 60 + "\n")
 
     doc_id_to_mt_idx = {doc_id: i for i, doc_id in enumerate(segmentation_order)}
 
@@ -454,6 +711,9 @@ def resegment_inline(
                     char_end = max(e for _, e in valid)
                     if char_end > char_start and char_start < len(txt):
                         prediction_str = txt[char_start:min(char_end, len(txt))].strip() or prediction_str
+        _debug_print_aligned_seg(idx, ref, new_seg, prediction_str)
+        # 标点不参与延迟：只取 unit 对应 token 的 delay/elapsed（unit_index 非 None）
+        seg_words = [w for w in new_seg if getattr(w, "unit_index", None) is not None]
         new_seg_dict = {
             "index": idx,
             "doc_id": seg.get("wav", ""),
@@ -461,12 +721,13 @@ def resegment_inline(
             "source": "",  # softsegmenter 无源语段文本，与 longyaal 结构一致留空
             "reference": ref,
             "source_length": segment_duration_ms,
-            "delays": [w.delay - seg["offset"] for w in new_seg],
-            "elapsed": [w.elapsed - seg["offset"] for w in new_seg],
+            "delays": [w.delay - seg["offset"] for w in seg_words],
+            "elapsed": [w.elapsed - seg["offset"] for w in seg_words],
             "recording_end": segment_duration_ms,
             "prediction": prediction_str,
         }
         instances_dict.append(new_seg_dict)
+        # 本 segment 参与对齐的 ref/hyp token 列表，用于写 alignment_tokens.json
         ref_tokens = [w.text for w in ref_segmentation.get(idx, [])]
         hyp_tokens = [getattr(w, "original", None) or w.text for w in new_seg]
         alignment_tokens_list.append({
@@ -479,6 +740,7 @@ def resegment_inline(
             "hyp_tokens": hyp_tokens,
         })
 
+    # 单个 JSON 文件，ref_tokens/hyp_tokens 数组横排在一行，不竖着换行
     def _compact_tokens_line(tokens):
         return "[" + ", ".join(json.dumps(t, ensure_ascii=False) for t in tokens) + "]"
 
@@ -744,9 +1006,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 '''
-python pipeline_softsegmenter_longyaal.py
-python pipeline_softsegmenter_longyaal.py --src_lang en --tgt_lang de
-python pipeline_softsegmenter_longyaal.py --src_lang en --tgt_lang ja
+python pipeline_softsegmenter_longyaal2.py
+python pipeline_softsegmenter_longyaal2.py --src_lang en --tgt_lang de
+python pipeline_softsegmenter_longyaal2.py --src_lang en --tgt_lang ja
 '''
 
 def main():
@@ -756,7 +1018,7 @@ def main():
 
     instances_log = args.instances_log or os.path.join(base_dir, "output_asr_", "instances.log")
     soft_output_folder = args.soft_output_folder or os.path.join(
-        base_dir, f"output_softsegmenter{args.output_version}"
+        base_dir, f"output_softsegmenter{args.output_version}2"
     )
     hypothesis_file = args.hypothesis_file or os.path.join(
         soft_output_folder, "hypothesis.jsonl"
