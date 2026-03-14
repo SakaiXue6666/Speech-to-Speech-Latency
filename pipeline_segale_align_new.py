@@ -831,7 +831,7 @@ def init_config(task_lang):
         "ru": "ru_core_news_sm",
         "de": "de_core_news_sm",
         "zh": "zh_core_web_sm",
-        "ja": "ja_ginza_electra",
+        "ja": "ja_ginza",  #"ja_ginza_electra",
         "es": "es_core_news_sm",
     }
     mt_seg = spacy.load(spacy_models[task_lang])

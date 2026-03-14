@@ -1,0 +1,8037 @@
+{
+  "src": "data2/input/acl_6060_dev/2022.acl-long.268.wav",
+  "tgt": "data2\\seed\\en_de\\output_wav\\2022.acl-long.268.wav",
+  "text": "Hallo, hier ist Elena. Und ich werde unsere Arbeit präsentieren: Die assimilierten Lehnwörter im spanischen Erkennen und ein annotiertes Korpus und Ansätze zur Modellierung. Wir werden behandeln, was lexikale Lehnwörter sind, die Aufgabe, die wir vorgeschlagen haben, den Datensatz, den wir veröffentlicht haben und einige Modelle, die wir untersucht haben. Aber zu beginn, was sind lexikale Lehnwörter und warum es als NLP-Aufgabe von Bedeutung ist? Lexikale Lehnwörter sind im Grunde die Übernahme von Wörtern aus einer Sprache in eine andere Sprache. Zum Beispiel im spanischen verwenden wir Wörter, die aus dem Englischen stammen. Und hier haben wir ein paar Beispiele: Wörter wie podcast, online crowdfunding. All diese sind englische Wörter, die wir manchmal auf Spanisch verwenden. Lexikale Lehnwörter ist eine Art sprachliche Lehnwörter, die im Grunde genommen in einer Sprache wiederholt werden, mit anderen Sprachen. Lexikale Wörter und Code Switching wurden manchmal verglichen. Und als Kontinuum beschrieben. Code Switching ist was, was Zweisprachige tun, wenn sie zwei Sprachen gleichzeitig mischen. Es gibt jedoch einige Unterschiede zwischen lexikalem Entlehnung und Code Switching. Wir werden uns auf lexikalen Entlehnung konzentrieren. Code Switching ist etwas, das von Zweisprachigen gemacht wird. In Definitionen sind die Code Switches nicht in eine der verwendeten Sprachen integriert. Lexikale Entlehnung hingegen wird auch von Einsprachigen gemacht. Die Entlehnungen werden der Grammatik der Empfängersprache entsprechen. Und Entlehnungen werden schließlich in die Empfängersprache integriert werden. Warum ist Entlehnung ein interessantes Phänomen? Aus linguistischer Sicht ist Entlehnung ein Manifestation dafür, wie sich Sprache verändert und wie sie interagieren. Und auch lexikale Entlehnungen sind eine Quelle für neue Wörter. Hier haben Sie einige Beispiele für lexikale Entlehnungen, die in die spanische Sprache aufgenommen wurden als neue Wörter im Bereich NLP. So Entlehnung, Entlehnungen eine häufige Quelle für unbekannte Wörter. Und tatsächlich die automatische Erkennung von lexikalen Entlehnungen hat sich als nützlich für NLP-Datensystem-Aufgaben erwiesen, wie zu Text-zu-Sprache-Synthese oder maschinelle Übersetzung. Es besteht ein wachsendes Interesse am Einfluss des Englischen auf andere Sprachen, insbesondere im Zusammenhang mit englischen Entlehnungen, die manchmal als Anglicismen bezeichnet wurden. Hier haben Sie einige Beispiele für Arbeiten zur automatischen Erkennung von Entlehnungen in einigen dieser Sprachen. Die von uns vorgeschlagene Aufgabe ist die Erkennung und das Simulieren lexikaler Entlehnungen im spanischen Nachrichtenfeed. Was bedeutet, dass wir daran interessiert sind, Wörter zu extrahieren.die aus anderen Sprachen entlehnt wurden, die in spanischen Zeitungen verwendet werden, aber die nicht in die Empfänger-Sprache integriert oder assimiliert wurden. Also noch nicht in Spanisch integriert. Hier haben Sie ein Beispiel. Dies ist ein Satz auf Spanisch. Las pregas bestelle este pan con motivos florales animal print o altales tipo patchwork. Und wie Sie sehen können, gibt es drei Textabschnitte, die eigentlich englische Wörter sind. Wie bestelle animal print und patchwork. Dies sind die Art von Abschnitten, an denen wir interessiert sind, zu extrahieren und zu erkennen. Es gab bereits Arbeiten zur Erkennung von Anglizismen, die aus einem Textmodell bestanden. Zur Erkennung von Anglizismen auf dem spanischen Niveau. Dieses Modell erreichte einen F1-Score von 86. Aber es gab einige Einschränkungen sowohl im Datensatz als auch im Modellierungsansatz. Der Datensatz konzentrierte sich ausschließlich auf eine Nachrichtenquelle, besteht nur aus Schlagzeilen und es gab auch Überschneidungen in den Entlehnungen, die sowohl im Trainingsatz als auch im Testset auftauchten. Dies verhinderte die Bewertung, ob der Modellierungsansatz tatsächlich auf bisher nicht gesehene Entlehnungen generalisiert werden konnte. Ansatzziel ist, einige dieser Einschränkungen anzugehen. In der Aufgabe zunächst einmal haben wir einen neuen Datensatz erstellt, mit dem Ziel, dass der neue Datensatz mit lexikalischen Lähmwörtern versehen wurde. Und das Ziel war, einen Testset zu erstellen, der so schwierig wie möglich war. Es sollte also eine minimale Überschneidung in Wörtern und Themen geben zwischen dem Trainingsatz und dem Testset. Und als Ergebnis kommt der Testset aus Quellen und Daten, die im Trainingsatz nicht vorkamen. Hier kann man sehen, dass es keine Überschneidung gibt in der Zeit. Ist der Testset auch sehr Lähmwörterdicht, nur um Ihnen einige Zahlen zu nennen. Wenn das Trainingsset 6 Lähmwörter enthält pro 1000 Tokens, enthält das Testset 20 Lähmwörter pro 1000 Tokens. Das Testset enthält so viele unbekannte Wörter wie möglich. Tatsächlich 29 Prozent der Lähmwörter im Testset sind, also wurden sie während des Trainings nicht gesehen. Der Korpus bestand im Wesentlichen aus einer Sammlung von Texten aus verschiedenen Quellen spanischer Zeitungen. Und es wurde von Hand annotiert mit zwei Tags. Eines für englische lexikalische Lähmwörter, welche die Mehrheit der Lähmwörter im Spanischen sind. Und dann das Label andere für Lähmwörter aus anderen Sprachen. Wir verwendeten Go-Neu-Formate und wir verwendeten Bion-Kodierung. Damit konnten wir einen Token-Lähmwörter kodieren, wie Apple oder mehr Token-Lähmwörter wie maschinell lernen. Das sind die Zahlen des Korpus. Wie Sie sehen können, es beliefert auf etwa 370.000 Tokens. Und hier haben Sie die Anzahl des Bens, die als englisch markiert wurden.Und die Spann, die als andere Entlehnung markiert wurden und wie viele davon einzigartig waren. Und hier haben wir ein paar Beispiele aus dem Datensatz, wie Sie sehen können. Zum Beispiel hier haben wir im ersten Beispiel die Entlehnung aber, die eine Mehrwort-Entlehnung ist. Und wir haben sie mit dem Bio-Encoding annotiert, also wurde das Bio für Wörter auf Spanisch verwendet, also nicht für Wörter, die nicht entlehnt wurden. Und hier in diesem zweiten Beispiel haben wir Crunch, die ebenfalls als Entlehnungen aus dem Englischen gekennzeichnet sind. Sobald wir den Datensatz hatten, untersuchten wir mehrere Modelle für die Aufgabe, diese lexikalischen Entlehnungen zu extrahieren und zu erkennen. Das erste, was wir ausprobiert haben, war ein bedingter zufälliger Feldmodell. Dies war das Modell, das in früheren Arbeiten verwendet wurde. Und wir verwendeten dieselben handgefertigten Merkmale aus dieser Arbeit, wie Sie sehen können. Das sind die Merkmale, das sind wieder Merkmale. Wie zum Beispiel ist das Wort oder das Token in Großbuchstaben, dies ist ein Titelkase, dies ist ein Anführungszeichen, so ich denke, das sind die Art von Merkmalen, die man bei einer entdeutigen Kognitionsaufgabe erwarten würde. Dies sind die Ergebnisse, die wir erhalten haben. Wir erzielen eine F1-Punktzahl von 55% mit dem Serif-Modell mit handgefertigten Merkmalen, was ein enormer Unterschied im Vergleich zum gemeldeten F1-Punktzahl von 68% ist, die mit demselben Serif-Modell, denselben Merkmalen, aber auf einem anderen Datensatz für die spanische Erkennung von Lehnwörtern durchgeführt wurde. Dies beweist, dass der von uns erstellte Datensatz schwieriger ist und dass wir für diese Aufgabe ausgefeiltere Modelle erforschen mussten. Wir haben zwei Transformer-basierte Modelle getestet. Wir haben Bert verwendet, ein monolinguales Bert-Modell, das für Spanisch trainiert wurde, und auch multilinguales Bert. Wir haben beide Modelle über die Transformer-Bibliothek von Hugging Face verwendet. Dies sind die Ergebnisse, die wir erhalten haben, wie Sie sehen können. Multilinguales Bert hat eine bessere Leistung als Bert gezeigt, sowohl in Beziehung als auch in Testsatz und über alle Treten. Nur damit wir eine Vorstellung haben, um zu vergleichen, das F-Modell erreichte 280, das F-Modell erreichte eine F1-Punktzahl von 55%, während das mehrsprachige Bert 280 erreichte, was ein großer Unterschied ist. Sobald wir diese Ergebnisse hatten, stellten wir uns eine weitere Frage, die lautet: Könnten wir ein Bert-De-Embed-Modell finden, es mit verschiedenen Arten von Einbettungen füttern, die verschiedene Arten von sprachlicher Information codieren, und die Ergebnisse der von Transformer-basierten Modelle übertreffen?Um dies zu tun, führen wir einige vorläufige Experimente durch. Wir führen dieses BERT-Deezerf-Modell mit der Flair-Bibliothek aus und wir haben mit verschiedenen Arten von Einbettungen experimentiert, wie Transformer-basiert, aber auch FastText-Zeichen-Einbettungen und so weiter. Was wir herausfanden, war, dass Transformer-basierte Einbettungen besser abschneiden als nicht kontextualisierte Einbettungen, dass die Kombination von englischem BERT und spanischem BERT-Einbettungen die mehrsprachigen BERT-Einbettungen übertrifft und dass BP-Einbettungen bessere F1-Werte erzielen und Zeichen-Einbettungen bessere Rückrufe erzeugen. Mit diesen Gedanken im Hinterkopf waren dies die besten Ergebnisse, die wir erzielt haben. Beide Modelle waren bilineare Deezerf-Modelle mit Flair. Eines wurde mit BERT und BERT-Einbettungen und BP gefüttert und das andere BERT-Einbettungen BP sowie Zeichen-Einbettungen. Diese letzte war diejenige, die den höchsten F1-Score im Testset erzielte, obwohl der höchste Score im Entwicklungsset von dem ohne Zeichen-Einbettungen erzielt wurde. Nur um im Hinterkopf zu behalten, dass das beste Ergebnis, das wir mit mehrsprachigem BERT erzielt haben, eine F1 von 70 auf dem Entwicklungsset und 80 auf dem Testset erzielte. Dies ist eine Verbesserung im Vergleich zu diesen Ergebnissen. Zum Schluss stellen wir uns eine weitere Frage, die lautete: Können die Werte dieser jetzt genügend wie ermutigt, als Transfer lernen aus der Sprachidentifikation im Code-Switching formuliert werden? Wir führen das gleiche BILSTM-Deezerf-Modell ausgeführt, das wir mit Flair liefen, aber anstatt dieser unangepassten Transformer-basierten BP- und BERT-Embeddings verwenden wir Code-Switching-Embeddings. Was sind Code-Switching-Embeddings? Das sind Embeddings, die fein abgestimmt wurden, Transformer-basierte Embeddings, die für die Spracherkennung auf dem spanisch-englischen Abschnitt des Linsi-Code-Switching-Datensatzes forttrainiert wurden. Linsi-Isen-Datensatzes zum Code-Switching-Datensatzes forttrainiert, forttrainiert, forttrainiert, forttrainiert, haben wir unseren BILSTM gefüttert mit Code-Switching-Embeddings und optionaler Character-Embeddings, BPE-Embeddings und so weiter. Das beste Ergebnis, das wir erzielt haben, war 480 220. Das höchste aller Modelle ist, die wir ausprobiert haben im Testset, obwohl das beste F1-Ergebnis, das wir im Entwicklungsset erzielt haben, das 70 und 70 war, niedriger als das beste Ergebnis, das durch den BILSTM mit angepassten Embeddings erzielt wurde. Einige Schlussfolgerungen aus unserer Arbeit: Wir haben einen neuen Datensatz von spanischen Nachrichtendaten erstellt, der mit assimilierten lexikalischen Léhnwörtern versehen ist. Dieser Datensatz ist Léhnwörterreicher und auffrisch als frühere Ressourcen. Wir haben vier Arten von Modellen zur Erkennung von Léhnwörtern untersucht.Im Hinblick auf Fehleranalyse die Erinnerung war eine Schwachstelle für alle Modelle. Wie Sie hier sehen können, umfassen einige häufige Fehler lange Großbuchstabenlehnwörter, Wörter, die beispielsweise sowohl auf Englisch als auch auf Spanisch existieren. Interessanterweise scheinen BPE-Embeddings den F1-Score zu verbessern. Zeichenembeddings scheinen den Recall zu verbessern. Es ist ein interessanter Befund, den wir vielleicht in zukünftigen Arbeiten erforschen können. Das ist alles, was ich habe. Vielen Dank fürs Zuhören.",
+  "time_stamps": [
+    {
+      "text": "Hallo",
+      "start_time": 5.68,
+      "end_time": 6.16
+    },
+    {
+      "text": "hier",
+      "start_time": 6.48,
+      "end_time": 6.72
+    },
+    {
+      "text": "ist",
+      "start_time": 6.72,
+      "end_time": 6.8
+    },
+    {
+      "text": "Elena",
+      "start_time": 6.8,
+      "end_time": 7.28
+    },
+    {
+      "text": "Und",
+      "start_time": 10.0,
+      "end_time": 10.16
+    },
+    {
+      "text": "ich",
+      "start_time": 10.16,
+      "end_time": 10.32
+    },
+    {
+      "text": "werde",
+      "start_time": 10.32,
+      "end_time": 10.56
+    },
+    {
+      "text": "unsere",
+      "start_time": 10.56,
+      "end_time": 10.88
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 10.88,
+      "end_time": 11.2
+    },
+    {
+      "text": "präsentieren",
+      "start_time": 11.2,
+      "end_time": 11.92
+    },
+    {
+      "text": "Die",
+      "start_time": 12.32,
+      "end_time": 12.4
+    },
+    {
+      "text": "assimilierten",
+      "start_time": 12.4,
+      "end_time": 13.04
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 13.04,
+      "end_time": 13.6
+    },
+    {
+      "text": "im",
+      "start_time": 13.6,
+      "end_time": 13.76
+    },
+    {
+      "text": "spanischen",
+      "start_time": 13.76,
+      "end_time": 14.32
+    },
+    {
+      "text": "Erkennen",
+      "start_time": 14.32,
+      "end_time": 14.72
+    },
+    {
+      "text": "und",
+      "start_time": 15.2,
+      "end_time": 15.36
+    },
+    {
+      "text": "ein",
+      "start_time": 15.36,
+      "end_time": 15.52
+    },
+    {
+      "text": "annotiertes",
+      "start_time": 15.52,
+      "end_time": 16.16
+    },
+    {
+      "text": "Korpus",
+      "start_time": 16.16,
+      "end_time": 16.64
+    },
+    {
+      "text": "und",
+      "start_time": 16.64,
+      "end_time": 16.8
+    },
+    {
+      "text": "Ansätze",
+      "start_time": 16.8,
+      "end_time": 17.36
+    },
+    {
+      "text": "zur",
+      "start_time": 17.36,
+      "end_time": 17.6
+    },
+    {
+      "text": "Modellierung",
+      "start_time": 17.6,
+      "end_time": 18.24
+    },
+    {
+      "text": "Wir",
+      "start_time": 19.28,
+      "end_time": 19.52
+    },
+    {
+      "text": "werden",
+      "start_time": 19.52,
+      "end_time": 19.68
+    },
+    {
+      "text": "behandeln",
+      "start_time": 19.68,
+      "end_time": 20.24
+    },
+    {
+      "text": "was",
+      "start_time": 20.64,
+      "end_time": 20.88
+    },
+    {
+      "text": "lexikale",
+      "start_time": 20.88,
+      "end_time": 21.52
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 21.52,
+      "end_time": 22.32
+    },
+    {
+      "text": "sind",
+      "start_time": 22.32,
+      "end_time": 22.72
+    },
+    {
+      "text": "die",
+      "start_time": 23.04,
+      "end_time": 23.2
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 23.2,
+      "end_time": 23.84
+    },
+    {
+      "text": "die",
+      "start_time": 24.32,
+      "end_time": 24.4
+    },
+    {
+      "text": "wir",
+      "start_time": 24.4,
+      "end_time": 24.56
+    },
+    {
+      "text": "vorgeschlagen",
+      "start_time": 24.56,
+      "end_time": 25.28
+    },
+    {
+      "text": "haben",
+      "start_time": 25.28,
+      "end_time": 25.6
+    },
+    {
+      "text": "den",
+      "start_time": 25.92,
+      "end_time": 26.08
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 26.08,
+      "end_time": 26.8
+    },
+    {
+      "text": "den",
+      "start_time": 27.12,
+      "end_time": 27.28
+    },
+    {
+      "text": "wir",
+      "start_time": 27.28,
+      "end_time": 27.44
+    },
+    {
+      "text": "veröffentlicht",
+      "start_time": 27.44,
+      "end_time": 28.16
+    },
+    {
+      "text": "haben",
+      "start_time": 28.16,
+      "end_time": 28.48
+    },
+    {
+      "text": "und",
+      "start_time": 28.8,
+      "end_time": 29.04
+    },
+    {
+      "text": "einige",
+      "start_time": 29.04,
+      "end_time": 29.36
+    },
+    {
+      "text": "Modelle",
+      "start_time": 29.36,
+      "end_time": 29.92
+    },
+    {
+      "text": "die",
+      "start_time": 30.32,
+      "end_time": 30.4
+    },
+    {
+      "text": "wir",
+      "start_time": 30.48,
+      "end_time": 30.64
+    },
+    {
+      "text": "untersucht",
+      "start_time": 30.64,
+      "end_time": 31.2
+    },
+    {
+      "text": "haben",
+      "start_time": 31.2,
+      "end_time": 31.6
+    },
+    {
+      "text": "Aber",
+      "start_time": 31.84,
+      "end_time": 32.16
+    },
+    {
+      "text": "zu",
+      "start_time": 32.16,
+      "end_time": 32.32
+    },
+    {
+      "text": "beginn",
+      "start_time": 32.32,
+      "end_time": 32.8
+    },
+    {
+      "text": "was",
+      "start_time": 32.96,
+      "end_time": 33.2
+    },
+    {
+      "text": "sind",
+      "start_time": 33.2,
+      "end_time": 33.36
+    },
+    {
+      "text": "lexikale",
+      "start_time": 33.36,
+      "end_time": 34.0
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 34.0,
+      "end_time": 34.88
+    },
+    {
+      "text": "und",
+      "start_time": 35.12,
+      "end_time": 35.36
+    },
+    {
+      "text": "warum",
+      "start_time": 35.36,
+      "end_time": 35.6
+    },
+    {
+      "text": "es",
+      "start_time": 35.6,
+      "end_time": 35.68
+    },
+    {
+      "text": "als",
+      "start_time": 35.68,
+      "end_time": 35.92
+    },
+    {
+      "text": "NLPAufgabe",
+      "start_time": 35.92,
+      "end_time": 36.96
+    },
+    {
+      "text": "von",
+      "start_time": 36.96,
+      "end_time": 37.12
+    },
+    {
+      "text": "Bedeutung",
+      "start_time": 37.12,
+      "end_time": 37.68
+    },
+    {
+      "text": "ist",
+      "start_time": 37.68,
+      "end_time": 38.08
+    },
+    {
+      "text": "Lexikale",
+      "start_time": 38.32,
+      "end_time": 38.96
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 38.96,
+      "end_time": 39.76
+    },
+    {
+      "text": "sind",
+      "start_time": 39.76,
+      "end_time": 39.92
+    },
+    {
+      "text": "im",
+      "start_time": 39.92,
+      "end_time": 40.08
+    },
+    {
+      "text": "Grunde",
+      "start_time": 40.08,
+      "end_time": 40.4
+    },
+    {
+      "text": "die",
+      "start_time": 40.4,
+      "end_time": 40.56
+    },
+    {
+      "text": "Übernahme",
+      "start_time": 40.56,
+      "end_time": 41.04
+    },
+    {
+      "text": "von",
+      "start_time": 41.04,
+      "end_time": 41.28
+    },
+    {
+      "text": "Wörtern",
+      "start_time": 41.28,
+      "end_time": 41.68
+    },
+    {
+      "text": "aus",
+      "start_time": 41.68,
+      "end_time": 41.84
+    },
+    {
+      "text": "einer",
+      "start_time": 41.84,
+      "end_time": 42.16
+    },
+    {
+      "text": "Sprache",
+      "start_time": 42.16,
+      "end_time": 42.72
+    },
+    {
+      "text": "in",
+      "start_time": 43.04,
+      "end_time": 43.2
+    },
+    {
+      "text": "eine",
+      "start_time": 43.2,
+      "end_time": 43.44
+    },
+    {
+      "text": "andere",
+      "start_time": 43.44,
+      "end_time": 43.76
+    },
+    {
+      "text": "Sprache",
+      "start_time": 43.76,
+      "end_time": 44.4
+    },
+    {
+      "text": "Zum",
+      "start_time": 44.64,
+      "end_time": 44.8
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 44.8,
+      "end_time": 45.52
+    },
+    {
+      "text": "im",
+      "start_time": 45.68,
+      "end_time": 45.92
+    },
+    {
+      "text": "spanischen",
+      "start_time": 45.92,
+      "end_time": 46.64
+    },
+    {
+      "text": "verwenden",
+      "start_time": 46.96,
+      "end_time": 47.44
+    },
+    {
+      "text": "wir",
+      "start_time": 47.44,
+      "end_time": 47.6
+    },
+    {
+      "text": "Wörter",
+      "start_time": 47.6,
+      "end_time": 48.08
+    },
+    {
+      "text": "die",
+      "start_time": 48.48,
+      "end_time": 48.56
+    },
+    {
+      "text": "aus",
+      "start_time": 48.56,
+      "end_time": 48.72
+    },
+    {
+      "text": "dem",
+      "start_time": 48.72,
+      "end_time": 48.88
+    },
+    {
+      "text": "Englischen",
+      "start_time": 48.88,
+      "end_time": 49.36
+    },
+    {
+      "text": "stammen",
+      "start_time": 49.36,
+      "end_time": 49.84
+    },
+    {
+      "text": "Und",
+      "start_time": 50.08,
+      "end_time": 50.32
+    },
+    {
+      "text": "hier",
+      "start_time": 50.32,
+      "end_time": 50.48
+    },
+    {
+      "text": "haben",
+      "start_time": 50.48,
+      "end_time": 50.64
+    },
+    {
+      "text": "wir",
+      "start_time": 50.64,
+      "end_time": 50.8
+    },
+    {
+      "text": "ein",
+      "start_time": 50.8,
+      "end_time": 50.88
+    },
+    {
+      "text": "paar",
+      "start_time": 50.88,
+      "end_time": 51.12
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 51.12,
+      "end_time": 51.84
+    },
+    {
+      "text": "Wörter",
+      "start_time": 52.08,
+      "end_time": 52.4
+    },
+    {
+      "text": "wie",
+      "start_time": 52.4,
+      "end_time": 52.56
+    },
+    {
+      "text": "podcast",
+      "start_time": 52.56,
+      "end_time": 53.2
+    },
+    {
+      "text": "online",
+      "start_time": 54.08,
+      "end_time": 54.48
+    },
+    {
+      "text": "crowdfunding",
+      "start_time": 54.48,
+      "end_time": 55.2
+    },
+    {
+      "text": "All",
+      "start_time": 55.28,
+      "end_time": 55.44
+    },
+    {
+      "text": "diese",
+      "start_time": 55.44,
+      "end_time": 55.68
+    },
+    {
+      "text": "sind",
+      "start_time": 55.68,
+      "end_time": 56.0
+    },
+    {
+      "text": "englische",
+      "start_time": 56.0,
+      "end_time": 56.48
+    },
+    {
+      "text": "Wörter",
+      "start_time": 56.48,
+      "end_time": 56.96
+    },
+    {
+      "text": "die",
+      "start_time": 57.28,
+      "end_time": 57.44
+    },
+    {
+      "text": "wir",
+      "start_time": 57.44,
+      "end_time": 57.52
+    },
+    {
+      "text": "manchmal",
+      "start_time": 57.52,
+      "end_time": 57.92
+    },
+    {
+      "text": "auf",
+      "start_time": 57.92,
+      "end_time": 58.08
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 58.08,
+      "end_time": 58.64
+    },
+    {
+      "text": "verwenden",
+      "start_time": 58.64,
+      "end_time": 59.2
+    },
+    {
+      "text": "Lexikale",
+      "start_time": 59.44,
+      "end_time": 60.16
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 60.16,
+      "end_time": 60.88
+    },
+    {
+      "text": "ist",
+      "start_time": 60.88,
+      "end_time": 61.12
+    },
+    {
+      "text": "eine",
+      "start_time": 61.12,
+      "end_time": 61.36
+    },
+    {
+      "text": "Art",
+      "start_time": 61.36,
+      "end_time": 61.52
+    },
+    {
+      "text": "sprachliche",
+      "start_time": 61.52,
+      "end_time": 62.16
+    },
+    {
+      "text": "Lehnwörter",
+      "start_time": 62.16,
+      "end_time": 62.88
+    },
+    {
+      "text": "die",
+      "start_time": 63.2,
+      "end_time": 63.36
+    },
+    {
+      "text": "im",
+      "start_time": 63.36,
+      "end_time": 63.52
+    },
+    {
+      "text": "Grunde",
+      "start_time": 63.52,
+      "end_time": 63.84
+    },
+    {
+      "text": "genommen",
+      "start_time": 63.84,
+      "end_time": 64.16
+    },
+    {
+      "text": "in",
+      "start_time": 64.16,
+      "end_time": 64.32
+    },
+    {
+      "text": "einer",
+      "start_time": 64.32,
+      "end_time": 64.56
+    },
+    {
+      "text": "Sprache",
+      "start_time": 64.56,
+      "end_time": 65.12
+    },
+    {
+      "text": "wiederholt",
+      "start_time": 65.12,
+      "end_time": 65.68
+    },
+    {
+      "text": "werden",
+      "start_time": 65.68,
+      "end_time": 66.08
+    },
+    {
+      "text": "mit",
+      "start_time": 66.32,
+      "end_time": 66.48
+    },
+    {
+      "text": "anderen",
+      "start_time": 66.56,
+      "end_time": 66.96
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 67.04,
+      "end_time": 67.6
+    },
+    {
+      "text": "Lexikale",
+      "start_time": 67.84,
+      "end_time": 68.48
+    },
+    {
+      "text": "Wörter",
+      "start_time": 68.72,
+      "end_time": 69.04
+    },
+    {
+      "text": "und",
+      "start_time": 69.12,
+      "end_time": 69.2
+    },
+    {
+      "text": "Code",
+      "start_time": 69.2,
+      "end_time": 69.44
+    },
+    {
+      "text": "Switching",
+      "start_time": 69.44,
+      "end_time": 69.92
+    },
+    {
+      "text": "wurden",
+      "start_time": 69.92,
+      "end_time": 70.16
+    },
+    {
+      "text": "manchmal",
+      "start_time": 70.16,
+      "end_time": 70.56
+    },
+    {
+      "text": "verglichen",
+      "start_time": 70.56,
+      "end_time": 71.2
+    },
+    {
+      "text": "Und",
+      "start_time": 71.44,
+      "end_time": 71.76
+    },
+    {
+      "text": "als",
+      "start_time": 71.76,
+      "end_time": 72.0
+    },
+    {
+      "text": "Kontinuum",
+      "start_time": 72.0,
+      "end_time": 72.56
+    },
+    {
+      "text": "beschrieben",
+      "start_time": 72.56,
+      "end_time": 73.2
+    },
+    {
+      "text": "Code",
+      "start_time": 73.44,
+      "end_time": 73.68
+    },
+    {
+      "text": "Switching",
+      "start_time": 73.68,
+      "end_time": 74.08
+    },
+    {
+      "text": "ist",
+      "start_time": 74.08,
+      "end_time": 74.24
+    },
+    {
+      "text": "was",
+      "start_time": 74.24,
+      "end_time": 74.56
+    },
+    {
+      "text": "was",
+      "start_time": 74.72,
+      "end_time": 74.96
+    },
+    {
+      "text": "Zweisprachige",
+      "start_time": 74.96,
+      "end_time": 75.76
+    },
+    {
+      "text": "tun",
+      "start_time": 75.76,
+      "end_time": 76.08
+    },
+    {
+      "text": "wenn",
+      "start_time": 76.48,
+      "end_time": 76.64
+    },
+    {
+      "text": "sie",
+      "start_time": 76.64,
+      "end_time": 76.8
+    },
+    {
+      "text": "zwei",
+      "start_time": 76.8,
+      "end_time": 77.12
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 77.12,
+      "end_time": 77.52
+    },
+    {
+      "text": "gleichzeitig",
+      "start_time": 77.52,
+      "end_time": 78.32
+    },
+    {
+      "text": "mischen",
+      "start_time": 78.32,
+      "end_time": 78.72
+    },
+    {
+      "text": "Es",
+      "start_time": 78.96,
+      "end_time": 79.12
+    },
+    {
+      "text": "gibt",
+      "start_time": 79.12,
+      "end_time": 79.36
+    },
+    {
+      "text": "jedoch",
+      "start_time": 79.36,
+      "end_time": 79.68
+    },
+    {
+      "text": "einige",
+      "start_time": 79.68,
+      "end_time": 80.08
+    },
+    {
+      "text": "Unterschiede",
+      "start_time": 80.08,
+      "end_time": 80.64
+    },
+    {
+      "text": "zwischen",
+      "start_time": 80.64,
+      "end_time": 81.04
+    },
+    {
+      "text": "lexikalem",
+      "start_time": 81.04,
+      "end_time": 81.68
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 81.68,
+      "end_time": 82.48
+    },
+    {
+      "text": "und",
+      "start_time": 82.48,
+      "end_time": 82.72
+    },
+    {
+      "text": "Code",
+      "start_time": 82.72,
+      "end_time": 83.04
+    },
+    {
+      "text": "Switching",
+      "start_time": 83.04,
+      "end_time": 83.6
+    },
+    {
+      "text": "Wir",
+      "start_time": 83.68,
+      "end_time": 83.84
+    },
+    {
+      "text": "werden",
+      "start_time": 83.84,
+      "end_time": 84.08
+    },
+    {
+      "text": "uns",
+      "start_time": 84.08,
+      "end_time": 84.24
+    },
+    {
+      "text": "auf",
+      "start_time": 84.24,
+      "end_time": 84.4
+    },
+    {
+      "text": "lexikalen",
+      "start_time": 84.4,
+      "end_time": 85.04
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 85.04,
+      "end_time": 85.84
+    },
+    {
+      "text": "konzentrieren",
+      "start_time": 85.84,
+      "end_time": 86.72
+    },
+    {
+      "text": "Code",
+      "start_time": 86.96,
+      "end_time": 87.12
+    },
+    {
+      "text": "Switching",
+      "start_time": 87.12,
+      "end_time": 87.52
+    },
+    {
+      "text": "ist",
+      "start_time": 87.52,
+      "end_time": 87.68
+    },
+    {
+      "text": "etwas",
+      "start_time": 87.68,
+      "end_time": 88.08
+    },
+    {
+      "text": "das",
+      "start_time": 88.4,
+      "end_time": 88.56
+    },
+    {
+      "text": "von",
+      "start_time": 88.56,
+      "end_time": 88.8
+    },
+    {
+      "text": "Zweisprachigen",
+      "start_time": 88.8,
+      "end_time": 89.6
+    },
+    {
+      "text": "gemacht",
+      "start_time": 89.6,
+      "end_time": 89.92
+    },
+    {
+      "text": "wird",
+      "start_time": 90.0,
+      "end_time": 90.24
+    },
+    {
+      "text": "In",
+      "start_time": 90.48,
+      "end_time": 90.72
+    },
+    {
+      "text": "Definitionen",
+      "start_time": 90.72,
+      "end_time": 91.44
+    },
+    {
+      "text": "sind",
+      "start_time": 91.52,
+      "end_time": 91.68
+    },
+    {
+      "text": "die",
+      "start_time": 91.76,
+      "end_time": 91.76
+    },
+    {
+      "text": "Code",
+      "start_time": 91.92,
+      "end_time": 92.16
+    },
+    {
+      "text": "Switches",
+      "start_time": 92.16,
+      "end_time": 92.56
+    },
+    {
+      "text": "nicht",
+      "start_time": 92.56,
+      "end_time": 92.8
+    },
+    {
+      "text": "in",
+      "start_time": 92.8,
+      "end_time": 92.88
+    },
+    {
+      "text": "eine",
+      "start_time": 92.88,
+      "end_time": 93.12
+    },
+    {
+      "text": "der",
+      "start_time": 93.12,
+      "end_time": 93.28
+    },
+    {
+      "text": "verwendeten",
+      "start_time": 93.28,
+      "end_time": 93.84
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 93.84,
+      "end_time": 94.32
+    },
+    {
+      "text": "integriert",
+      "start_time": 94.32,
+      "end_time": 95.04
+    },
+    {
+      "text": "Lexikale",
+      "start_time": 95.28,
+      "end_time": 95.92
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 96.16,
+      "end_time": 96.64
+    },
+    {
+      "text": "hingegen",
+      "start_time": 96.64,
+      "end_time": 97.12
+    },
+    {
+      "text": "wird",
+      "start_time": 97.12,
+      "end_time": 97.36
+    },
+    {
+      "text": "auch",
+      "start_time": 97.36,
+      "end_time": 97.52
+    },
+    {
+      "text": "von",
+      "start_time": 97.52,
+      "end_time": 97.68
+    },
+    {
+      "text": "Einsprachigen",
+      "start_time": 97.68,
+      "end_time": 98.48
+    },
+    {
+      "text": "gemacht",
+      "start_time": 98.48,
+      "end_time": 98.96
+    },
+    {
+      "text": "Die",
+      "start_time": 99.2,
+      "end_time": 99.52
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 99.52,
+      "end_time": 100.16
+    },
+    {
+      "text": "werden",
+      "start_time": 100.16,
+      "end_time": 100.4
+    },
+    {
+      "text": "der",
+      "start_time": 100.4,
+      "end_time": 100.56
+    },
+    {
+      "text": "Grammatik",
+      "start_time": 100.56,
+      "end_time": 101.12
+    },
+    {
+      "text": "der",
+      "start_time": 101.12,
+      "end_time": 101.36
+    },
+    {
+      "text": "Empfängersprache",
+      "start_time": 101.36,
+      "end_time": 102.08
+    },
+    {
+      "text": "entsprechen",
+      "start_time": 102.08,
+      "end_time": 102.8
+    },
+    {
+      "text": "Und",
+      "start_time": 103.12,
+      "end_time": 103.2
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 103.2,
+      "end_time": 103.84
+    },
+    {
+      "text": "werden",
+      "start_time": 103.84,
+      "end_time": 104.08
+    },
+    {
+      "text": "schließlich",
+      "start_time": 104.08,
+      "end_time": 104.56
+    },
+    {
+      "text": "in",
+      "start_time": 104.56,
+      "end_time": 104.72
+    },
+    {
+      "text": "die",
+      "start_time": 104.72,
+      "end_time": 104.8
+    },
+    {
+      "text": "Empfängersprache",
+      "start_time": 104.8,
+      "end_time": 105.68
+    },
+    {
+      "text": "integriert",
+      "start_time": 105.68,
+      "end_time": 106.24
+    },
+    {
+      "text": "werden",
+      "start_time": 106.24,
+      "end_time": 106.56
+    },
+    {
+      "text": "Warum",
+      "start_time": 106.8,
+      "end_time": 107.2
+    },
+    {
+      "text": "ist",
+      "start_time": 107.2,
+      "end_time": 107.36
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 107.36,
+      "end_time": 107.92
+    },
+    {
+      "text": "ein",
+      "start_time": 107.92,
+      "end_time": 108.08
+    },
+    {
+      "text": "interessantes",
+      "start_time": 108.08,
+      "end_time": 108.8
+    },
+    {
+      "text": "Phänomen",
+      "start_time": 108.8,
+      "end_time": 109.28
+    },
+    {
+      "text": "Aus",
+      "start_time": 109.68,
+      "end_time": 109.84
+    },
+    {
+      "text": "linguistischer",
+      "start_time": 109.84,
+      "end_time": 110.56
+    },
+    {
+      "text": "Sicht",
+      "start_time": 110.56,
+      "end_time": 110.96
+    },
+    {
+      "text": "ist",
+      "start_time": 111.2,
+      "end_time": 111.44
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 111.44,
+      "end_time": 111.92
+    },
+    {
+      "text": "ein",
+      "start_time": 111.92,
+      "end_time": 112.08
+    },
+    {
+      "text": "Manifestation",
+      "start_time": 112.08,
+      "end_time": 113.04
+    },
+    {
+      "text": "dafür",
+      "start_time": 113.04,
+      "end_time": 113.6
+    },
+    {
+      "text": "wie",
+      "start_time": 113.84,
+      "end_time": 113.84
+    },
+    {
+      "text": "sich",
+      "start_time": 114.0,
+      "end_time": 114.0
+    },
+    {
+      "text": "Sprache",
+      "start_time": 114.16,
+      "end_time": 114.64
+    },
+    {
+      "text": "verändert",
+      "start_time": 114.64,
+      "end_time": 115.28
+    },
+    {
+      "text": "und",
+      "start_time": 115.6,
+      "end_time": 115.76
+    },
+    {
+      "text": "wie",
+      "start_time": 115.76,
+      "end_time": 115.92
+    },
+    {
+      "text": "sie",
+      "start_time": 115.92,
+      "end_time": 116.08
+    },
+    {
+      "text": "interagieren",
+      "start_time": 116.08,
+      "end_time": 116.8
+    },
+    {
+      "text": "Und",
+      "start_time": 117.12,
+      "end_time": 117.28
+    },
+    {
+      "text": "auch",
+      "start_time": 117.28,
+      "end_time": 117.6
+    },
+    {
+      "text": "lexikale",
+      "start_time": 117.6,
+      "end_time": 118.24
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 118.24,
+      "end_time": 119.04
+    },
+    {
+      "text": "sind",
+      "start_time": 119.12,
+      "end_time": 119.36
+    },
+    {
+      "text": "eine",
+      "start_time": 119.36,
+      "end_time": 119.52
+    },
+    {
+      "text": "Quelle",
+      "start_time": 119.52,
+      "end_time": 119.92
+    },
+    {
+      "text": "für",
+      "start_time": 119.92,
+      "end_time": 120.08
+    },
+    {
+      "text": "neue",
+      "start_time": 120.08,
+      "end_time": 120.48
+    },
+    {
+      "text": "Wörter",
+      "start_time": 120.48,
+      "end_time": 120.88
+    },
+    {
+      "text": "Hier",
+      "start_time": 121.28,
+      "end_time": 121.52
+    },
+    {
+      "text": "haben",
+      "start_time": 121.52,
+      "end_time": 121.76
+    },
+    {
+      "text": "Sie",
+      "start_time": 121.76,
+      "end_time": 121.84
+    },
+    {
+      "text": "einige",
+      "start_time": 121.84,
+      "end_time": 122.24
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 122.24,
+      "end_time": 122.8
+    },
+    {
+      "text": "für",
+      "start_time": 122.8,
+      "end_time": 122.96
+    },
+    {
+      "text": "lexikale",
+      "start_time": 122.96,
+      "end_time": 123.6
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 123.68,
+      "end_time": 124.48
+    },
+    {
+      "text": "die",
+      "start_time": 124.8,
+      "end_time": 124.96
+    },
+    {
+      "text": "in",
+      "start_time": 124.96,
+      "end_time": 124.96
+    },
+    {
+      "text": "die",
+      "start_time": 124.96,
+      "end_time": 125.04
+    },
+    {
+      "text": "spanische",
+      "start_time": 125.04,
+      "end_time": 125.6
+    },
+    {
+      "text": "Sprache",
+      "start_time": 125.6,
+      "end_time": 126.16
+    },
+    {
+      "text": "aufgenommen",
+      "start_time": 126.16,
+      "end_time": 126.8
+    },
+    {
+      "text": "wurden",
+      "start_time": 126.8,
+      "end_time": 127.12
+    },
+    {
+      "text": "als",
+      "start_time": 127.36,
+      "end_time": 127.68
+    },
+    {
+      "text": "neue",
+      "start_time": 127.68,
+      "end_time": 128.0
+    },
+    {
+      "text": "Wörter",
+      "start_time": 128.0,
+      "end_time": 128.48
+    },
+    {
+      "text": "im",
+      "start_time": 128.8,
+      "end_time": 128.96
+    },
+    {
+      "text": "Bereich",
+      "start_time": 128.96,
+      "end_time": 129.36
+    },
+    {
+      "text": "NLP",
+      "start_time": 129.36,
+      "end_time": 130.0
+    },
+    {
+      "text": "So",
+      "start_time": 130.16,
+      "end_time": 130.4
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 130.4,
+      "end_time": 130.8
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 130.8,
+      "end_time": 131.44
+    },
+    {
+      "text": "eine",
+      "start_time": 131.44,
+      "end_time": 131.84
+    },
+    {
+      "text": "häufige",
+      "start_time": 131.84,
+      "end_time": 132.32
+    },
+    {
+      "text": "Quelle",
+      "start_time": 132.32,
+      "end_time": 132.72
+    },
+    {
+      "text": "für",
+      "start_time": 132.72,
+      "end_time": 132.96
+    },
+    {
+      "text": "unbekannte",
+      "start_time": 132.96,
+      "end_time": 133.76
+    },
+    {
+      "text": "Wörter",
+      "start_time": 133.76,
+      "end_time": 134.16
+    },
+    {
+      "text": "Und",
+      "start_time": 134.48,
+      "end_time": 134.72
+    },
+    {
+      "text": "tatsächlich",
+      "start_time": 134.72,
+      "end_time": 135.2
+    },
+    {
+      "text": "die",
+      "start_time": 135.2,
+      "end_time": 135.36
+    },
+    {
+      "text": "automatische",
+      "start_time": 135.36,
+      "end_time": 136.16
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 136.16,
+      "end_time": 136.64
+    },
+    {
+      "text": "von",
+      "start_time": 136.64,
+      "end_time": 136.88
+    },
+    {
+      "text": "lexikalen",
+      "start_time": 136.88,
+      "end_time": 137.6
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 137.76,
+      "end_time": 138.48
+    },
+    {
+      "text": "hat",
+      "start_time": 138.8,
+      "end_time": 138.96
+    },
+    {
+      "text": "sich",
+      "start_time": 138.96,
+      "end_time": 139.2
+    },
+    {
+      "text": "als",
+      "start_time": 139.2,
+      "end_time": 139.44
+    },
+    {
+      "text": "nützlich",
+      "start_time": 139.44,
+      "end_time": 139.92
+    },
+    {
+      "text": "für",
+      "start_time": 139.92,
+      "end_time": 140.16
+    },
+    {
+      "text": "NLPDatensystemAufgaben",
+      "start_time": 140.24,
+      "end_time": 142.0
+    },
+    {
+      "text": "erwiesen",
+      "start_time": 142.0,
+      "end_time": 142.56
+    },
+    {
+      "text": "wie",
+      "start_time": 142.8,
+      "end_time": 143.04
+    },
+    {
+      "text": "zu",
+      "start_time": 143.04,
+      "end_time": 143.2
+    },
+    {
+      "text": "TextzuSpracheSynthese",
+      "start_time": 143.2,
+      "end_time": 146.08
+    },
+    {
+      "text": "oder",
+      "start_time": 146.08,
+      "end_time": 146.32
+    },
+    {
+      "text": "maschinelle",
+      "start_time": 146.32,
+      "end_time": 146.88
+    },
+    {
+      "text": "Übersetzung",
+      "start_time": 146.88,
+      "end_time": 147.68
+    },
+    {
+      "text": "Es",
+      "start_time": 148.0,
+      "end_time": 148.16
+    },
+    {
+      "text": "besteht",
+      "start_time": 148.16,
+      "end_time": 148.56
+    },
+    {
+      "text": "ein",
+      "start_time": 148.56,
+      "end_time": 148.72
+    },
+    {
+      "text": "wachsendes",
+      "start_time": 148.8,
+      "end_time": 149.28
+    },
+    {
+      "text": "Interesse",
+      "start_time": 149.28,
+      "end_time": 149.84
+    },
+    {
+      "text": "am",
+      "start_time": 149.84,
+      "end_time": 150.0
+    },
+    {
+      "text": "Einfluss",
+      "start_time": 150.0,
+      "end_time": 150.48
+    },
+    {
+      "text": "des",
+      "start_time": 150.48,
+      "end_time": 150.72
+    },
+    {
+      "text": "Englischen",
+      "start_time": 150.72,
+      "end_time": 151.2
+    },
+    {
+      "text": "auf",
+      "start_time": 151.2,
+      "end_time": 151.44
+    },
+    {
+      "text": "andere",
+      "start_time": 151.44,
+      "end_time": 151.76
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 151.76,
+      "end_time": 152.4
+    },
+    {
+      "text": "insbesondere",
+      "start_time": 152.72,
+      "end_time": 153.44
+    },
+    {
+      "text": "im",
+      "start_time": 153.44,
+      "end_time": 153.6
+    },
+    {
+      "text": "Zusammenhang",
+      "start_time": 153.6,
+      "end_time": 154.24
+    },
+    {
+      "text": "mit",
+      "start_time": 154.24,
+      "end_time": 154.48
+    },
+    {
+      "text": "englischen",
+      "start_time": 154.48,
+      "end_time": 154.96
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 154.96,
+      "end_time": 155.68
+    },
+    {
+      "text": "die",
+      "start_time": 156.0,
+      "end_time": 156.08
+    },
+    {
+      "text": "manchmal",
+      "start_time": 156.08,
+      "end_time": 156.56
+    },
+    {
+      "text": "als",
+      "start_time": 156.56,
+      "end_time": 156.88
+    },
+    {
+      "text": "Anglicismen",
+      "start_time": 156.88,
+      "end_time": 157.76
+    },
+    {
+      "text": "bezeichnet",
+      "start_time": 157.76,
+      "end_time": 158.4
+    },
+    {
+      "text": "wurden",
+      "start_time": 158.4,
+      "end_time": 158.72
+    },
+    {
+      "text": "Hier",
+      "start_time": 159.04,
+      "end_time": 159.28
+    },
+    {
+      "text": "haben",
+      "start_time": 159.28,
+      "end_time": 159.52
+    },
+    {
+      "text": "Sie",
+      "start_time": 159.52,
+      "end_time": 159.6
+    },
+    {
+      "text": "einige",
+      "start_time": 159.6,
+      "end_time": 160.0
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 160.0,
+      "end_time": 160.56
+    },
+    {
+      "text": "für",
+      "start_time": 160.56,
+      "end_time": 160.8
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 160.8,
+      "end_time": 161.28
+    },
+    {
+      "text": "zur",
+      "start_time": 161.28,
+      "end_time": 161.52
+    },
+    {
+      "text": "automatischen",
+      "start_time": 161.52,
+      "end_time": 162.32
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 162.32,
+      "end_time": 162.8
+    },
+    {
+      "text": "von",
+      "start_time": 162.8,
+      "end_time": 163.04
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 163.04,
+      "end_time": 163.76
+    },
+    {
+      "text": "in",
+      "start_time": 163.76,
+      "end_time": 164.0
+    },
+    {
+      "text": "einigen",
+      "start_time": 164.0,
+      "end_time": 164.48
+    },
+    {
+      "text": "dieser",
+      "start_time": 164.48,
+      "end_time": 164.8
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 164.8,
+      "end_time": 165.44
+    },
+    {
+      "text": "Die",
+      "start_time": 166.24,
+      "end_time": 166.4
+    },
+    {
+      "text": "von",
+      "start_time": 166.4,
+      "end_time": 166.56
+    },
+    {
+      "text": "uns",
+      "start_time": 166.56,
+      "end_time": 166.88
+    },
+    {
+      "text": "vorgeschlagene",
+      "start_time": 166.88,
+      "end_time": 167.68
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 167.68,
+      "end_time": 168.08
+    },
+    {
+      "text": "ist",
+      "start_time": 168.08,
+      "end_time": 168.32
+    },
+    {
+      "text": "die",
+      "start_time": 168.32,
+      "end_time": 168.4
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 168.4,
+      "end_time": 168.8
+    },
+    {
+      "text": "und",
+      "start_time": 168.8,
+      "end_time": 169.04
+    },
+    {
+      "text": "das",
+      "start_time": 169.04,
+      "end_time": 169.2
+    },
+    {
+      "text": "Simulieren",
+      "start_time": 169.2,
+      "end_time": 169.6
+    },
+    {
+      "text": "lexikaler",
+      "start_time": 169.6,
+      "end_time": 170.32
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 170.32,
+      "end_time": 171.12
+    },
+    {
+      "text": "im",
+      "start_time": 171.12,
+      "end_time": 171.2
+    },
+    {
+      "text": "spanischen",
+      "start_time": 171.2,
+      "end_time": 171.76
+    },
+    {
+      "text": "Nachrichtenfeed",
+      "start_time": 171.76,
+      "end_time": 172.32
+    },
+    {
+      "text": "Was",
+      "start_time": 173.04,
+      "end_time": 173.28
+    },
+    {
+      "text": "bedeutet",
+      "start_time": 173.28,
+      "end_time": 174.0
+    },
+    {
+      "text": "dass",
+      "start_time": 174.16,
+      "end_time": 174.4
+    },
+    {
+      "text": "wir",
+      "start_time": 174.4,
+      "end_time": 174.48
+    },
+    {
+      "text": "daran",
+      "start_time": 174.48,
+      "end_time": 174.8
+    },
+    {
+      "text": "interessiert",
+      "start_time": 174.8,
+      "end_time": 175.28
+    },
+    {
+      "text": "sind",
+      "start_time": 175.28,
+      "end_time": 175.6
+    },
+    {
+      "text": "Wörter",
+      "start_time": 175.76,
+      "end_time": 176.24
+    },
+    {
+      "text": "zu",
+      "start_time": 176.24,
+      "end_time": 176.32
+    },
+    {
+      "text": "extrahieren",
+      "start_time": 176.32,
+      "end_time": 177.2
+    },
+    {
+      "text": "die",
+      "start_time": 177.441,
+      "end_time": 177.601
+    },
+    {
+      "text": "aus",
+      "start_time": 177.601,
+      "end_time": 177.841
+    },
+    {
+      "text": "anderen",
+      "start_time": 177.841,
+      "end_time": 178.081
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 178.081,
+      "end_time": 178.561
+    },
+    {
+      "text": "entlehnt",
+      "start_time": 178.561,
+      "end_time": 179.121
+    },
+    {
+      "text": "wurden",
+      "start_time": 179.121,
+      "end_time": 179.441
+    },
+    {
+      "text": "die",
+      "start_time": 179.921,
+      "end_time": 180.001
+    },
+    {
+      "text": "in",
+      "start_time": 180.001,
+      "end_time": 180.081
+    },
+    {
+      "text": "spanischen",
+      "start_time": 180.081,
+      "end_time": 180.561
+    },
+    {
+      "text": "Zeitungen",
+      "start_time": 180.561,
+      "end_time": 181.121
+    },
+    {
+      "text": "verwendet",
+      "start_time": 181.121,
+      "end_time": 181.681
+    },
+    {
+      "text": "werden",
+      "start_time": 181.681,
+      "end_time": 182.081
+    },
+    {
+      "text": "aber",
+      "start_time": 182.321,
+      "end_time": 182.561
+    },
+    {
+      "text": "die",
+      "start_time": 182.561,
+      "end_time": 182.721
+    },
+    {
+      "text": "nicht",
+      "start_time": 182.721,
+      "end_time": 182.961
+    },
+    {
+      "text": "in",
+      "start_time": 182.961,
+      "end_time": 183.121
+    },
+    {
+      "text": "die",
+      "start_time": 183.121,
+      "end_time": 183.201
+    },
+    {
+      "text": "EmpfängerSprache",
+      "start_time": 183.201,
+      "end_time": 184.081
+    },
+    {
+      "text": "integriert",
+      "start_time": 184.081,
+      "end_time": 184.721
+    },
+    {
+      "text": "oder",
+      "start_time": 184.801,
+      "end_time": 185.041
+    },
+    {
+      "text": "assimiliert",
+      "start_time": 185.041,
+      "end_time": 185.681
+    },
+    {
+      "text": "wurden",
+      "start_time": 185.681,
+      "end_time": 186.001
+    },
+    {
+      "text": "Also",
+      "start_time": 186.321,
+      "end_time": 186.561
+    },
+    {
+      "text": "noch",
+      "start_time": 186.561,
+      "end_time": 186.721
+    },
+    {
+      "text": "nicht",
+      "start_time": 186.721,
+      "end_time": 186.961
+    },
+    {
+      "text": "in",
+      "start_time": 186.961,
+      "end_time": 187.041
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 187.041,
+      "end_time": 187.521
+    },
+    {
+      "text": "integriert",
+      "start_time": 187.521,
+      "end_time": 188.241
+    },
+    {
+      "text": "Hier",
+      "start_time": 188.561,
+      "end_time": 188.881
+    },
+    {
+      "text": "haben",
+      "start_time": 188.881,
+      "end_time": 189.041
+    },
+    {
+      "text": "Sie",
+      "start_time": 189.041,
+      "end_time": 189.521
+    },
+    {
+      "text": "ein",
+      "start_time": 189.521,
+      "end_time": 189.761
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 189.761,
+      "end_time": 190.641
+    },
+    {
+      "text": "Dies",
+      "start_time": 190.721,
+      "end_time": 190.881
+    },
+    {
+      "text": "ist",
+      "start_time": 190.881,
+      "end_time": 191.121
+    },
+    {
+      "text": "ein",
+      "start_time": 191.121,
+      "end_time": 191.121
+    },
+    {
+      "text": "Satz",
+      "start_time": 191.121,
+      "end_time": 191.441
+    },
+    {
+      "text": "auf",
+      "start_time": 191.441,
+      "end_time": 191.601
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 191.601,
+      "end_time": 192.481
+    },
+    {
+      "text": "Las",
+      "start_time": 192.881,
+      "end_time": 193.121
+    },
+    {
+      "text": "pregas",
+      "start_time": 193.121,
+      "end_time": 193.441
+    },
+    {
+      "text": "bestelle",
+      "start_time": 193.441,
+      "end_time": 194.001
+    },
+    {
+      "text": "este",
+      "start_time": 194.001,
+      "end_time": 194.161
+    },
+    {
+      "text": "pan",
+      "start_time": 194.161,
+      "end_time": 194.721
+    },
+    {
+      "text": "con",
+      "start_time": 194.721,
+      "end_time": 194.961
+    },
+    {
+      "text": "motivos",
+      "start_time": 194.961,
+      "end_time": 195.361
+    },
+    {
+      "text": "florales",
+      "start_time": 195.361,
+      "end_time": 196.081
+    },
+    {
+      "text": "animal",
+      "start_time": 196.401,
+      "end_time": 196.961
+    },
+    {
+      "text": "print",
+      "start_time": 196.961,
+      "end_time": 197.281
+    },
+    {
+      "text": "o",
+      "start_time": 197.281,
+      "end_time": 197.441
+    },
+    {
+      "text": "altales",
+      "start_time": 197.441,
+      "end_time": 198.081
+    },
+    {
+      "text": "tipo",
+      "start_time": 198.081,
+      "end_time": 198.401
+    },
+    {
+      "text": "patchwork",
+      "start_time": 198.401,
+      "end_time": 199.121
+    },
+    {
+      "text": "Und",
+      "start_time": 199.281,
+      "end_time": 199.521
+    },
+    {
+      "text": "wie",
+      "start_time": 199.521,
+      "end_time": 199.601
+    },
+    {
+      "text": "Sie",
+      "start_time": 199.601,
+      "end_time": 199.761
+    },
+    {
+      "text": "sehen",
+      "start_time": 199.761,
+      "end_time": 200.081
+    },
+    {
+      "text": "können",
+      "start_time": 200.081,
+      "end_time": 200.561
+    },
+    {
+      "text": "gibt",
+      "start_time": 200.801,
+      "end_time": 201.041
+    },
+    {
+      "text": "es",
+      "start_time": 201.041,
+      "end_time": 201.201
+    },
+    {
+      "text": "drei",
+      "start_time": 201.201,
+      "end_time": 201.441
+    },
+    {
+      "text": "Textabschnitte",
+      "start_time": 201.441,
+      "end_time": 202.401
+    },
+    {
+      "text": "die",
+      "start_time": 202.641,
+      "end_time": 202.801
+    },
+    {
+      "text": "eigentlich",
+      "start_time": 202.801,
+      "end_time": 203.281
+    },
+    {
+      "text": "englische",
+      "start_time": 203.281,
+      "end_time": 203.761
+    },
+    {
+      "text": "Wörter",
+      "start_time": 203.761,
+      "end_time": 204.161
+    },
+    {
+      "text": "sind",
+      "start_time": 204.161,
+      "end_time": 204.561
+    },
+    {
+      "text": "Wie",
+      "start_time": 204.801,
+      "end_time": 205.121
+    },
+    {
+      "text": "bestelle",
+      "start_time": 205.121,
+      "end_time": 205.841
+    },
+    {
+      "text": "animal",
+      "start_time": 206.001,
+      "end_time": 206.561
+    },
+    {
+      "text": "print",
+      "start_time": 206.561,
+      "end_time": 206.881
+    },
+    {
+      "text": "und",
+      "start_time": 206.881,
+      "end_time": 207.121
+    },
+    {
+      "text": "patchwork",
+      "start_time": 207.121,
+      "end_time": 207.761
+    },
+    {
+      "text": "Dies",
+      "start_time": 207.921,
+      "end_time": 208.161
+    },
+    {
+      "text": "sind",
+      "start_time": 208.161,
+      "end_time": 208.321
+    },
+    {
+      "text": "die",
+      "start_time": 208.321,
+      "end_time": 208.401
+    },
+    {
+      "text": "Art",
+      "start_time": 208.401,
+      "end_time": 208.561
+    },
+    {
+      "text": "von",
+      "start_time": 208.561,
+      "end_time": 208.721
+    },
+    {
+      "text": "Abschnitten",
+      "start_time": 208.721,
+      "end_time": 209.281
+    },
+    {
+      "text": "an",
+      "start_time": 209.521,
+      "end_time": 209.681
+    },
+    {
+      "text": "denen",
+      "start_time": 209.681,
+      "end_time": 209.921
+    },
+    {
+      "text": "wir",
+      "start_time": 209.921,
+      "end_time": 210.001
+    },
+    {
+      "text": "interessiert",
+      "start_time": 210.001,
+      "end_time": 210.481
+    },
+    {
+      "text": "sind",
+      "start_time": 210.481,
+      "end_time": 210.801
+    },
+    {
+      "text": "zu",
+      "start_time": 211.121,
+      "end_time": 211.281
+    },
+    {
+      "text": "extrahieren",
+      "start_time": 211.281,
+      "end_time": 211.921
+    },
+    {
+      "text": "und",
+      "start_time": 211.921,
+      "end_time": 212.081
+    },
+    {
+      "text": "zu",
+      "start_time": 212.081,
+      "end_time": 212.241
+    },
+    {
+      "text": "erkennen",
+      "start_time": 212.241,
+      "end_time": 212.801
+    },
+    {
+      "text": "Es",
+      "start_time": 213.041,
+      "end_time": 213.281
+    },
+    {
+      "text": "gab",
+      "start_time": 213.281,
+      "end_time": 213.441
+    },
+    {
+      "text": "bereits",
+      "start_time": 213.441,
+      "end_time": 213.761
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 213.761,
+      "end_time": 214.241
+    },
+    {
+      "text": "zur",
+      "start_time": 214.241,
+      "end_time": 214.401
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 214.401,
+      "end_time": 214.881
+    },
+    {
+      "text": "von",
+      "start_time": 214.881,
+      "end_time": 215.041
+    },
+    {
+      "text": "Anglizismen",
+      "start_time": 215.041,
+      "end_time": 215.921
+    },
+    {
+      "text": "die",
+      "start_time": 216.161,
+      "end_time": 216.481
+    },
+    {
+      "text": "aus",
+      "start_time": 216.481,
+      "end_time": 216.721
+    },
+    {
+      "text": "einem",
+      "start_time": 216.721,
+      "end_time": 216.961
+    },
+    {
+      "text": "Textmodell",
+      "start_time": 216.961,
+      "end_time": 217.841
+    },
+    {
+      "text": "bestanden",
+      "start_time": 217.841,
+      "end_time": 218.481
+    },
+    {
+      "text": "Zur",
+      "start_time": 218.721,
+      "end_time": 218.961
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 218.961,
+      "end_time": 219.361
+    },
+    {
+      "text": "von",
+      "start_time": 219.361,
+      "end_time": 219.521
+    },
+    {
+      "text": "Anglizismen",
+      "start_time": 219.521,
+      "end_time": 220.241
+    },
+    {
+      "text": "auf",
+      "start_time": 220.241,
+      "end_time": 220.481
+    },
+    {
+      "text": "dem",
+      "start_time": 220.481,
+      "end_time": 220.641
+    },
+    {
+      "text": "spanischen",
+      "start_time": 220.641,
+      "end_time": 221.281
+    },
+    {
+      "text": "Niveau",
+      "start_time": 221.281,
+      "end_time": 221.441
+    },
+    {
+      "text": "Dieses",
+      "start_time": 222.161,
+      "end_time": 222.481
+    },
+    {
+      "text": "Modell",
+      "start_time": 222.481,
+      "end_time": 222.801
+    },
+    {
+      "text": "erreichte",
+      "start_time": 222.801,
+      "end_time": 223.281
+    },
+    {
+      "text": "einen",
+      "start_time": 223.281,
+      "end_time": 223.601
+    },
+    {
+      "text": "F1Score",
+      "start_time": 223.601,
+      "end_time": 224.081
+    },
+    {
+      "text": "von",
+      "start_time": 224.561,
+      "end_time": 224.721
+    },
+    {
+      "text": "86",
+      "start_time": 224.721,
+      "end_time": 225.601
+    },
+    {
+      "text": "Aber",
+      "start_time": 225.921,
+      "end_time": 226.161
+    },
+    {
+      "text": "es",
+      "start_time": 226.161,
+      "end_time": 226.241
+    },
+    {
+      "text": "gab",
+      "start_time": 226.241,
+      "end_time": 226.401
+    },
+    {
+      "text": "einige",
+      "start_time": 226.401,
+      "end_time": 226.801
+    },
+    {
+      "text": "Einschränkungen",
+      "start_time": 226.801,
+      "end_time": 227.521
+    },
+    {
+      "text": "sowohl",
+      "start_time": 227.521,
+      "end_time": 227.841
+    },
+    {
+      "text": "im",
+      "start_time": 227.841,
+      "end_time": 228.001
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 228.001,
+      "end_time": 228.561
+    },
+    {
+      "text": "als",
+      "start_time": 228.561,
+      "end_time": 228.801
+    },
+    {
+      "text": "auch",
+      "start_time": 228.801,
+      "end_time": 229.041
+    },
+    {
+      "text": "im",
+      "start_time": 229.041,
+      "end_time": 229.121
+    },
+    {
+      "text": "Modellierungsansatz",
+      "start_time": 229.121,
+      "end_time": 230.481
+    },
+    {
+      "text": "Der",
+      "start_time": 230.481,
+      "end_time": 230.641
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 230.641,
+      "end_time": 231.201
+    },
+    {
+      "text": "konzentrierte",
+      "start_time": 231.201,
+      "end_time": 231.841
+    },
+    {
+      "text": "sich",
+      "start_time": 231.841,
+      "end_time": 232.081
+    },
+    {
+      "text": "ausschließlich",
+      "start_time": 232.081,
+      "end_time": 232.801
+    },
+    {
+      "text": "auf",
+      "start_time": 232.801,
+      "end_time": 232.881
+    },
+    {
+      "text": "eine",
+      "start_time": 232.881,
+      "end_time": 233.121
+    },
+    {
+      "text": "Nachrichtenquelle",
+      "start_time": 233.121,
+      "end_time": 234.161
+    },
+    {
+      "text": "besteht",
+      "start_time": 234.401,
+      "end_time": 234.881
+    },
+    {
+      "text": "nur",
+      "start_time": 234.881,
+      "end_time": 235.121
+    },
+    {
+      "text": "aus",
+      "start_time": 235.121,
+      "end_time": 235.361
+    },
+    {
+      "text": "Schlagzeilen",
+      "start_time": 235.361,
+      "end_time": 236.161
+    },
+    {
+      "text": "und",
+      "start_time": 236.481,
+      "end_time": 236.641
+    },
+    {
+      "text": "es",
+      "start_time": 236.641,
+      "end_time": 236.721
+    },
+    {
+      "text": "gab",
+      "start_time": 236.721,
+      "end_time": 236.961
+    },
+    {
+      "text": "auch",
+      "start_time": 236.961,
+      "end_time": 237.121
+    },
+    {
+      "text": "Überschneidungen",
+      "start_time": 237.121,
+      "end_time": 238.001
+    },
+    {
+      "text": "in",
+      "start_time": 238.001,
+      "end_time": 238.161
+    },
+    {
+      "text": "den",
+      "start_time": 238.161,
+      "end_time": 238.321
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 238.321,
+      "end_time": 239.041
+    },
+    {
+      "text": "die",
+      "start_time": 239.281,
+      "end_time": 239.441
+    },
+    {
+      "text": "sowohl",
+      "start_time": 239.441,
+      "end_time": 239.841
+    },
+    {
+      "text": "im",
+      "start_time": 239.841,
+      "end_time": 240.081
+    },
+    {
+      "text": "Trainingsatz",
+      "start_time": 240.081,
+      "end_time": 240.801
+    },
+    {
+      "text": "als",
+      "start_time": 240.801,
+      "end_time": 241.041
+    },
+    {
+      "text": "auch",
+      "start_time": 241.041,
+      "end_time": 241.201
+    },
+    {
+      "text": "im",
+      "start_time": 241.201,
+      "end_time": 241.361
+    },
+    {
+      "text": "Testset",
+      "start_time": 241.361,
+      "end_time": 241.841
+    },
+    {
+      "text": "auftauchten",
+      "start_time": 241.841,
+      "end_time": 242.641
+    },
+    {
+      "text": "Dies",
+      "start_time": 242.961,
+      "end_time": 243.201
+    },
+    {
+      "text": "verhinderte",
+      "start_time": 243.201,
+      "end_time": 243.761
+    },
+    {
+      "text": "die",
+      "start_time": 243.761,
+      "end_time": 243.841
+    },
+    {
+      "text": "Bewertung",
+      "start_time": 243.841,
+      "end_time": 244.641
+    },
+    {
+      "text": "ob",
+      "start_time": 244.881,
+      "end_time": 245.041
+    },
+    {
+      "text": "der",
+      "start_time": 245.041,
+      "end_time": 245.201
+    },
+    {
+      "text": "Modellierungsansatz",
+      "start_time": 245.201,
+      "end_time": 246.321
+    },
+    {
+      "text": "tatsächlich",
+      "start_time": 246.321,
+      "end_time": 246.881
+    },
+    {
+      "text": "auf",
+      "start_time": 246.881,
+      "end_time": 247.041
+    },
+    {
+      "text": "bisher",
+      "start_time": 247.041,
+      "end_time": 247.441
+    },
+    {
+      "text": "nicht",
+      "start_time": 247.441,
+      "end_time": 247.681
+    },
+    {
+      "text": "gesehene",
+      "start_time": 247.681,
+      "end_time": 248.081
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 248.081,
+      "end_time": 248.721
+    },
+    {
+      "text": "generalisiert",
+      "start_time": 248.721,
+      "end_time": 249.521
+    },
+    {
+      "text": "werden",
+      "start_time": 249.521,
+      "end_time": 249.841
+    },
+    {
+      "text": "konnte",
+      "start_time": 249.841,
+      "end_time": 250.241
+    },
+    {
+      "text": "Ansatzziel",
+      "start_time": 250.481,
+      "end_time": 251.121
+    },
+    {
+      "text": "ist",
+      "start_time": 251.121,
+      "end_time": 251.361
+    },
+    {
+      "text": "einige",
+      "start_time": 251.681,
+      "end_time": 252.081
+    },
+    {
+      "text": "dieser",
+      "start_time": 252.081,
+      "end_time": 252.481
+    },
+    {
+      "text": "Einschränkungen",
+      "start_time": 252.481,
+      "end_time": 253.201
+    },
+    {
+      "text": "anzugehen",
+      "start_time": 253.201,
+      "end_time": 254.001
+    },
+    {
+      "text": "In",
+      "start_time": 254.241,
+      "end_time": 254.401
+    },
+    {
+      "text": "der",
+      "start_time": 254.401,
+      "end_time": 254.641
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 254.641,
+      "end_time": 255.521
+    },
+    {
+      "text": "zunächst",
+      "start_time": 255.521,
+      "end_time": 256.001
+    },
+    {
+      "text": "einmal",
+      "start_time": 256.001,
+      "end_time": 256.881
+    },
+    {
+      "text": "haben",
+      "start_time": 256.881,
+      "end_time": 257.121
+    },
+    {
+      "text": "wir",
+      "start_time": 257.121,
+      "end_time": 257.361
+    },
+    {
+      "text": "einen",
+      "start_time": 257.361,
+      "end_time": 257.681
+    },
+    {
+      "text": "neuen",
+      "start_time": 257.681,
+      "end_time": 257.921
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 257.921,
+      "end_time": 258.561
+    },
+    {
+      "text": "erstellt",
+      "start_time": 258.561,
+      "end_time": 259.121
+    },
+    {
+      "text": "mit",
+      "start_time": 259.441,
+      "end_time": 259.601
+    },
+    {
+      "text": "dem",
+      "start_time": 259.601,
+      "end_time": 259.761
+    },
+    {
+      "text": "Ziel",
+      "start_time": 259.761,
+      "end_time": 260.161
+    },
+    {
+      "text": "dass",
+      "start_time": 260.561,
+      "end_time": 260.721
+    },
+    {
+      "text": "der",
+      "start_time": 260.721,
+      "end_time": 260.881
+    },
+    {
+      "text": "neue",
+      "start_time": 260.881,
+      "end_time": 261.201
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 261.201,
+      "end_time": 261.761
+    },
+    {
+      "text": "mit",
+      "start_time": 261.761,
+      "end_time": 261.921
+    },
+    {
+      "text": "lexikalischen",
+      "start_time": 261.921,
+      "end_time": 262.801
+    },
+    {
+      "text": "Lähmwörtern",
+      "start_time": 262.801,
+      "end_time": 263.521
+    },
+    {
+      "text": "versehen",
+      "start_time": 263.521,
+      "end_time": 264.001
+    },
+    {
+      "text": "wurde",
+      "start_time": 264.001,
+      "end_time": 264.401
+    },
+    {
+      "text": "Und",
+      "start_time": 264.561,
+      "end_time": 264.801
+    },
+    {
+      "text": "das",
+      "start_time": 264.801,
+      "end_time": 265.041
+    },
+    {
+      "text": "Ziel",
+      "start_time": 265.041,
+      "end_time": 265.361
+    },
+    {
+      "text": "war",
+      "start_time": 265.361,
+      "end_time": 265.681
+    },
+    {
+      "text": "einen",
+      "start_time": 266.001,
+      "end_time": 266.401
+    },
+    {
+      "text": "Testset",
+      "start_time": 266.401,
+      "end_time": 266.801
+    },
+    {
+      "text": "zu",
+      "start_time": 266.881,
+      "end_time": 267.121
+    },
+    {
+      "text": "erstellen",
+      "start_time": 267.121,
+      "end_time": 267.681
+    },
+    {
+      "text": "der",
+      "start_time": 268.001,
+      "end_time": 268.161
+    },
+    {
+      "text": "so",
+      "start_time": 268.161,
+      "end_time": 268.241
+    },
+    {
+      "text": "schwierig",
+      "start_time": 268.241,
+      "end_time": 268.801
+    },
+    {
+      "text": "wie",
+      "start_time": 268.801,
+      "end_time": 268.881
+    },
+    {
+      "text": "möglich",
+      "start_time": 268.881,
+      "end_time": 269.361
+    },
+    {
+      "text": "war",
+      "start_time": 269.361,
+      "end_time": 269.601
+    },
+    {
+      "text": "Es",
+      "start_time": 269.921,
+      "end_time": 270.081
+    },
+    {
+      "text": "sollte",
+      "start_time": 270.081,
+      "end_time": 270.481
+    },
+    {
+      "text": "also",
+      "start_time": 270.481,
+      "end_time": 270.721
+    },
+    {
+      "text": "eine",
+      "start_time": 270.721,
+      "end_time": 270.881
+    },
+    {
+      "text": "minimale",
+      "start_time": 270.961,
+      "end_time": 271.521
+    },
+    {
+      "text": "Überschneidung",
+      "start_time": 271.521,
+      "end_time": 272.321
+    },
+    {
+      "text": "in",
+      "start_time": 272.321,
+      "end_time": 272.481
+    },
+    {
+      "text": "Wörtern",
+      "start_time": 272.481,
+      "end_time": 272.961
+    },
+    {
+      "text": "und",
+      "start_time": 272.961,
+      "end_time": 273.121
+    },
+    {
+      "text": "Themen",
+      "start_time": 273.121,
+      "end_time": 273.441
+    },
+    {
+      "text": "geben",
+      "start_time": 273.441,
+      "end_time": 273.761
+    },
+    {
+      "text": "zwischen",
+      "start_time": 274.081,
+      "end_time": 274.481
+    },
+    {
+      "text": "dem",
+      "start_time": 274.481,
+      "end_time": 274.721
+    },
+    {
+      "text": "Trainingsatz",
+      "start_time": 274.721,
+      "end_time": 275.441
+    },
+    {
+      "text": "und",
+      "start_time": 275.441,
+      "end_time": 275.601
+    },
+    {
+      "text": "dem",
+      "start_time": 275.601,
+      "end_time": 275.761
+    },
+    {
+      "text": "Testset",
+      "start_time": 275.761,
+      "end_time": 276.401
+    },
+    {
+      "text": "Und",
+      "start_time": 276.641,
+      "end_time": 276.801
+    },
+    {
+      "text": "als",
+      "start_time": 276.801,
+      "end_time": 277.041
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 277.041,
+      "end_time": 278.081
+    },
+    {
+      "text": "kommt",
+      "start_time": 278.081,
+      "end_time": 278.321
+    },
+    {
+      "text": "der",
+      "start_time": 278.321,
+      "end_time": 278.481
+    },
+    {
+      "text": "Testset",
+      "start_time": 278.481,
+      "end_time": 278.881
+    },
+    {
+      "text": "aus",
+      "start_time": 278.881,
+      "end_time": 279.121
+    },
+    {
+      "text": "Quellen",
+      "start_time": 279.121,
+      "end_time": 279.521
+    },
+    {
+      "text": "und",
+      "start_time": 279.521,
+      "end_time": 279.761
+    },
+    {
+      "text": "Daten",
+      "start_time": 279.761,
+      "end_time": 280.161
+    },
+    {
+      "text": "die",
+      "start_time": 280.561,
+      "end_time": 280.721
+    },
+    {
+      "text": "im",
+      "start_time": 280.721,
+      "end_time": 280.801
+    },
+    {
+      "text": "Trainingsatz",
+      "start_time": 280.801,
+      "end_time": 281.521
+    },
+    {
+      "text": "nicht",
+      "start_time": 281.521,
+      "end_time": 281.681
+    },
+    {
+      "text": "vorkamen",
+      "start_time": 281.681,
+      "end_time": 282.401
+    },
+    {
+      "text": "Hier",
+      "start_time": 282.641,
+      "end_time": 282.881
+    },
+    {
+      "text": "kann",
+      "start_time": 282.881,
+      "end_time": 283.041
+    },
+    {
+      "text": "man",
+      "start_time": 283.041,
+      "end_time": 283.281
+    },
+    {
+      "text": "sehen",
+      "start_time": 283.281,
+      "end_time": 283.601
+    },
+    {
+      "text": "dass",
+      "start_time": 283.921,
+      "end_time": 284.081
+    },
+    {
+      "text": "es",
+      "start_time": 284.081,
+      "end_time": 284.241
+    },
+    {
+      "text": "keine",
+      "start_time": 284.241,
+      "end_time": 284.561
+    },
+    {
+      "text": "Überschneidung",
+      "start_time": 284.561,
+      "end_time": 285.281
+    },
+    {
+      "text": "gibt",
+      "start_time": 285.281,
+      "end_time": 285.761
+    },
+    {
+      "text": "in",
+      "start_time": 285.921,
+      "end_time": 286.161
+    },
+    {
+      "text": "der",
+      "start_time": 286.161,
+      "end_time": 286.321
+    },
+    {
+      "text": "Zeit",
+      "start_time": 286.321,
+      "end_time": 286.721
+    },
+    {
+      "text": "Ist",
+      "start_time": 287.041,
+      "end_time": 287.281
+    },
+    {
+      "text": "der",
+      "start_time": 287.281,
+      "end_time": 287.361
+    },
+    {
+      "text": "Testset",
+      "start_time": 287.361,
+      "end_time": 287.921
+    },
+    {
+      "text": "auch",
+      "start_time": 287.921,
+      "end_time": 288.081
+    },
+    {
+      "text": "sehr",
+      "start_time": 288.081,
+      "end_time": 288.321
+    },
+    {
+      "text": "Lähmwörterdicht",
+      "start_time": 288.321,
+      "end_time": 289.601
+    },
+    {
+      "text": "nur",
+      "start_time": 289.681,
+      "end_time": 290.001
+    },
+    {
+      "text": "um",
+      "start_time": 290.001,
+      "end_time": 290.161
+    },
+    {
+      "text": "Ihnen",
+      "start_time": 290.161,
+      "end_time": 290.401
+    },
+    {
+      "text": "einige",
+      "start_time": 290.401,
+      "end_time": 290.881
+    },
+    {
+      "text": "Zahlen",
+      "start_time": 290.881,
+      "end_time": 291.361
+    },
+    {
+      "text": "zu",
+      "start_time": 291.361,
+      "end_time": 291.521
+    },
+    {
+      "text": "nennen",
+      "start_time": 291.521,
+      "end_time": 291.841
+    },
+    {
+      "text": "Wenn",
+      "start_time": 292.161,
+      "end_time": 292.401
+    },
+    {
+      "text": "das",
+      "start_time": 292.401,
+      "end_time": 292.641
+    },
+    {
+      "text": "Trainingsset",
+      "start_time": 292.641,
+      "end_time": 293.201
+    },
+    {
+      "text": "6",
+      "start_time": 293.201,
+      "end_time": 293.601
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 293.601,
+      "end_time": 294.161
+    },
+    {
+      "text": "enthält",
+      "start_time": 294.161,
+      "end_time": 294.641
+    },
+    {
+      "text": "pro",
+      "start_time": 295.041,
+      "end_time": 295.201
+    },
+    {
+      "text": "1000",
+      "start_time": 295.201,
+      "end_time": 295.681
+    },
+    {
+      "text": "Tokens",
+      "start_time": 295.681,
+      "end_time": 296.481
+    },
+    {
+      "text": "enthält",
+      "start_time": 296.561,
+      "end_time": 296.961
+    },
+    {
+      "text": "das",
+      "start_time": 296.961,
+      "end_time": 297.121
+    },
+    {
+      "text": "Testset",
+      "start_time": 297.121,
+      "end_time": 297.521
+    },
+    {
+      "text": "20",
+      "start_time": 297.521,
+      "end_time": 298.001
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 298.001,
+      "end_time": 298.561
+    },
+    {
+      "text": "pro",
+      "start_time": 298.561,
+      "end_time": 298.801
+    },
+    {
+      "text": "1000",
+      "start_time": 298.801,
+      "end_time": 299.201
+    },
+    {
+      "text": "Tokens",
+      "start_time": 299.201,
+      "end_time": 300.081
+    },
+    {
+      "text": "Das",
+      "start_time": 300.081,
+      "end_time": 300.321
+    },
+    {
+      "text": "Testset",
+      "start_time": 300.321,
+      "end_time": 300.721
+    },
+    {
+      "text": "enthält",
+      "start_time": 300.721,
+      "end_time": 301.201
+    },
+    {
+      "text": "so",
+      "start_time": 301.201,
+      "end_time": 301.361
+    },
+    {
+      "text": "viele",
+      "start_time": 301.361,
+      "end_time": 301.681
+    },
+    {
+      "text": "unbekannte",
+      "start_time": 301.681,
+      "end_time": 302.401
+    },
+    {
+      "text": "Wörter",
+      "start_time": 302.401,
+      "end_time": 302.801
+    },
+    {
+      "text": "wie",
+      "start_time": 302.801,
+      "end_time": 302.881
+    },
+    {
+      "text": "möglich",
+      "start_time": 302.881,
+      "end_time": 303.521
+    },
+    {
+      "text": "Tatsächlich",
+      "start_time": 303.841,
+      "end_time": 304.641
+    },
+    {
+      "text": "29",
+      "start_time": 304.641,
+      "end_time": 305.361
+    },
+    {
+      "text": "Prozent",
+      "start_time": 305.361,
+      "end_time": 305.761
+    },
+    {
+      "text": "der",
+      "start_time": 305.761,
+      "end_time": 305.841
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 305.841,
+      "end_time": 306.481
+    },
+    {
+      "text": "im",
+      "start_time": 306.481,
+      "end_time": 306.561
+    },
+    {
+      "text": "Testset",
+      "start_time": 306.561,
+      "end_time": 307.121
+    },
+    {
+      "text": "sind",
+      "start_time": 307.441,
+      "end_time": 307.761
+    },
+    {
+      "text": "also",
+      "start_time": 307.761,
+      "end_time": 308.081
+    },
+    {
+      "text": "wurden",
+      "start_time": 308.081,
+      "end_time": 308.961
+    },
+    {
+      "text": "sie",
+      "start_time": 308.961,
+      "end_time": 309.121
+    },
+    {
+      "text": "während",
+      "start_time": 309.121,
+      "end_time": 309.361
+    },
+    {
+      "text": "des",
+      "start_time": 309.361,
+      "end_time": 309.521
+    },
+    {
+      "text": "Trainings",
+      "start_time": 309.521,
+      "end_time": 310.081
+    },
+    {
+      "text": "nicht",
+      "start_time": 310.081,
+      "end_time": 310.321
+    },
+    {
+      "text": "gesehen",
+      "start_time": 310.321,
+      "end_time": 310.801
+    },
+    {
+      "text": "Der",
+      "start_time": 311.121,
+      "end_time": 311.281
+    },
+    {
+      "text": "Korpus",
+      "start_time": 311.281,
+      "end_time": 311.681
+    },
+    {
+      "text": "bestand",
+      "start_time": 311.681,
+      "end_time": 312.081
+    },
+    {
+      "text": "im",
+      "start_time": 312.081,
+      "end_time": 312.241
+    },
+    {
+      "text": "Wesentlichen",
+      "start_time": 312.241,
+      "end_time": 312.961
+    },
+    {
+      "text": "aus",
+      "start_time": 312.961,
+      "end_time": 313.201
+    },
+    {
+      "text": "einer",
+      "start_time": 313.201,
+      "end_time": 313.521
+    },
+    {
+      "text": "Sammlung",
+      "start_time": 313.521,
+      "end_time": 314.001
+    },
+    {
+      "text": "von",
+      "start_time": 314.001,
+      "end_time": 314.241
+    },
+    {
+      "text": "Texten",
+      "start_time": 314.241,
+      "end_time": 314.801
+    },
+    {
+      "text": "aus",
+      "start_time": 315.121,
+      "end_time": 315.441
+    },
+    {
+      "text": "verschiedenen",
+      "start_time": 315.441,
+      "end_time": 316.001
+    },
+    {
+      "text": "Quellen",
+      "start_time": 316.001,
+      "end_time": 316.321
+    },
+    {
+      "text": "spanischer",
+      "start_time": 316.321,
+      "end_time": 317.041
+    },
+    {
+      "text": "Zeitungen",
+      "start_time": 317.041,
+      "end_time": 317.761
+    },
+    {
+      "text": "Und",
+      "start_time": 318.081,
+      "end_time": 318.321
+    },
+    {
+      "text": "es",
+      "start_time": 318.321,
+      "end_time": 318.481
+    },
+    {
+      "text": "wurde",
+      "start_time": 318.481,
+      "end_time": 318.721
+    },
+    {
+      "text": "von",
+      "start_time": 318.721,
+      "end_time": 319.041
+    },
+    {
+      "text": "Hand",
+      "start_time": 319.041,
+      "end_time": 319.361
+    },
+    {
+      "text": "annotiert",
+      "start_time": 319.361,
+      "end_time": 320.081
+    },
+    {
+      "text": "mit",
+      "start_time": 320.321,
+      "end_time": 320.561
+    },
+    {
+      "text": "zwei",
+      "start_time": 320.561,
+      "end_time": 320.801
+    },
+    {
+      "text": "Tags",
+      "start_time": 320.801,
+      "end_time": 321.601
+    },
+    {
+      "text": "Eines",
+      "start_time": 321.681,
+      "end_time": 322.081
+    },
+    {
+      "text": "für",
+      "start_time": 322.081,
+      "end_time": 322.241
+    },
+    {
+      "text": "englische",
+      "start_time": 322.241,
+      "end_time": 322.721
+    },
+    {
+      "text": "lexikalische",
+      "start_time": 322.721,
+      "end_time": 323.601
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 323.601,
+      "end_time": 324.401
+    },
+    {
+      "text": "welche",
+      "start_time": 324.721,
+      "end_time": 325.121
+    },
+    {
+      "text": "die",
+      "start_time": 325.121,
+      "end_time": 325.201
+    },
+    {
+      "text": "Mehrheit",
+      "start_time": 325.201,
+      "end_time": 325.761
+    },
+    {
+      "text": "der",
+      "start_time": 325.761,
+      "end_time": 325.921
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 325.921,
+      "end_time": 326.481
+    },
+    {
+      "text": "im",
+      "start_time": 326.481,
+      "end_time": 326.641
+    },
+    {
+      "text": "Spanischen",
+      "start_time": 326.641,
+      "end_time": 327.281
+    },
+    {
+      "text": "sind",
+      "start_time": 327.281,
+      "end_time": 327.681
+    },
+    {
+      "text": "Und",
+      "start_time": 328.001,
+      "end_time": 328.161
+    },
+    {
+      "text": "dann",
+      "start_time": 328.241,
+      "end_time": 328.401
+    },
+    {
+      "text": "das",
+      "start_time": 328.401,
+      "end_time": 328.561
+    },
+    {
+      "text": "Label",
+      "start_time": 328.561,
+      "end_time": 328.961
+    },
+    {
+      "text": "andere",
+      "start_time": 329.361,
+      "end_time": 329.841
+    },
+    {
+      "text": "für",
+      "start_time": 329.841,
+      "end_time": 330.001
+    },
+    {
+      "text": "Lähmwörter",
+      "start_time": 330.001,
+      "end_time": 330.641
+    },
+    {
+      "text": "aus",
+      "start_time": 330.641,
+      "end_time": 330.801
+    },
+    {
+      "text": "anderen",
+      "start_time": 330.801,
+      "end_time": 331.201
+    },
+    {
+      "text": "Sprachen",
+      "start_time": 331.201,
+      "end_time": 331.921
+    },
+    {
+      "text": "Wir",
+      "start_time": 332.161,
+      "end_time": 332.401
+    },
+    {
+      "text": "verwendeten",
+      "start_time": 332.401,
+      "end_time": 333.121
+    },
+    {
+      "text": "GoNeuFormate",
+      "start_time": 333.121,
+      "end_time": 334.161
+    },
+    {
+      "text": "und",
+      "start_time": 334.481,
+      "end_time": 334.721
+    },
+    {
+      "text": "wir",
+      "start_time": 334.721,
+      "end_time": 334.881
+    },
+    {
+      "text": "verwendeten",
+      "start_time": 334.881,
+      "end_time": 335.601
+    },
+    {
+      "text": "BionKodierung",
+      "start_time": 335.601,
+      "end_time": 336.641
+    },
+    {
+      "text": "Damit",
+      "start_time": 336.881,
+      "end_time": 337.361
+    },
+    {
+      "text": "konnten",
+      "start_time": 337.361,
+      "end_time": 337.681
+    },
+    {
+      "text": "wir",
+      "start_time": 337.681,
+      "end_time": 337.841
+    },
+    {
+      "text": "einen",
+      "start_time": 337.841,
+      "end_time": 338.081
+    },
+    {
+      "text": "TokenLähmwörter",
+      "start_time": 338.081,
+      "end_time": 338.961
+    },
+    {
+      "text": "kodieren",
+      "start_time": 338.961,
+      "end_time": 339.681
+    },
+    {
+      "text": "wie",
+      "start_time": 339.921,
+      "end_time": 340.481
+    },
+    {
+      "text": "Apple",
+      "start_time": 340.721,
+      "end_time": 341.281
+    },
+    {
+      "text": "oder",
+      "start_time": 341.441,
+      "end_time": 341.681
+    },
+    {
+      "text": "mehr",
+      "start_time": 341.681,
+      "end_time": 341.921
+    },
+    {
+      "text": "TokenLähmwörter",
+      "start_time": 341.921,
+      "end_time": 343.121
+    },
+    {
+      "text": "wie",
+      "start_time": 343.281,
+      "end_time": 343.681
+    },
+    {
+      "text": "maschinell",
+      "start_time": 344.001,
+      "end_time": 344.481
+    },
+    {
+      "text": "lernen",
+      "start_time": 344.481,
+      "end_time": 345.281
+    },
+    {
+      "text": "Das",
+      "start_time": 345.521,
+      "end_time": 345.761
+    },
+    {
+      "text": "sind",
+      "start_time": 345.761,
+      "end_time": 346.001
+    },
+    {
+      "text": "die",
+      "start_time": 346.001,
+      "end_time": 346.081
+    },
+    {
+      "text": "Zahlen",
+      "start_time": 346.081,
+      "end_time": 346.561
+    },
+    {
+      "text": "des",
+      "start_time": 346.561,
+      "end_time": 346.721
+    },
+    {
+      "text": "Korpus",
+      "start_time": 346.721,
+      "end_time": 347.601
+    },
+    {
+      "text": "Wie",
+      "start_time": 347.601,
+      "end_time": 347.841
+    },
+    {
+      "text": "Sie",
+      "start_time": 347.841,
+      "end_time": 348.001
+    },
+    {
+      "text": "sehen",
+      "start_time": 348.001,
+      "end_time": 348.321
+    },
+    {
+      "text": "können",
+      "start_time": 348.321,
+      "end_time": 348.801
+    },
+    {
+      "text": "es",
+      "start_time": 349.041,
+      "end_time": 349.361
+    },
+    {
+      "text": "beliefert",
+      "start_time": 349.361,
+      "end_time": 349.761
+    },
+    {
+      "text": "auf",
+      "start_time": 349.761,
+      "end_time": 350.081
+    },
+    {
+      "text": "etwa",
+      "start_time": 350.081,
+      "end_time": 350.481
+    },
+    {
+      "text": "370000",
+      "start_time": 350.561,
+      "end_time": 351.601
+    },
+    {
+      "text": "Tokens",
+      "start_time": 351.601,
+      "end_time": 353.041
+    },
+    {
+      "text": "Und",
+      "start_time": 353.041,
+      "end_time": 353.201
+    },
+    {
+      "text": "hier",
+      "start_time": 353.201,
+      "end_time": 353.441
+    },
+    {
+      "text": "haben",
+      "start_time": 353.441,
+      "end_time": 353.441
+    },
+    {
+      "text": "Sie",
+      "start_time": 353.681,
+      "end_time": 353.681
+    },
+    {
+      "text": "die",
+      "start_time": 353.681,
+      "end_time": 353.841
+    },
+    {
+      "text": "Anzahl",
+      "start_time": 353.841,
+      "end_time": 354.241
+    },
+    {
+      "text": "des",
+      "start_time": 354.241,
+      "end_time": 354.241
+    },
+    {
+      "text": "Bens",
+      "start_time": 354.481,
+      "end_time": 355.201
+    },
+    {
+      "text": "die",
+      "start_time": 355.281,
+      "end_time": 355.441
+    },
+    {
+      "text": "als",
+      "start_time": 355.441,
+      "end_time": 355.601
+    },
+    {
+      "text": "englisch",
+      "start_time": 355.601,
+      "end_time": 356.081
+    },
+    {
+      "text": "markiert",
+      "start_time": 356.081,
+      "end_time": 356.641
+    },
+    {
+      "text": "wurden",
+      "start_time": 356.641,
+      "end_time": 357.041
+    },
+    {
+      "text": "Und",
+      "start_time": 357.308,
+      "end_time": 357.548
+    },
+    {
+      "text": "die",
+      "start_time": 357.548,
+      "end_time": 357.628
+    },
+    {
+      "text": "Spann",
+      "start_time": 357.628,
+      "end_time": 357.948
+    },
+    {
+      "text": "die",
+      "start_time": 358.428,
+      "end_time": 358.508
+    },
+    {
+      "text": "als",
+      "start_time": 358.508,
+      "end_time": 358.668
+    },
+    {
+      "text": "andere",
+      "start_time": 358.668,
+      "end_time": 359.068
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 359.068,
+      "end_time": 359.628
+    },
+    {
+      "text": "markiert",
+      "start_time": 359.628,
+      "end_time": 360.108
+    },
+    {
+      "text": "wurden",
+      "start_time": 360.108,
+      "end_time": 360.588
+    },
+    {
+      "text": "und",
+      "start_time": 360.908,
+      "end_time": 361.068
+    },
+    {
+      "text": "wie",
+      "start_time": 361.068,
+      "end_time": 361.228
+    },
+    {
+      "text": "viele",
+      "start_time": 361.228,
+      "end_time": 361.548
+    },
+    {
+      "text": "davon",
+      "start_time": 361.548,
+      "end_time": 361.948
+    },
+    {
+      "text": "einzigartig",
+      "start_time": 361.948,
+      "end_time": 362.828
+    },
+    {
+      "text": "waren",
+      "start_time": 362.828,
+      "end_time": 363.228
+    },
+    {
+      "text": "Und",
+      "start_time": 363.548,
+      "end_time": 363.708
+    },
+    {
+      "text": "hier",
+      "start_time": 363.708,
+      "end_time": 363.948
+    },
+    {
+      "text": "haben",
+      "start_time": 363.948,
+      "end_time": 364.108
+    },
+    {
+      "text": "wir",
+      "start_time": 364.108,
+      "end_time": 364.268
+    },
+    {
+      "text": "ein",
+      "start_time": 364.268,
+      "end_time": 364.428
+    },
+    {
+      "text": "paar",
+      "start_time": 364.428,
+      "end_time": 364.588
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 364.588,
+      "end_time": 365.228
+    },
+    {
+      "text": "aus",
+      "start_time": 365.228,
+      "end_time": 365.388
+    },
+    {
+      "text": "dem",
+      "start_time": 365.388,
+      "end_time": 365.548
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 365.548,
+      "end_time": 366.588
+    },
+    {
+      "text": "wie",
+      "start_time": 366.588,
+      "end_time": 366.828
+    },
+    {
+      "text": "Sie",
+      "start_time": 366.828,
+      "end_time": 366.988
+    },
+    {
+      "text": "sehen",
+      "start_time": 366.988,
+      "end_time": 367.308
+    },
+    {
+      "text": "können",
+      "start_time": 367.308,
+      "end_time": 367.788
+    },
+    {
+      "text": "Zum",
+      "start_time": 368.028,
+      "end_time": 368.268
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 368.268,
+      "end_time": 369.228
+    },
+    {
+      "text": "hier",
+      "start_time": 369.228,
+      "end_time": 369.548
+    },
+    {
+      "text": "haben",
+      "start_time": 369.548,
+      "end_time": 369.788
+    },
+    {
+      "text": "wir",
+      "start_time": 369.788,
+      "end_time": 369.948
+    },
+    {
+      "text": "im",
+      "start_time": 369.948,
+      "end_time": 370.108
+    },
+    {
+      "text": "ersten",
+      "start_time": 370.108,
+      "end_time": 370.588
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 370.588,
+      "end_time": 371.548
+    },
+    {
+      "text": "die",
+      "start_time": 371.708,
+      "end_time": 371.788
+    },
+    {
+      "text": "Entlehnung",
+      "start_time": 371.788,
+      "end_time": 372.268
+    },
+    {
+      "text": "aber",
+      "start_time": 372.268,
+      "end_time": 372.748
+    },
+    {
+      "text": "die",
+      "start_time": 373.148,
+      "end_time": 373.228
+    },
+    {
+      "text": "eine",
+      "start_time": 373.228,
+      "end_time": 373.468
+    },
+    {
+      "text": "MehrwortEntlehnung",
+      "start_time": 373.468,
+      "end_time": 374.588
+    },
+    {
+      "text": "ist",
+      "start_time": 374.588,
+      "end_time": 374.988
+    },
+    {
+      "text": "Und",
+      "start_time": 375.228,
+      "end_time": 375.468
+    },
+    {
+      "text": "wir",
+      "start_time": 375.468,
+      "end_time": 375.628
+    },
+    {
+      "text": "haben",
+      "start_time": 375.628,
+      "end_time": 375.868
+    },
+    {
+      "text": "sie",
+      "start_time": 375.868,
+      "end_time": 375.948
+    },
+    {
+      "text": "mit",
+      "start_time": 375.948,
+      "end_time": 376.108
+    },
+    {
+      "text": "dem",
+      "start_time": 376.188,
+      "end_time": 376.268
+    },
+    {
+      "text": "BioEncoding",
+      "start_time": 376.268,
+      "end_time": 377.228
+    },
+    {
+      "text": "annotiert",
+      "start_time": 377.228,
+      "end_time": 377.868
+    },
+    {
+      "text": "also",
+      "start_time": 378.188,
+      "end_time": 378.428
+    },
+    {
+      "text": "wurde",
+      "start_time": 378.428,
+      "end_time": 378.668
+    },
+    {
+      "text": "das",
+      "start_time": 378.668,
+      "end_time": 378.828
+    },
+    {
+      "text": "Bio",
+      "start_time": 378.828,
+      "end_time": 379.148
+    },
+    {
+      "text": "für",
+      "start_time": 379.148,
+      "end_time": 379.468
+    },
+    {
+      "text": "Wörter",
+      "start_time": 379.468,
+      "end_time": 379.788
+    },
+    {
+      "text": "auf",
+      "start_time": 379.788,
+      "end_time": 379.948
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 379.948,
+      "end_time": 380.508
+    },
+    {
+      "text": "verwendet",
+      "start_time": 380.508,
+      "end_time": 381.148
+    },
+    {
+      "text": "also",
+      "start_time": 381.468,
+      "end_time": 381.708
+    },
+    {
+      "text": "nicht",
+      "start_time": 381.708,
+      "end_time": 381.948
+    },
+    {
+      "text": "für",
+      "start_time": 381.948,
+      "end_time": 382.108
+    },
+    {
+      "text": "Wörter",
+      "start_time": 382.188,
+      "end_time": 382.588
+    },
+    {
+      "text": "die",
+      "start_time": 382.988,
+      "end_time": 383.068
+    },
+    {
+      "text": "nicht",
+      "start_time": 383.068,
+      "end_time": 383.308
+    },
+    {
+      "text": "entlehnt",
+      "start_time": 383.308,
+      "end_time": 383.868
+    },
+    {
+      "text": "wurden",
+      "start_time": 383.868,
+      "end_time": 384.268
+    },
+    {
+      "text": "Und",
+      "start_time": 384.508,
+      "end_time": 384.748
+    },
+    {
+      "text": "hier",
+      "start_time": 384.748,
+      "end_time": 384.988
+    },
+    {
+      "text": "in",
+      "start_time": 384.988,
+      "end_time": 385.148
+    },
+    {
+      "text": "diesem",
+      "start_time": 385.148,
+      "end_time": 385.468
+    },
+    {
+      "text": "zweiten",
+      "start_time": 385.468,
+      "end_time": 386.028
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 386.028,
+      "end_time": 386.668
+    },
+    {
+      "text": "haben",
+      "start_time": 386.988,
+      "end_time": 387.148
+    },
+    {
+      "text": "wir",
+      "start_time": 387.228,
+      "end_time": 387.388
+    },
+    {
+      "text": "Crunch",
+      "start_time": 387.388,
+      "end_time": 387.628
+    },
+    {
+      "text": "die",
+      "start_time": 388.588,
+      "end_time": 388.828
+    },
+    {
+      "text": "ebenfalls",
+      "start_time": 388.828,
+      "end_time": 389.308
+    },
+    {
+      "text": "als",
+      "start_time": 389.308,
+      "end_time": 389.548
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 389.548,
+      "end_time": 390.268
+    },
+    {
+      "text": "aus",
+      "start_time": 390.268,
+      "end_time": 390.428
+    },
+    {
+      "text": "dem",
+      "start_time": 390.428,
+      "end_time": 390.588
+    },
+    {
+      "text": "Englischen",
+      "start_time": 390.588,
+      "end_time": 391.068
+    },
+    {
+      "text": "gekennzeichnet",
+      "start_time": 391.068,
+      "end_time": 391.948
+    },
+    {
+      "text": "sind",
+      "start_time": 391.948,
+      "end_time": 392.268
+    },
+    {
+      "text": "Sobald",
+      "start_time": 392.508,
+      "end_time": 392.988
+    },
+    {
+      "text": "wir",
+      "start_time": 392.988,
+      "end_time": 393.148
+    },
+    {
+      "text": "den",
+      "start_time": 393.148,
+      "end_time": 393.388
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 393.388,
+      "end_time": 394.108
+    },
+    {
+      "text": "hatten",
+      "start_time": 394.108,
+      "end_time": 394.508
+    },
+    {
+      "text": "untersuchten",
+      "start_time": 396.428,
+      "end_time": 397.068
+    },
+    {
+      "text": "wir",
+      "start_time": 397.068,
+      "end_time": 397.228
+    },
+    {
+      "text": "mehrere",
+      "start_time": 397.228,
+      "end_time": 397.548
+    },
+    {
+      "text": "Modelle",
+      "start_time": 397.628,
+      "end_time": 398.108
+    },
+    {
+      "text": "für",
+      "start_time": 398.108,
+      "end_time": 398.268
+    },
+    {
+      "text": "die",
+      "start_time": 398.268,
+      "end_time": 398.428
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 398.428,
+      "end_time": 399.148
+    },
+    {
+      "text": "diese",
+      "start_time": 399.548,
+      "end_time": 399.788
+    },
+    {
+      "text": "lexikalischen",
+      "start_time": 399.788,
+      "end_time": 400.668
+    },
+    {
+      "text": "Entlehnungen",
+      "start_time": 400.668,
+      "end_time": 401.388
+    },
+    {
+      "text": "zu",
+      "start_time": 401.388,
+      "end_time": 401.548
+    },
+    {
+      "text": "extrahieren",
+      "start_time": 401.548,
+      "end_time": 402.348
+    },
+    {
+      "text": "und",
+      "start_time": 402.348,
+      "end_time": 402.508
+    },
+    {
+      "text": "zu",
+      "start_time": 402.508,
+      "end_time": 402.668
+    },
+    {
+      "text": "erkennen",
+      "start_time": 402.668,
+      "end_time": 403.148
+    },
+    {
+      "text": "Das",
+      "start_time": 403.468,
+      "end_time": 403.628
+    },
+    {
+      "text": "erste",
+      "start_time": 403.628,
+      "end_time": 404.108
+    },
+    {
+      "text": "was",
+      "start_time": 404.508,
+      "end_time": 404.748
+    },
+    {
+      "text": "wir",
+      "start_time": 404.748,
+      "end_time": 404.828
+    },
+    {
+      "text": "ausprobiert",
+      "start_time": 404.828,
+      "end_time": 405.388
+    },
+    {
+      "text": "haben",
+      "start_time": 405.388,
+      "end_time": 405.708
+    },
+    {
+      "text": "war",
+      "start_time": 406.108,
+      "end_time": 406.268
+    },
+    {
+      "text": "ein",
+      "start_time": 406.268,
+      "end_time": 406.428
+    },
+    {
+      "text": "bedingter",
+      "start_time": 406.428,
+      "end_time": 406.988
+    },
+    {
+      "text": "zufälliger",
+      "start_time": 406.988,
+      "end_time": 407.628
+    },
+    {
+      "text": "Feldmodell",
+      "start_time": 407.628,
+      "end_time": 408.428
+    },
+    {
+      "text": "Dies",
+      "start_time": 408.748,
+      "end_time": 408.988
+    },
+    {
+      "text": "war",
+      "start_time": 408.988,
+      "end_time": 409.148
+    },
+    {
+      "text": "das",
+      "start_time": 409.148,
+      "end_time": 409.308
+    },
+    {
+      "text": "Modell",
+      "start_time": 409.308,
+      "end_time": 409.788
+    },
+    {
+      "text": "das",
+      "start_time": 410.108,
+      "end_time": 410.348
+    },
+    {
+      "text": "in",
+      "start_time": 410.348,
+      "end_time": 410.508
+    },
+    {
+      "text": "früheren",
+      "start_time": 410.508,
+      "end_time": 410.988
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 410.988,
+      "end_time": 411.548
+    },
+    {
+      "text": "verwendet",
+      "start_time": 411.548,
+      "end_time": 412.108
+    },
+    {
+      "text": "wurde",
+      "start_time": 412.108,
+      "end_time": 412.508
+    },
+    {
+      "text": "Und",
+      "start_time": 412.828,
+      "end_time": 412.988
+    },
+    {
+      "text": "wir",
+      "start_time": 412.988,
+      "end_time": 413.148
+    },
+    {
+      "text": "verwendeten",
+      "start_time": 413.148,
+      "end_time": 413.708
+    },
+    {
+      "text": "dieselben",
+      "start_time": 413.708,
+      "end_time": 414.188
+    },
+    {
+      "text": "handgefertigten",
+      "start_time": 414.188,
+      "end_time": 415.148
+    },
+    {
+      "text": "Merkmale",
+      "start_time": 415.148,
+      "end_time": 415.708
+    },
+    {
+      "text": "aus",
+      "start_time": 415.708,
+      "end_time": 415.868
+    },
+    {
+      "text": "dieser",
+      "start_time": 415.868,
+      "end_time": 416.188
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 416.188,
+      "end_time": 416.748
+    },
+    {
+      "text": "wie",
+      "start_time": 417.068,
+      "end_time": 417.228
+    },
+    {
+      "text": "Sie",
+      "start_time": 417.228,
+      "end_time": 417.388
+    },
+    {
+      "text": "sehen",
+      "start_time": 417.388,
+      "end_time": 417.708
+    },
+    {
+      "text": "können",
+      "start_time": 417.708,
+      "end_time": 418.108
+    },
+    {
+      "text": "Das",
+      "start_time": 418.348,
+      "end_time": 418.668
+    },
+    {
+      "text": "sind",
+      "start_time": 418.668,
+      "end_time": 418.828
+    },
+    {
+      "text": "die",
+      "start_time": 418.828,
+      "end_time": 418.828
+    },
+    {
+      "text": "Merkmale",
+      "start_time": 418.828,
+      "end_time": 419.548
+    },
+    {
+      "text": "das",
+      "start_time": 419.868,
+      "end_time": 420.028
+    },
+    {
+      "text": "sind",
+      "start_time": 420.028,
+      "end_time": 420.268
+    },
+    {
+      "text": "wieder",
+      "start_time": 420.268,
+      "end_time": 420.668
+    },
+    {
+      "text": "Merkmale",
+      "start_time": 420.668,
+      "end_time": 421.388
+    },
+    {
+      "text": "Wie",
+      "start_time": 421.548,
+      "end_time": 421.788
+    },
+    {
+      "text": "zum",
+      "start_time": 421.788,
+      "end_time": 422.028
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 422.028,
+      "end_time": 422.428
+    },
+    {
+      "text": "ist",
+      "start_time": 422.428,
+      "end_time": 422.668
+    },
+    {
+      "text": "das",
+      "start_time": 422.668,
+      "end_time": 422.828
+    },
+    {
+      "text": "Wort",
+      "start_time": 422.828,
+      "end_time": 423.148
+    },
+    {
+      "text": "oder",
+      "start_time": 423.148,
+      "end_time": 423.308
+    },
+    {
+      "text": "das",
+      "start_time": 423.308,
+      "end_time": 423.548
+    },
+    {
+      "text": "Token",
+      "start_time": 423.548,
+      "end_time": 423.868
+    },
+    {
+      "text": "in",
+      "start_time": 423.868,
+      "end_time": 424.028
+    },
+    {
+      "text": "Großbuchstaben",
+      "start_time": 424.028,
+      "end_time": 424.988
+    },
+    {
+      "text": "dies",
+      "start_time": 425.228,
+      "end_time": 425.468
+    },
+    {
+      "text": "ist",
+      "start_time": 425.548,
+      "end_time": 425.628
+    },
+    {
+      "text": "ein",
+      "start_time": 425.628,
+      "end_time": 425.788
+    },
+    {
+      "text": "Titelkase",
+      "start_time": 425.788,
+      "end_time": 426.588
+    },
+    {
+      "text": "dies",
+      "start_time": 426.908,
+      "end_time": 427.068
+    },
+    {
+      "text": "ist",
+      "start_time": 427.068,
+      "end_time": 427.228
+    },
+    {
+      "text": "ein",
+      "start_time": 427.228,
+      "end_time": 427.388
+    },
+    {
+      "text": "Anführungszeichen",
+      "start_time": 427.388,
+      "end_time": 428.508
+    },
+    {
+      "text": "so",
+      "start_time": 428.748,
+      "end_time": 428.908
+    },
+    {
+      "text": "ich",
+      "start_time": 428.908,
+      "end_time": 429.148
+    },
+    {
+      "text": "denke",
+      "start_time": 429.148,
+      "end_time": 430.028
+    },
+    {
+      "text": "das",
+      "start_time": 430.028,
+      "end_time": 430.268
+    },
+    {
+      "text": "sind",
+      "start_time": 430.268,
+      "end_time": 430.428
+    },
+    {
+      "text": "die",
+      "start_time": 430.428,
+      "end_time": 430.508
+    },
+    {
+      "text": "Art",
+      "start_time": 430.508,
+      "end_time": 430.748
+    },
+    {
+      "text": "von",
+      "start_time": 430.748,
+      "end_time": 430.908
+    },
+    {
+      "text": "Merkmalen",
+      "start_time": 430.908,
+      "end_time": 431.388
+    },
+    {
+      "text": "die",
+      "start_time": 431.788,
+      "end_time": 431.948
+    },
+    {
+      "text": "man",
+      "start_time": 431.948,
+      "end_time": 432.108
+    },
+    {
+      "text": "bei",
+      "start_time": 432.108,
+      "end_time": 432.268
+    },
+    {
+      "text": "einer",
+      "start_time": 432.268,
+      "end_time": 432.348
+    },
+    {
+      "text": "entdeutigen",
+      "start_time": 432.348,
+      "end_time": 433.228
+    },
+    {
+      "text": "Kognitionsaufgabe",
+      "start_time": 433.228,
+      "end_time": 434.268
+    },
+    {
+      "text": "erwarten",
+      "start_time": 434.268,
+      "end_time": 434.828
+    },
+    {
+      "text": "würde",
+      "start_time": 434.828,
+      "end_time": 435.148
+    },
+    {
+      "text": "Dies",
+      "start_time": 435.388,
+      "end_time": 435.628
+    },
+    {
+      "text": "sind",
+      "start_time": 435.628,
+      "end_time": 435.788
+    },
+    {
+      "text": "die",
+      "start_time": 435.788,
+      "end_time": 435.948
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 435.948,
+      "end_time": 436.668
+    },
+    {
+      "text": "die",
+      "start_time": 437.068,
+      "end_time": 437.148
+    },
+    {
+      "text": "wir",
+      "start_time": 437.148,
+      "end_time": 437.308
+    },
+    {
+      "text": "erhalten",
+      "start_time": 437.308,
+      "end_time": 437.788
+    },
+    {
+      "text": "haben",
+      "start_time": 437.788,
+      "end_time": 438.188
+    },
+    {
+      "text": "Wir",
+      "start_time": 438.428,
+      "end_time": 438.668
+    },
+    {
+      "text": "erzielen",
+      "start_time": 438.668,
+      "end_time": 439.068
+    },
+    {
+      "text": "eine",
+      "start_time": 439.068,
+      "end_time": 439.308
+    },
+    {
+      "text": "F1Punktzahl",
+      "start_time": 439.308,
+      "end_time": 440.508
+    },
+    {
+      "text": "von",
+      "start_time": 440.588,
+      "end_time": 440.828
+    },
+    {
+      "text": "55",
+      "start_time": 440.828,
+      "end_time": 441.868
+    },
+    {
+      "text": "mit",
+      "start_time": 442.108,
+      "end_time": 442.348
+    },
+    {
+      "text": "dem",
+      "start_time": 442.348,
+      "end_time": 442.428
+    },
+    {
+      "text": "SerifModell",
+      "start_time": 442.428,
+      "end_time": 443.148
+    },
+    {
+      "text": "mit",
+      "start_time": 443.148,
+      "end_time": 443.388
+    },
+    {
+      "text": "handgefertigten",
+      "start_time": 443.388,
+      "end_time": 444.268
+    },
+    {
+      "text": "Merkmalen",
+      "start_time": 444.268,
+      "end_time": 444.908
+    },
+    {
+      "text": "was",
+      "start_time": 445.148,
+      "end_time": 445.468
+    },
+    {
+      "text": "ein",
+      "start_time": 445.468,
+      "end_time": 445.708
+    },
+    {
+      "text": "enormer",
+      "start_time": 445.708,
+      "end_time": 446.188
+    },
+    {
+      "text": "Unterschied",
+      "start_time": 446.188,
+      "end_time": 446.668
+    },
+    {
+      "text": "im",
+      "start_time": 446.668,
+      "end_time": 446.748
+    },
+    {
+      "text": "Vergleich",
+      "start_time": 446.748,
+      "end_time": 447.228
+    },
+    {
+      "text": "zum",
+      "start_time": 447.228,
+      "end_time": 447.388
+    },
+    {
+      "text": "gemeldeten",
+      "start_time": 447.388,
+      "end_time": 448.108
+    },
+    {
+      "text": "F1Punktzahl",
+      "start_time": 448.188,
+      "end_time": 449.388
+    },
+    {
+      "text": "von",
+      "start_time": 449.388,
+      "end_time": 449.628
+    },
+    {
+      "text": "68",
+      "start_time": 449.628,
+      "end_time": 450.428
+    },
+    {
+      "text": "ist",
+      "start_time": 450.428,
+      "end_time": 450.668
+    },
+    {
+      "text": "die",
+      "start_time": 450.988,
+      "end_time": 451.148
+    },
+    {
+      "text": "mit",
+      "start_time": 451.148,
+      "end_time": 451.308
+    },
+    {
+      "text": "demselben",
+      "start_time": 451.308,
+      "end_time": 451.868
+    },
+    {
+      "text": "SerifModell",
+      "start_time": 451.868,
+      "end_time": 452.668
+    },
+    {
+      "text": "denselben",
+      "start_time": 452.988,
+      "end_time": 453.548
+    },
+    {
+      "text": "Merkmalen",
+      "start_time": 453.548,
+      "end_time": 454.188
+    },
+    {
+      "text": "aber",
+      "start_time": 454.428,
+      "end_time": 454.828
+    },
+    {
+      "text": "auf",
+      "start_time": 454.828,
+      "end_time": 454.908
+    },
+    {
+      "text": "einem",
+      "start_time": 454.908,
+      "end_time": 455.148
+    },
+    {
+      "text": "anderen",
+      "start_time": 455.148,
+      "end_time": 455.628
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 455.628,
+      "end_time": 456.268
+    },
+    {
+      "text": "für",
+      "start_time": 456.268,
+      "end_time": 456.428
+    },
+    {
+      "text": "die",
+      "start_time": 456.428,
+      "end_time": 456.588
+    },
+    {
+      "text": "spanische",
+      "start_time": 456.588,
+      "end_time": 457.228
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 457.228,
+      "end_time": 457.788
+    },
+    {
+      "text": "von",
+      "start_time": 457.788,
+      "end_time": 458.028
+    },
+    {
+      "text": "Lehnwörtern",
+      "start_time": 458.028,
+      "end_time": 458.668
+    },
+    {
+      "text": "durchgeführt",
+      "start_time": 458.668,
+      "end_time": 459.308
+    },
+    {
+      "text": "wurde",
+      "start_time": 459.308,
+      "end_time": 459.628
+    },
+    {
+      "text": "Dies",
+      "start_time": 459.948,
+      "end_time": 460.188
+    },
+    {
+      "text": "beweist",
+      "start_time": 460.188,
+      "end_time": 460.828
+    },
+    {
+      "text": "dass",
+      "start_time": 461.148,
+      "end_time": 461.388
+    },
+    {
+      "text": "der",
+      "start_time": 461.388,
+      "end_time": 461.548
+    },
+    {
+      "text": "von",
+      "start_time": 461.548,
+      "end_time": 461.788
+    },
+    {
+      "text": "uns",
+      "start_time": 461.788,
+      "end_time": 462.028
+    },
+    {
+      "text": "erstellte",
+      "start_time": 462.028,
+      "end_time": 462.508
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 462.508,
+      "end_time": 463.148
+    },
+    {
+      "text": "schwieriger",
+      "start_time": 463.148,
+      "end_time": 463.708
+    },
+    {
+      "text": "ist",
+      "start_time": 463.708,
+      "end_time": 464.028
+    },
+    {
+      "text": "und",
+      "start_time": 464.828,
+      "end_time": 465.068
+    },
+    {
+      "text": "dass",
+      "start_time": 465.068,
+      "end_time": 465.228
+    },
+    {
+      "text": "wir",
+      "start_time": 465.228,
+      "end_time": 465.388
+    },
+    {
+      "text": "für",
+      "start_time": 465.388,
+      "end_time": 465.548
+    },
+    {
+      "text": "diese",
+      "start_time": 465.548,
+      "end_time": 465.948
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 465.948,
+      "end_time": 466.428
+    },
+    {
+      "text": "ausgefeiltere",
+      "start_time": 466.428,
+      "end_time": 467.148
+    },
+    {
+      "text": "Modelle",
+      "start_time": 467.148,
+      "end_time": 467.628
+    },
+    {
+      "text": "erforschen",
+      "start_time": 467.628,
+      "end_time": 468.268
+    },
+    {
+      "text": "mussten",
+      "start_time": 468.268,
+      "end_time": 468.748
+    },
+    {
+      "text": "Wir",
+      "start_time": 469.708,
+      "end_time": 469.948
+    },
+    {
+      "text": "haben",
+      "start_time": 469.948,
+      "end_time": 470.188
+    },
+    {
+      "text": "zwei",
+      "start_time": 470.188,
+      "end_time": 470.508
+    },
+    {
+      "text": "Transformerbasierte",
+      "start_time": 470.508,
+      "end_time": 471.628
+    },
+    {
+      "text": "Modelle",
+      "start_time": 471.628,
+      "end_time": 472.028
+    },
+    {
+      "text": "getestet",
+      "start_time": 472.028,
+      "end_time": 472.748
+    },
+    {
+      "text": "Wir",
+      "start_time": 473.628,
+      "end_time": 473.868
+    },
+    {
+      "text": "haben",
+      "start_time": 473.868,
+      "end_time": 474.108
+    },
+    {
+      "text": "Bert",
+      "start_time": 474.108,
+      "end_time": 474.428
+    },
+    {
+      "text": "verwendet",
+      "start_time": 474.428,
+      "end_time": 475.068
+    },
+    {
+      "text": "ein",
+      "start_time": 475.468,
+      "end_time": 475.708
+    },
+    {
+      "text": "monolinguales",
+      "start_time": 475.708,
+      "end_time": 476.588
+    },
+    {
+      "text": "BertModell",
+      "start_time": 476.588,
+      "end_time": 477.308
+    },
+    {
+      "text": "das",
+      "start_time": 477.548,
+      "end_time": 477.868
+    },
+    {
+      "text": "für",
+      "start_time": 477.868,
+      "end_time": 478.028
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 478.028,
+      "end_time": 478.588
+    },
+    {
+      "text": "trainiert",
+      "start_time": 478.588,
+      "end_time": 479.148
+    },
+    {
+      "text": "wurde",
+      "start_time": 479.148,
+      "end_time": 479.548
+    },
+    {
+      "text": "und",
+      "start_time": 479.868,
+      "end_time": 480.028
+    },
+    {
+      "text": "auch",
+      "start_time": 480.028,
+      "end_time": 480.268
+    },
+    {
+      "text": "multilinguales",
+      "start_time": 480.268,
+      "end_time": 481.068
+    },
+    {
+      "text": "Bert",
+      "start_time": 481.068,
+      "end_time": 481.548
+    },
+    {
+      "text": "Wir",
+      "start_time": 481.708,
+      "end_time": 482.028
+    },
+    {
+      "text": "haben",
+      "start_time": 482.028,
+      "end_time": 482.188
+    },
+    {
+      "text": "beide",
+      "start_time": 482.188,
+      "end_time": 482.508
+    },
+    {
+      "text": "Modelle",
+      "start_time": 482.508,
+      "end_time": 482.988
+    },
+    {
+      "text": "über",
+      "start_time": 482.988,
+      "end_time": 483.228
+    },
+    {
+      "text": "die",
+      "start_time": 483.228,
+      "end_time": 483.868
+    },
+    {
+      "text": "TransformerBibliothek",
+      "start_time": 484.188,
+      "end_time": 485.308
+    },
+    {
+      "text": "von",
+      "start_time": 485.308,
+      "end_time": 485.628
+    },
+    {
+      "text": "Hugging",
+      "start_time": 485.628,
+      "end_time": 485.948
+    },
+    {
+      "text": "Face",
+      "start_time": 485.948,
+      "end_time": 486.028
+    },
+    {
+      "text": "verwendet",
+      "start_time": 486.028,
+      "end_time": 486.988
+    },
+    {
+      "text": "Dies",
+      "start_time": 487.228,
+      "end_time": 487.548
+    },
+    {
+      "text": "sind",
+      "start_time": 487.548,
+      "end_time": 487.708
+    },
+    {
+      "text": "die",
+      "start_time": 487.788,
+      "end_time": 487.788
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 487.788,
+      "end_time": 488.588
+    },
+    {
+      "text": "die",
+      "start_time": 488.908,
+      "end_time": 489.068
+    },
+    {
+      "text": "wir",
+      "start_time": 489.148,
+      "end_time": 489.308
+    },
+    {
+      "text": "erhalten",
+      "start_time": 489.308,
+      "end_time": 489.788
+    },
+    {
+      "text": "haben",
+      "start_time": 489.788,
+      "end_time": 490.268
+    },
+    {
+      "text": "wie",
+      "start_time": 490.508,
+      "end_time": 490.668
+    },
+    {
+      "text": "Sie",
+      "start_time": 490.668,
+      "end_time": 490.828
+    },
+    {
+      "text": "sehen",
+      "start_time": 490.828,
+      "end_time": 491.148
+    },
+    {
+      "text": "können",
+      "start_time": 491.148,
+      "end_time": 491.628
+    },
+    {
+      "text": "Multilinguales",
+      "start_time": 491.868,
+      "end_time": 492.668
+    },
+    {
+      "text": "Bert",
+      "start_time": 492.668,
+      "end_time": 492.988
+    },
+    {
+      "text": "hat",
+      "start_time": 492.988,
+      "end_time": 493.148
+    },
+    {
+      "text": "eine",
+      "start_time": 493.148,
+      "end_time": 493.388
+    },
+    {
+      "text": "bessere",
+      "start_time": 493.388,
+      "end_time": 493.788
+    },
+    {
+      "text": "Leistung",
+      "start_time": 493.788,
+      "end_time": 494.268
+    },
+    {
+      "text": "als",
+      "start_time": 494.268,
+      "end_time": 494.508
+    },
+    {
+      "text": "Bert",
+      "start_time": 494.508,
+      "end_time": 494.828
+    },
+    {
+      "text": "gezeigt",
+      "start_time": 494.828,
+      "end_time": 495.468
+    },
+    {
+      "text": "sowohl",
+      "start_time": 495.708,
+      "end_time": 496.188
+    },
+    {
+      "text": "in",
+      "start_time": 496.188,
+      "end_time": 496.348
+    },
+    {
+      "text": "Beziehung",
+      "start_time": 496.348,
+      "end_time": 496.828
+    },
+    {
+      "text": "als",
+      "start_time": 496.828,
+      "end_time": 496.988
+    },
+    {
+      "text": "auch",
+      "start_time": 497.228,
+      "end_time": 497.468
+    },
+    {
+      "text": "in",
+      "start_time": 497.468,
+      "end_time": 497.548
+    },
+    {
+      "text": "Testsatz",
+      "start_time": 497.548,
+      "end_time": 498.028
+    },
+    {
+      "text": "und",
+      "start_time": 498.588,
+      "end_time": 498.748
+    },
+    {
+      "text": "über",
+      "start_time": 498.828,
+      "end_time": 499.068
+    },
+    {
+      "text": "alle",
+      "start_time": 499.068,
+      "end_time": 499.308
+    },
+    {
+      "text": "Treten",
+      "start_time": 499.388,
+      "end_time": 499.948
+    },
+    {
+      "text": "Nur",
+      "start_time": 500.268,
+      "end_time": 500.508
+    },
+    {
+      "text": "damit",
+      "start_time": 500.508,
+      "end_time": 500.908
+    },
+    {
+      "text": "wir",
+      "start_time": 500.908,
+      "end_time": 501.068
+    },
+    {
+      "text": "eine",
+      "start_time": 501.068,
+      "end_time": 501.308
+    },
+    {
+      "text": "Vorstellung",
+      "start_time": 501.308,
+      "end_time": 501.948
+    },
+    {
+      "text": "haben",
+      "start_time": 502.028,
+      "end_time": 502.348
+    },
+    {
+      "text": "um",
+      "start_time": 502.748,
+      "end_time": 502.908
+    },
+    {
+      "text": "zu",
+      "start_time": 502.908,
+      "end_time": 503.068
+    },
+    {
+      "text": "vergleichen",
+      "start_time": 503.068,
+      "end_time": 503.868
+    },
+    {
+      "text": "das",
+      "start_time": 504.108,
+      "end_time": 504.428
+    },
+    {
+      "text": "FModell",
+      "start_time": 504.428,
+      "end_time": 505.148
+    },
+    {
+      "text": "erreichte",
+      "start_time": 505.148,
+      "end_time": 505.708
+    },
+    {
+      "text": "280",
+      "start_time": 505.788,
+      "end_time": 506.988
+    },
+    {
+      "text": "das",
+      "start_time": 506.988,
+      "end_time": 507.228
+    },
+    {
+      "text": "FModell",
+      "start_time": 507.228,
+      "end_time": 507.948
+    },
+    {
+      "text": "erreichte",
+      "start_time": 507.948,
+      "end_time": 507.948
+    },
+    {
+      "text": "eine",
+      "start_time": 508.508,
+      "end_time": 508.988
+    },
+    {
+      "text": "F1Punktzahl",
+      "start_time": 508.988,
+      "end_time": 510.108
+    },
+    {
+      "text": "von",
+      "start_time": 510.108,
+      "end_time": 510.348
+    },
+    {
+      "text": "55",
+      "start_time": 510.348,
+      "end_time": 511.308
+    },
+    {
+      "text": "während",
+      "start_time": 511.548,
+      "end_time": 511.948
+    },
+    {
+      "text": "das",
+      "start_time": 511.948,
+      "end_time": 512.108
+    },
+    {
+      "text": "mehrsprachige",
+      "start_time": 512.108,
+      "end_time": 512.828
+    },
+    {
+      "text": "Bert",
+      "start_time": 512.828,
+      "end_time": 513.228
+    },
+    {
+      "text": "280",
+      "start_time": 513.388,
+      "end_time": 514.188
+    },
+    {
+      "text": "erreichte",
+      "start_time": 514.188,
+      "end_time": 514.828
+    },
+    {
+      "text": "was",
+      "start_time": 515.068,
+      "end_time": 515.308
+    },
+    {
+      "text": "ein",
+      "start_time": 515.308,
+      "end_time": 515.628
+    },
+    {
+      "text": "großer",
+      "start_time": 515.628,
+      "end_time": 515.948
+    },
+    {
+      "text": "Unterschied",
+      "start_time": 515.948,
+      "end_time": 516.508
+    },
+    {
+      "text": "ist",
+      "start_time": 516.508,
+      "end_time": 516.828
+    },
+    {
+      "text": "Sobald",
+      "start_time": 517.148,
+      "end_time": 517.708
+    },
+    {
+      "text": "wir",
+      "start_time": 517.708,
+      "end_time": 517.948
+    },
+    {
+      "text": "diese",
+      "start_time": 517.948,
+      "end_time": 518.268
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 518.268,
+      "end_time": 518.988
+    },
+    {
+      "text": "hatten",
+      "start_time": 518.988,
+      "end_time": 519.468
+    },
+    {
+      "text": "stellten",
+      "start_time": 519.708,
+      "end_time": 520.268
+    },
+    {
+      "text": "wir",
+      "start_time": 520.268,
+      "end_time": 520.428
+    },
+    {
+      "text": "uns",
+      "start_time": 520.428,
+      "end_time": 520.828
+    },
+    {
+      "text": "eine",
+      "start_time": 520.828,
+      "end_time": 521.228
+    },
+    {
+      "text": "weitere",
+      "start_time": 521.228,
+      "end_time": 521.628
+    },
+    {
+      "text": "Frage",
+      "start_time": 521.628,
+      "end_time": 522.268
+    },
+    {
+      "text": "die",
+      "start_time": 522.508,
+      "end_time": 522.668
+    },
+    {
+      "text": "lautet",
+      "start_time": 522.668,
+      "end_time": 523.308
+    },
+    {
+      "text": "Könnten",
+      "start_time": 523.628,
+      "end_time": 524.028
+    },
+    {
+      "text": "wir",
+      "start_time": 524.028,
+      "end_time": 524.188
+    },
+    {
+      "text": "ein",
+      "start_time": 524.188,
+      "end_time": 524.428
+    },
+    {
+      "text": "BertDeEmbedModell",
+      "start_time": 524.428,
+      "end_time": 526.348
+    },
+    {
+      "text": "finden",
+      "start_time": 526.348,
+      "end_time": 526.828
+    },
+    {
+      "text": "es",
+      "start_time": 527.068,
+      "end_time": 527.308
+    },
+    {
+      "text": "mit",
+      "start_time": 527.308,
+      "end_time": 527.468
+    },
+    {
+      "text": "verschiedenen",
+      "start_time": 527.468,
+      "end_time": 528.028
+    },
+    {
+      "text": "Arten",
+      "start_time": 528.028,
+      "end_time": 528.428
+    },
+    {
+      "text": "von",
+      "start_time": 528.428,
+      "end_time": 528.668
+    },
+    {
+      "text": "Einbettungen",
+      "start_time": 528.668,
+      "end_time": 529.388
+    },
+    {
+      "text": "füttern",
+      "start_time": 529.388,
+      "end_time": 529.868
+    },
+    {
+      "text": "die",
+      "start_time": 530.268,
+      "end_time": 530.428
+    },
+    {
+      "text": "verschiedene",
+      "start_time": 530.428,
+      "end_time": 530.988
+    },
+    {
+      "text": "Arten",
+      "start_time": 530.988,
+      "end_time": 531.308
+    },
+    {
+      "text": "von",
+      "start_time": 531.308,
+      "end_time": 531.548
+    },
+    {
+      "text": "sprachlicher",
+      "start_time": 531.548,
+      "end_time": 532.268
+    },
+    {
+      "text": "Information",
+      "start_time": 532.268,
+      "end_time": 533.068
+    },
+    {
+      "text": "codieren",
+      "start_time": 533.068,
+      "end_time": 533.248
+    },
+    {
+      "text": "und",
+      "start_time": 533.428,
+      "end_time": 533.608
+    },
+    {
+      "text": "die",
+      "start_time": 533.788,
+      "end_time": 533.788
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 533.788,
+      "end_time": 534.828
+    },
+    {
+      "text": "der",
+      "start_time": 534.828,
+      "end_time": 534.988
+    },
+    {
+      "text": "von",
+      "start_time": 534.988,
+      "end_time": 534.988
+    },
+    {
+      "text": "Transformerbasierten",
+      "start_time": 535.228,
+      "end_time": 536.268
+    },
+    {
+      "text": "Modelle",
+      "start_time": 536.268,
+      "end_time": 536.268
+    },
+    {
+      "text": "übertreffen",
+      "start_time": 536.748,
+      "end_time": 537.468
+    },
+    {
+      "text": "Um",
+      "start_time": 537.757,
+      "end_time": 537.997
+    },
+    {
+      "text": "dies",
+      "start_time": 537.997,
+      "end_time": 538.317
+    },
+    {
+      "text": "zu",
+      "start_time": 538.317,
+      "end_time": 538.397
+    },
+    {
+      "text": "tun",
+      "start_time": 538.397,
+      "end_time": 538.797
+    },
+    {
+      "text": "führen",
+      "start_time": 539.117,
+      "end_time": 539.437
+    },
+    {
+      "text": "wir",
+      "start_time": 539.437,
+      "end_time": 539.677
+    },
+    {
+      "text": "einige",
+      "start_time": 539.677,
+      "end_time": 540.077
+    },
+    {
+      "text": "vorläufige",
+      "start_time": 540.077,
+      "end_time": 540.797
+    },
+    {
+      "text": "Experimente",
+      "start_time": 540.797,
+      "end_time": 541.597
+    },
+    {
+      "text": "durch",
+      "start_time": 541.597,
+      "end_time": 542.077
+    },
+    {
+      "text": "Wir",
+      "start_time": 542.317,
+      "end_time": 542.557
+    },
+    {
+      "text": "führen",
+      "start_time": 542.557,
+      "end_time": 542.957
+    },
+    {
+      "text": "dieses",
+      "start_time": 542.957,
+      "end_time": 543.357
+    },
+    {
+      "text": "BERTDeezerfModell",
+      "start_time": 543.357,
+      "end_time": 545.117
+    },
+    {
+      "text": "mit",
+      "start_time": 545.117,
+      "end_time": 545.277
+    },
+    {
+      "text": "der",
+      "start_time": 545.277,
+      "end_time": 545.357
+    },
+    {
+      "text": "FlairBibliothek",
+      "start_time": 545.357,
+      "end_time": 546.397
+    },
+    {
+      "text": "aus",
+      "start_time": 546.397,
+      "end_time": 546.797
+    },
+    {
+      "text": "und",
+      "start_time": 546.957,
+      "end_time": 547.277
+    },
+    {
+      "text": "wir",
+      "start_time": 547.277,
+      "end_time": 547.437
+    },
+    {
+      "text": "haben",
+      "start_time": 547.437,
+      "end_time": 547.597
+    },
+    {
+      "text": "mit",
+      "start_time": 547.597,
+      "end_time": 547.757
+    },
+    {
+      "text": "verschiedenen",
+      "start_time": 547.757,
+      "end_time": 548.317
+    },
+    {
+      "text": "Arten",
+      "start_time": 548.317,
+      "end_time": 548.717
+    },
+    {
+      "text": "von",
+      "start_time": 548.717,
+      "end_time": 548.877
+    },
+    {
+      "text": "Einbettungen",
+      "start_time": 548.877,
+      "end_time": 549.677
+    },
+    {
+      "text": "experimentiert",
+      "start_time": 549.677,
+      "end_time": 550.637
+    },
+    {
+      "text": "wie",
+      "start_time": 550.957,
+      "end_time": 551.197
+    },
+    {
+      "text": "Transformerbasiert",
+      "start_time": 551.197,
+      "end_time": 552.317
+    },
+    {
+      "text": "aber",
+      "start_time": 552.717,
+      "end_time": 552.957
+    },
+    {
+      "text": "auch",
+      "start_time": 552.957,
+      "end_time": 553.117
+    },
+    {
+      "text": "FastTextZeichenEinbettungen",
+      "start_time": 553.117,
+      "end_time": 555.197
+    },
+    {
+      "text": "und",
+      "start_time": 555.197,
+      "end_time": 555.357
+    },
+    {
+      "text": "so",
+      "start_time": 555.357,
+      "end_time": 555.597
+    },
+    {
+      "text": "weiter",
+      "start_time": 555.597,
+      "end_time": 555.997
+    },
+    {
+      "text": "Was",
+      "start_time": 556.317,
+      "end_time": 556.557
+    },
+    {
+      "text": "wir",
+      "start_time": 556.557,
+      "end_time": 556.717
+    },
+    {
+      "text": "herausfanden",
+      "start_time": 556.717,
+      "end_time": 557.597
+    },
+    {
+      "text": "war",
+      "start_time": 557.917,
+      "end_time": 558.237
+    },
+    {
+      "text": "dass",
+      "start_time": 558.557,
+      "end_time": 558.797
+    },
+    {
+      "text": "Transformerbasierte",
+      "start_time": 558.797,
+      "end_time": 559.757
+    },
+    {
+      "text": "Einbettungen",
+      "start_time": 559.757,
+      "end_time": 560.557
+    },
+    {
+      "text": "besser",
+      "start_time": 560.877,
+      "end_time": 561.197
+    },
+    {
+      "text": "abschneiden",
+      "start_time": 561.197,
+      "end_time": 561.757
+    },
+    {
+      "text": "als",
+      "start_time": 561.757,
+      "end_time": 562.077
+    },
+    {
+      "text": "nicht",
+      "start_time": 562.077,
+      "end_time": 562.317
+    },
+    {
+      "text": "kontextualisierte",
+      "start_time": 562.317,
+      "end_time": 563.357
+    },
+    {
+      "text": "Einbettungen",
+      "start_time": 563.357,
+      "end_time": 564.157
+    },
+    {
+      "text": "dass",
+      "start_time": 564.397,
+      "end_time": 564.637
+    },
+    {
+      "text": "die",
+      "start_time": 564.637,
+      "end_time": 564.717
+    },
+    {
+      "text": "Kombination",
+      "start_time": 564.717,
+      "end_time": 565.597
+    },
+    {
+      "text": "von",
+      "start_time": 565.597,
+      "end_time": 565.757
+    },
+    {
+      "text": "englischem",
+      "start_time": 565.757,
+      "end_time": 566.317
+    },
+    {
+      "text": "BERT",
+      "start_time": 566.317,
+      "end_time": 566.557
+    },
+    {
+      "text": "und",
+      "start_time": 566.557,
+      "end_time": 566.717
+    },
+    {
+      "text": "spanischem",
+      "start_time": 566.717,
+      "end_time": 567.277
+    },
+    {
+      "text": "BERTEinbettungen",
+      "start_time": 567.277,
+      "end_time": 568.317
+    },
+    {
+      "text": "die",
+      "start_time": 568.637,
+      "end_time": 568.717
+    },
+    {
+      "text": "mehrsprachigen",
+      "start_time": 568.717,
+      "end_time": 569.517
+    },
+    {
+      "text": "BERTEinbettungen",
+      "start_time": 569.517,
+      "end_time": 570.557
+    },
+    {
+      "text": "übertrifft",
+      "start_time": 570.557,
+      "end_time": 571.277
+    },
+    {
+      "text": "und",
+      "start_time": 571.597,
+      "end_time": 571.757
+    },
+    {
+      "text": "dass",
+      "start_time": 571.757,
+      "end_time": 571.997
+    },
+    {
+      "text": "BPEinbettungen",
+      "start_time": 571.997,
+      "end_time": 572.957
+    },
+    {
+      "text": "bessere",
+      "start_time": 572.957,
+      "end_time": 573.437
+    },
+    {
+      "text": "F1Werte",
+      "start_time": 573.437,
+      "end_time": 574.317
+    },
+    {
+      "text": "erzielen",
+      "start_time": 574.317,
+      "end_time": 574.877
+    },
+    {
+      "text": "und",
+      "start_time": 575.277,
+      "end_time": 575.437
+    },
+    {
+      "text": "ZeichenEinbettungen",
+      "start_time": 575.437,
+      "end_time": 576.477
+    },
+    {
+      "text": "bessere",
+      "start_time": 576.477,
+      "end_time": 576.877
+    },
+    {
+      "text": "Rückrufe",
+      "start_time": 576.877,
+      "end_time": 577.357
+    },
+    {
+      "text": "erzeugen",
+      "start_time": 577.357,
+      "end_time": 577.917
+    },
+    {
+      "text": "Mit",
+      "start_time": 578.237,
+      "end_time": 578.397
+    },
+    {
+      "text": "diesen",
+      "start_time": 578.397,
+      "end_time": 578.717
+    },
+    {
+      "text": "Gedanken",
+      "start_time": 578.717,
+      "end_time": 579.197
+    },
+    {
+      "text": "im",
+      "start_time": 579.197,
+      "end_time": 579.357
+    },
+    {
+      "text": "Hinterkopf",
+      "start_time": 579.357,
+      "end_time": 580.237
+    },
+    {
+      "text": "waren",
+      "start_time": 580.397,
+      "end_time": 580.797
+    },
+    {
+      "text": "dies",
+      "start_time": 580.797,
+      "end_time": 581.037
+    },
+    {
+      "text": "die",
+      "start_time": 581.037,
+      "end_time": 581.117
+    },
+    {
+      "text": "besten",
+      "start_time": 581.117,
+      "end_time": 581.517
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 581.517,
+      "end_time": 582.157
+    },
+    {
+      "text": "die",
+      "start_time": 582.557,
+      "end_time": 582.717
+    },
+    {
+      "text": "wir",
+      "start_time": 582.717,
+      "end_time": 582.877
+    },
+    {
+      "text": "erzielt",
+      "start_time": 582.877,
+      "end_time": 583.277
+    },
+    {
+      "text": "haben",
+      "start_time": 583.277,
+      "end_time": 583.677
+    },
+    {
+      "text": "Beide",
+      "start_time": 583.997,
+      "end_time": 584.397
+    },
+    {
+      "text": "Modelle",
+      "start_time": 584.397,
+      "end_time": 584.877
+    },
+    {
+      "text": "waren",
+      "start_time": 584.877,
+      "end_time": 585.197
+    },
+    {
+      "text": "bilineare",
+      "start_time": 585.197,
+      "end_time": 585.837
+    },
+    {
+      "text": "DeezerfModelle",
+      "start_time": 585.837,
+      "end_time": 587.037
+    },
+    {
+      "text": "mit",
+      "start_time": 587.277,
+      "end_time": 587.437
+    },
+    {
+      "text": "Flair",
+      "start_time": 587.437,
+      "end_time": 587.997
+    },
+    {
+      "text": "Eines",
+      "start_time": 588.157,
+      "end_time": 588.557
+    },
+    {
+      "text": "wurde",
+      "start_time": 588.557,
+      "end_time": 588.797
+    },
+    {
+      "text": "mit",
+      "start_time": 588.797,
+      "end_time": 588.957
+    },
+    {
+      "text": "BERT",
+      "start_time": 588.957,
+      "end_time": 589.277
+    },
+    {
+      "text": "und",
+      "start_time": 589.277,
+      "end_time": 589.437
+    },
+    {
+      "text": "BERTEinbettungen",
+      "start_time": 589.517,
+      "end_time": 590.397
+    },
+    {
+      "text": "und",
+      "start_time": 590.397,
+      "end_time": 590.557
+    },
+    {
+      "text": "BP",
+      "start_time": 590.557,
+      "end_time": 591.117
+    },
+    {
+      "text": "gefüttert",
+      "start_time": 591.117,
+      "end_time": 591.677
+    },
+    {
+      "text": "und",
+      "start_time": 591.997,
+      "end_time": 592.157
+    },
+    {
+      "text": "das",
+      "start_time": 592.157,
+      "end_time": 592.317
+    },
+    {
+      "text": "andere",
+      "start_time": 592.317,
+      "end_time": 592.717
+    },
+    {
+      "text": "BERTEinbettungen",
+      "start_time": 592.717,
+      "end_time": 593.677
+    },
+    {
+      "text": "BP",
+      "start_time": 593.677,
+      "end_time": 594.237
+    },
+    {
+      "text": "sowie",
+      "start_time": 594.477,
+      "end_time": 594.797
+    },
+    {
+      "text": "ZeichenEinbettungen",
+      "start_time": 594.797,
+      "end_time": 595.917
+    },
+    {
+      "text": "Diese",
+      "start_time": 596.157,
+      "end_time": 596.397
+    },
+    {
+      "text": "letzte",
+      "start_time": 596.397,
+      "end_time": 596.797
+    },
+    {
+      "text": "war",
+      "start_time": 596.797,
+      "end_time": 596.957
+    },
+    {
+      "text": "diejenige",
+      "start_time": 596.957,
+      "end_time": 597.597
+    },
+    {
+      "text": "die",
+      "start_time": 597.917,
+      "end_time": 597.997
+    },
+    {
+      "text": "den",
+      "start_time": 597.997,
+      "end_time": 598.157
+    },
+    {
+      "text": "höchsten",
+      "start_time": 598.157,
+      "end_time": 598.557
+    },
+    {
+      "text": "F1Score",
+      "start_time": 598.557,
+      "end_time": 599.037
+    },
+    {
+      "text": "im",
+      "start_time": 599.437,
+      "end_time": 599.597
+    },
+    {
+      "text": "Testset",
+      "start_time": 599.597,
+      "end_time": 600.077
+    },
+    {
+      "text": "erzielte",
+      "start_time": 600.077,
+      "end_time": 600.717
+    },
+    {
+      "text": "obwohl",
+      "start_time": 601.037,
+      "end_time": 601.437
+    },
+    {
+      "text": "der",
+      "start_time": 601.437,
+      "end_time": 601.597
+    },
+    {
+      "text": "höchste",
+      "start_time": 601.597,
+      "end_time": 601.917
+    },
+    {
+      "text": "Score",
+      "start_time": 601.917,
+      "end_time": 602.317
+    },
+    {
+      "text": "im",
+      "start_time": 602.317,
+      "end_time": 602.477
+    },
+    {
+      "text": "Entwicklungsset",
+      "start_time": 602.477,
+      "end_time": 603.117
+    },
+    {
+      "text": "von",
+      "start_time": 603.117,
+      "end_time": 603.357
+    },
+    {
+      "text": "dem",
+      "start_time": 603.357,
+      "end_time": 603.517
+    },
+    {
+      "text": "ohne",
+      "start_time": 603.517,
+      "end_time": 603.837
+    },
+    {
+      "text": "ZeichenEinbettungen",
+      "start_time": 603.837,
+      "end_time": 605.037
+    },
+    {
+      "text": "erzielt",
+      "start_time": 605.037,
+      "end_time": 605.517
+    },
+    {
+      "text": "wurde",
+      "start_time": 605.517,
+      "end_time": 605.837
+    },
+    {
+      "text": "Nur",
+      "start_time": 605.997,
+      "end_time": 606.317
+    },
+    {
+      "text": "um",
+      "start_time": 606.317,
+      "end_time": 606.477
+    },
+    {
+      "text": "im",
+      "start_time": 606.477,
+      "end_time": 606.637
+    },
+    {
+      "text": "Hinterkopf",
+      "start_time": 606.637,
+      "end_time": 607.277
+    },
+    {
+      "text": "zu",
+      "start_time": 607.277,
+      "end_time": 607.437
+    },
+    {
+      "text": "behalten",
+      "start_time": 607.437,
+      "end_time": 607.997
+    },
+    {
+      "text": "dass",
+      "start_time": 608.317,
+      "end_time": 608.557
+    },
+    {
+      "text": "das",
+      "start_time": 608.557,
+      "end_time": 608.797
+    },
+    {
+      "text": "beste",
+      "start_time": 608.797,
+      "end_time": 609.117
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 609.117,
+      "end_time": 609.757
+    },
+    {
+      "text": "das",
+      "start_time": 610.157,
+      "end_time": 610.317
+    },
+    {
+      "text": "wir",
+      "start_time": 610.317,
+      "end_time": 610.477
+    },
+    {
+      "text": "mit",
+      "start_time": 610.477,
+      "end_time": 610.637
+    },
+    {
+      "text": "mehrsprachigem",
+      "start_time": 610.637,
+      "end_time": 611.437
+    },
+    {
+      "text": "BERT",
+      "start_time": 611.437,
+      "end_time": 611.677
+    },
+    {
+      "text": "erzielt",
+      "start_time": 611.677,
+      "end_time": 612.157
+    },
+    {
+      "text": "haben",
+      "start_time": 612.157,
+      "end_time": 612.477
+    },
+    {
+      "text": "eine",
+      "start_time": 612.797,
+      "end_time": 613.197
+    },
+    {
+      "text": "F1",
+      "start_time": 613.277,
+      "end_time": 613.997
+    },
+    {
+      "text": "von",
+      "start_time": 614.237,
+      "end_time": 614.477
+    },
+    {
+      "text": "70",
+      "start_time": 614.477,
+      "end_time": 614.877
+    },
+    {
+      "text": "auf",
+      "start_time": 614.877,
+      "end_time": 615.117
+    },
+    {
+      "text": "dem",
+      "start_time": 615.117,
+      "end_time": 615.277
+    },
+    {
+      "text": "Entwicklungsset",
+      "start_time": 615.277,
+      "end_time": 616.237
+    },
+    {
+      "text": "und",
+      "start_time": 616.477,
+      "end_time": 616.717
+    },
+    {
+      "text": "80",
+      "start_time": 616.717,
+      "end_time": 617.197
+    },
+    {
+      "text": "auf",
+      "start_time": 617.197,
+      "end_time": 617.357
+    },
+    {
+      "text": "dem",
+      "start_time": 617.357,
+      "end_time": 617.517
+    },
+    {
+      "text": "Testset",
+      "start_time": 617.517,
+      "end_time": 617.997
+    },
+    {
+      "text": "erzielte",
+      "start_time": 617.997,
+      "end_time": 618.637
+    },
+    {
+      "text": "Dies",
+      "start_time": 618.877,
+      "end_time": 619.117
+    },
+    {
+      "text": "ist",
+      "start_time": 619.117,
+      "end_time": 619.277
+    },
+    {
+      "text": "eine",
+      "start_time": 619.277,
+      "end_time": 619.357
+    },
+    {
+      "text": "Verbesserung",
+      "start_time": 619.357,
+      "end_time": 620.077
+    },
+    {
+      "text": "im",
+      "start_time": 620.077,
+      "end_time": 620.237
+    },
+    {
+      "text": "Vergleich",
+      "start_time": 620.237,
+      "end_time": 620.717
+    },
+    {
+      "text": "zu",
+      "start_time": 620.717,
+      "end_time": 620.877
+    },
+    {
+      "text": "diesen",
+      "start_time": 620.877,
+      "end_time": 621.197
+    },
+    {
+      "text": "Ergebnissen",
+      "start_time": 621.197,
+      "end_time": 621.997
+    },
+    {
+      "text": "Zum",
+      "start_time": 622.237,
+      "end_time": 622.477
+    },
+    {
+      "text": "Schluss",
+      "start_time": 622.477,
+      "end_time": 622.717
+    },
+    {
+      "text": "stellen",
+      "start_time": 622.717,
+      "end_time": 623.117
+    },
+    {
+      "text": "wir",
+      "start_time": 623.117,
+      "end_time": 623.277
+    },
+    {
+      "text": "uns",
+      "start_time": 623.277,
+      "end_time": 623.437
+    },
+    {
+      "text": "eine",
+      "start_time": 623.437,
+      "end_time": 623.757
+    },
+    {
+      "text": "weitere",
+      "start_time": 623.757,
+      "end_time": 624.157
+    },
+    {
+      "text": "Frage",
+      "start_time": 624.157,
+      "end_time": 624.637
+    },
+    {
+      "text": "die",
+      "start_time": 624.957,
+      "end_time": 625.037
+    },
+    {
+      "text": "lautete",
+      "start_time": 625.037,
+      "end_time": 625.677
+    },
+    {
+      "text": "Können",
+      "start_time": 625.997,
+      "end_time": 626.157
+    },
+    {
+      "text": "die",
+      "start_time": 626.157,
+      "end_time": 626.157
+    },
+    {
+      "text": "Werte",
+      "start_time": 626.317,
+      "end_time": 626.477
+    },
+    {
+      "text": "dieser",
+      "start_time": 626.557,
+      "end_time": 626.957
+    },
+    {
+      "text": "jetzt",
+      "start_time": 626.957,
+      "end_time": 627.037
+    },
+    {
+      "text": "genügend",
+      "start_time": 627.037,
+      "end_time": 627.437
+    },
+    {
+      "text": "wie",
+      "start_time": 627.517,
+      "end_time": 627.677
+    },
+    {
+      "text": "ermutigt",
+      "start_time": 627.677,
+      "end_time": 627.677
+    },
+    {
+      "text": "als",
+      "start_time": 628.157,
+      "end_time": 628.397
+    },
+    {
+      "text": "Transfer",
+      "start_time": 628.397,
+      "end_time": 628.797
+    },
+    {
+      "text": "lernen",
+      "start_time": 628.877,
+      "end_time": 629.277
+    },
+    {
+      "text": "aus",
+      "start_time": 629.597,
+      "end_time": 629.837
+    },
+    {
+      "text": "der",
+      "start_time": 629.837,
+      "end_time": 629.917
+    },
+    {
+      "text": "Sprachidentifikation",
+      "start_time": 629.917,
+      "end_time": 631.357
+    },
+    {
+      "text": "im",
+      "start_time": 631.357,
+      "end_time": 631.517
+    },
+    {
+      "text": "CodeSwitching",
+      "start_time": 631.517,
+      "end_time": 632.317
+    },
+    {
+      "text": "formuliert",
+      "start_time": 632.317,
+      "end_time": 632.957
+    },
+    {
+      "text": "werden",
+      "start_time": 632.957,
+      "end_time": 633.357
+    },
+    {
+      "text": "Wir",
+      "start_time": 633.597,
+      "end_time": 633.757
+    },
+    {
+      "text": "führen",
+      "start_time": 633.757,
+      "end_time": 634.077
+    },
+    {
+      "text": "das",
+      "start_time": 634.077,
+      "end_time": 634.237
+    },
+    {
+      "text": "gleiche",
+      "start_time": 634.237,
+      "end_time": 634.637
+    },
+    {
+      "text": "BILSTMDeezerfModell",
+      "start_time": 634.637,
+      "end_time": 636.077
+    },
+    {
+      "text": "ausgeführt",
+      "start_time": 636.397,
+      "end_time": 637.117
+    },
+    {
+      "text": "das",
+      "start_time": 637.517,
+      "end_time": 637.757
+    },
+    {
+      "text": "wir",
+      "start_time": 637.757,
+      "end_time": 637.837
+    },
+    {
+      "text": "mit",
+      "start_time": 637.837,
+      "end_time": 637.997
+    },
+    {
+      "text": "Flair",
+      "start_time": 637.997,
+      "end_time": 638.317
+    },
+    {
+      "text": "liefen",
+      "start_time": 638.317,
+      "end_time": 638.797
+    },
+    {
+      "text": "aber",
+      "start_time": 639.037,
+      "end_time": 639.357
+    },
+    {
+      "text": "anstatt",
+      "start_time": 639.357,
+      "end_time": 639.757
+    },
+    {
+      "text": "dieser",
+      "start_time": 639.757,
+      "end_time": 639.997
+    },
+    {
+      "text": "unangepassten",
+      "start_time": 639.997,
+      "end_time": 640.877
+    },
+    {
+      "text": "Transformerbasierten",
+      "start_time": 640.877,
+      "end_time": 642.077
+    },
+    {
+      "text": "BP",
+      "start_time": 642.077,
+      "end_time": 642.557
+    },
+    {
+      "text": "und",
+      "start_time": 642.957,
+      "end_time": 643.117
+    },
+    {
+      "text": "BERTEmbeddings",
+      "start_time": 643.117,
+      "end_time": 644.317
+    },
+    {
+      "text": "verwenden",
+      "start_time": 644.397,
+      "end_time": 644.877
+    },
+    {
+      "text": "wir",
+      "start_time": 644.877,
+      "end_time": 645.037
+    },
+    {
+      "text": "CodeSwitchingEmbeddings",
+      "start_time": 645.037,
+      "end_time": 646.717
+    },
+    {
+      "text": "Was",
+      "start_time": 646.797,
+      "end_time": 647.037
+    },
+    {
+      "text": "sind",
+      "start_time": 647.037,
+      "end_time": 647.197
+    },
+    {
+      "text": "CodeSwitchingEmbeddings",
+      "start_time": 647.197,
+      "end_time": 648.637
+    },
+    {
+      "text": "Das",
+      "start_time": 648.637,
+      "end_time": 648.877
+    },
+    {
+      "text": "sind",
+      "start_time": 648.877,
+      "end_time": 649.037
+    },
+    {
+      "text": "Embeddings",
+      "start_time": 649.037,
+      "end_time": 649.517
+    },
+    {
+      "text": "die",
+      "start_time": 649.517,
+      "end_time": 649.677
+    },
+    {
+      "text": "fein",
+      "start_time": 649.677,
+      "end_time": 649.997
+    },
+    {
+      "text": "abgestimmt",
+      "start_time": 649.997,
+      "end_time": 650.637
+    },
+    {
+      "text": "wurden",
+      "start_time": 650.637,
+      "end_time": 651.037
+    },
+    {
+      "text": "Transformerbasierte",
+      "start_time": 651.357,
+      "end_time": 652.317
+    },
+    {
+      "text": "Embeddings",
+      "start_time": 652.317,
+      "end_time": 652.957
+    },
+    {
+      "text": "die",
+      "start_time": 652.957,
+      "end_time": 653.117
+    },
+    {
+      "text": "für",
+      "start_time": 653.117,
+      "end_time": 653.197
+    },
+    {
+      "text": "die",
+      "start_time": 653.197,
+      "end_time": 653.357
+    },
+    {
+      "text": "Spracherkennung",
+      "start_time": 653.357,
+      "end_time": 654.157
+    },
+    {
+      "text": "auf",
+      "start_time": 654.157,
+      "end_time": 654.397
+    },
+    {
+      "text": "dem",
+      "start_time": 654.397,
+      "end_time": 654.557
+    },
+    {
+      "text": "spanischenglischen",
+      "start_time": 654.557,
+      "end_time": 655.517
+    },
+    {
+      "text": "Abschnitt",
+      "start_time": 655.517,
+      "end_time": 655.997
+    },
+    {
+      "text": "des",
+      "start_time": 655.997,
+      "end_time": 656.157
+    },
+    {
+      "text": "LinsiCodeSwitchingDatensatzes",
+      "start_time": 656.157,
+      "end_time": 657.757
+    },
+    {
+      "text": "forttrainiert",
+      "start_time": 657.837,
+      "end_time": 658.477
+    },
+    {
+      "text": "wurden",
+      "start_time": 658.477,
+      "end_time": 658.877
+    },
+    {
+      "text": "LinsiIsenDatensatzes",
+      "start_time": 659.117,
+      "end_time": 660.477
+    },
+    {
+      "text": "zum",
+      "start_time": 660.477,
+      "end_time": 660.557
+    },
+    {
+      "text": "CodeSwitchingDatensatzes",
+      "start_time": 660.557,
+      "end_time": 661.917
+    },
+    {
+      "text": "forttrainiert",
+      "start_time": 661.917,
+      "end_time": 662.397
+    },
+    {
+      "text": "forttrainiert",
+      "start_time": 662.397,
+      "end_time": 663.037
+    },
+    {
+      "text": "forttrainiert",
+      "start_time": 663.037,
+      "end_time": 663.597
+    },
+    {
+      "text": "forttrainiert",
+      "start_time": 663.597,
+      "end_time": 664.877
+    },
+    {
+      "text": "haben",
+      "start_time": 665.357,
+      "end_time": 665.437
+    },
+    {
+      "text": "wir",
+      "start_time": 665.437,
+      "end_time": 665.597
+    },
+    {
+      "text": "unseren",
+      "start_time": 665.597,
+      "end_time": 665.997
+    },
+    {
+      "text": "BILSTM",
+      "start_time": 665.997,
+      "end_time": 666.477
+    },
+    {
+      "text": "gefüttert",
+      "start_time": 666.477,
+      "end_time": 667.277
+    },
+    {
+      "text": "mit",
+      "start_time": 667.597,
+      "end_time": 667.837
+    },
+    {
+      "text": "CodeSwitchingEmbeddings",
+      "start_time": 667.837,
+      "end_time": 669.117
+    },
+    {
+      "text": "und",
+      "start_time": 669.197,
+      "end_time": 669.357
+    },
+    {
+      "text": "optionaler",
+      "start_time": 669.357,
+      "end_time": 669.837
+    },
+    {
+      "text": "CharacterEmbeddings",
+      "start_time": 669.837,
+      "end_time": 671.197
+    },
+    {
+      "text": "BPEEmbeddings",
+      "start_time": 671.277,
+      "end_time": 672.157
+    },
+    {
+      "text": "und",
+      "start_time": 672.157,
+      "end_time": 672.237
+    },
+    {
+      "text": "so",
+      "start_time": 672.237,
+      "end_time": 672.397
+    },
+    {
+      "text": "weiter",
+      "start_time": 672.477,
+      "end_time": 673.037
+    },
+    {
+      "text": "Das",
+      "start_time": 673.277,
+      "end_time": 673.517
+    },
+    {
+      "text": "beste",
+      "start_time": 673.517,
+      "end_time": 673.917
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 673.917,
+      "end_time": 674.557
+    },
+    {
+      "text": "das",
+      "start_time": 674.797,
+      "end_time": 675.037
+    },
+    {
+      "text": "wir",
+      "start_time": 675.037,
+      "end_time": 675.197
+    },
+    {
+      "text": "erzielt",
+      "start_time": 675.197,
+      "end_time": 675.437
+    },
+    {
+      "text": "haben",
+      "start_time": 675.437,
+      "end_time": 675.837
+    },
+    {
+      "text": "war",
+      "start_time": 676.237,
+      "end_time": 676.397
+    },
+    {
+      "text": "480",
+      "start_time": 676.397,
+      "end_time": 677.197
+    },
+    {
+      "text": "220",
+      "start_time": 677.517,
+      "end_time": 678.397
+    },
+    {
+      "text": "Das",
+      "start_time": 678.397,
+      "end_time": 678.397
+    },
+    {
+      "text": "höchste",
+      "start_time": 678.397,
+      "end_time": 679.597
+    },
+    {
+      "text": "aller",
+      "start_time": 679.597,
+      "end_time": 679.757
+    },
+    {
+      "text": "Modelle",
+      "start_time": 679.837,
+      "end_time": 680.317
+    },
+    {
+      "text": "ist",
+      "start_time": 680.317,
+      "end_time": 680.797
+    },
+    {
+      "text": "die",
+      "start_time": 680.877,
+      "end_time": 681.037
+    },
+    {
+      "text": "wir",
+      "start_time": 681.037,
+      "end_time": 681.277
+    },
+    {
+      "text": "ausprobiert",
+      "start_time": 681.277,
+      "end_time": 681.917
+    },
+    {
+      "text": "haben",
+      "start_time": 681.917,
+      "end_time": 682.317
+    },
+    {
+      "text": "im",
+      "start_time": 682.637,
+      "end_time": 682.797
+    },
+    {
+      "text": "Testset",
+      "start_time": 682.797,
+      "end_time": 683.277
+    },
+    {
+      "text": "obwohl",
+      "start_time": 683.677,
+      "end_time": 684.077
+    },
+    {
+      "text": "das",
+      "start_time": 684.077,
+      "end_time": 684.317
+    },
+    {
+      "text": "beste",
+      "start_time": 684.317,
+      "end_time": 684.717
+    },
+    {
+      "text": "F1Ergebnis",
+      "start_time": 684.717,
+      "end_time": 686.077
+    },
+    {
+      "text": "das",
+      "start_time": 686.397,
+      "end_time": 686.637
+    },
+    {
+      "text": "wir",
+      "start_time": 686.637,
+      "end_time": 686.717
+    },
+    {
+      "text": "im",
+      "start_time": 686.717,
+      "end_time": 686.797
+    },
+    {
+      "text": "Entwicklungsset",
+      "start_time": 686.797,
+      "end_time": 687.517
+    },
+    {
+      "text": "erzielt",
+      "start_time": 687.517,
+      "end_time": 687.997
+    },
+    {
+      "text": "haben",
+      "start_time": 687.997,
+      "end_time": 688.397
+    },
+    {
+      "text": "das",
+      "start_time": 688.637,
+      "end_time": 688.957
+    },
+    {
+      "text": "70",
+      "start_time": 689.037,
+      "end_time": 689.517
+    },
+    {
+      "text": "und",
+      "start_time": 689.517,
+      "end_time": 689.837
+    },
+    {
+      "text": "70",
+      "start_time": 689.837,
+      "end_time": 689.837
+    },
+    {
+      "text": "war",
+      "start_time": 689.837,
+      "end_time": 690.237
+    },
+    {
+      "text": "niedriger",
+      "start_time": 690.477,
+      "end_time": 691.117
+    },
+    {
+      "text": "als",
+      "start_time": 691.117,
+      "end_time": 691.357
+    },
+    {
+      "text": "das",
+      "start_time": 691.357,
+      "end_time": 691.597
+    },
+    {
+      "text": "beste",
+      "start_time": 691.597,
+      "end_time": 691.917
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 691.917,
+      "end_time": 692.637
+    },
+    {
+      "text": "das",
+      "start_time": 692.797,
+      "end_time": 693.037
+    },
+    {
+      "text": "durch",
+      "start_time": 693.037,
+      "end_time": 693.197
+    },
+    {
+      "text": "den",
+      "start_time": 693.197,
+      "end_time": 693.357
+    },
+    {
+      "text": "BILSTM",
+      "start_time": 693.357,
+      "end_time": 693.837
+    },
+    {
+      "text": "mit",
+      "start_time": 693.917,
+      "end_time": 694.077
+    },
+    {
+      "text": "angepassten",
+      "start_time": 694.077,
+      "end_time": 694.957
+    },
+    {
+      "text": "Embeddings",
+      "start_time": 694.957,
+      "end_time": 695.437
+    },
+    {
+      "text": "erzielt",
+      "start_time": 695.437,
+      "end_time": 695.917
+    },
+    {
+      "text": "wurde",
+      "start_time": 695.917,
+      "end_time": 696.317
+    },
+    {
+      "text": "Einige",
+      "start_time": 696.557,
+      "end_time": 697.037
+    },
+    {
+      "text": "Schlussfolgerungen",
+      "start_time": 697.037,
+      "end_time": 698.157
+    },
+    {
+      "text": "aus",
+      "start_time": 698.157,
+      "end_time": 698.397
+    },
+    {
+      "text": "unserer",
+      "start_time": 698.397,
+      "end_time": 698.877
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 698.877,
+      "end_time": 699.357
+    },
+    {
+      "text": "Wir",
+      "start_time": 699.597,
+      "end_time": 699.917
+    },
+    {
+      "text": "haben",
+      "start_time": 699.917,
+      "end_time": 700.157
+    },
+    {
+      "text": "einen",
+      "start_time": 700.157,
+      "end_time": 700.477
+    },
+    {
+      "text": "neuen",
+      "start_time": 700.477,
+      "end_time": 700.717
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 700.717,
+      "end_time": 701.357
+    },
+    {
+      "text": "von",
+      "start_time": 701.357,
+      "end_time": 701.517
+    },
+    {
+      "text": "spanischen",
+      "start_time": 701.517,
+      "end_time": 702.077
+    },
+    {
+      "text": "Nachrichtendaten",
+      "start_time": 702.077,
+      "end_time": 702.957
+    },
+    {
+      "text": "erstellt",
+      "start_time": 702.957,
+      "end_time": 703.517
+    },
+    {
+      "text": "der",
+      "start_time": 703.837,
+      "end_time": 703.837
+    },
+    {
+      "text": "mit",
+      "start_time": 703.997,
+      "end_time": 704.157
+    },
+    {
+      "text": "assimilierten",
+      "start_time": 704.157,
+      "end_time": 704.797
+    },
+    {
+      "text": "lexikalischen",
+      "start_time": 704.877,
+      "end_time": 705.677
+    },
+    {
+      "text": "Léhnwörtern",
+      "start_time": 705.677,
+      "end_time": 706.317
+    },
+    {
+      "text": "versehen",
+      "start_time": 706.317,
+      "end_time": 706.717
+    },
+    {
+      "text": "ist",
+      "start_time": 706.717,
+      "end_time": 707.117
+    },
+    {
+      "text": "Dieser",
+      "start_time": 707.357,
+      "end_time": 707.677
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 707.677,
+      "end_time": 708.317
+    },
+    {
+      "text": "ist",
+      "start_time": 708.317,
+      "end_time": 708.557
+    },
+    {
+      "text": "Léhnwörterreicher",
+      "start_time": 708.557,
+      "end_time": 709.597
+    },
+    {
+      "text": "und",
+      "start_time": 709.917,
+      "end_time": 710.077
+    },
+    {
+      "text": "auffrisch",
+      "start_time": 710.077,
+      "end_time": 710.717
+    },
+    {
+      "text": "als",
+      "start_time": 710.957,
+      "end_time": 711.277
+    },
+    {
+      "text": "frühere",
+      "start_time": 711.277,
+      "end_time": 711.677
+    },
+    {
+      "text": "Ressourcen",
+      "start_time": 711.677,
+      "end_time": 712.237
+    },
+    {
+      "text": "Wir",
+      "start_time": 712.557,
+      "end_time": 712.797
+    },
+    {
+      "text": "haben",
+      "start_time": 712.797,
+      "end_time": 712.957
+    },
+    {
+      "text": "vier",
+      "start_time": 712.957,
+      "end_time": 713.197
+    },
+    {
+      "text": "Arten",
+      "start_time": 713.197,
+      "end_time": 713.517
+    },
+    {
+      "text": "von",
+      "start_time": 713.517,
+      "end_time": 713.677
+    },
+    {
+      "text": "Modellen",
+      "start_time": 713.677,
+      "end_time": 714.157
+    },
+    {
+      "text": "zur",
+      "start_time": 714.157,
+      "end_time": 714.397
+    },
+    {
+      "text": "Erkennung",
+      "start_time": 714.397,
+      "end_time": 714.797
+    },
+    {
+      "text": "von",
+      "start_time": 714.797,
+      "end_time": 715.037
+    },
+    {
+      "text": "Léhnwörtern",
+      "start_time": 715.037,
+      "end_time": 715.677
+    },
+    {
+      "text": "untersucht",
+      "start_time": 715.677,
+      "end_time": 716.477
+    },
+    {
+      "text": "Im",
+      "start_time": 716.73,
+      "end_time": 716.89
+    },
+    {
+      "text": "Hinblick",
+      "start_time": 716.89,
+      "end_time": 717.29
+    },
+    {
+      "text": "auf",
+      "start_time": 717.29,
+      "end_time": 717.53
+    },
+    {
+      "text": "Fehleranalyse",
+      "start_time": 717.53,
+      "end_time": 718.57
+    },
+    {
+      "text": "die",
+      "start_time": 718.81,
+      "end_time": 718.97
+    },
+    {
+      "text": "Erinnerung",
+      "start_time": 718.97,
+      "end_time": 719.53
+    },
+    {
+      "text": "war",
+      "start_time": 719.53,
+      "end_time": 719.85
+    },
+    {
+      "text": "eine",
+      "start_time": 719.85,
+      "end_time": 720.01
+    },
+    {
+      "text": "Schwachstelle",
+      "start_time": 720.01,
+      "end_time": 720.65
+    },
+    {
+      "text": "für",
+      "start_time": 720.65,
+      "end_time": 720.89
+    },
+    {
+      "text": "alle",
+      "start_time": 720.89,
+      "end_time": 721.05
+    },
+    {
+      "text": "Modelle",
+      "start_time": 721.05,
+      "end_time": 721.61
+    },
+    {
+      "text": "Wie",
+      "start_time": 721.85,
+      "end_time": 722.09
+    },
+    {
+      "text": "Sie",
+      "start_time": 722.09,
+      "end_time": 722.17
+    },
+    {
+      "text": "hier",
+      "start_time": 722.17,
+      "end_time": 722.33
+    },
+    {
+      "text": "sehen",
+      "start_time": 722.33,
+      "end_time": 722.65
+    },
+    {
+      "text": "können",
+      "start_time": 722.65,
+      "end_time": 723.05
+    },
+    {
+      "text": "umfassen",
+      "start_time": 723.29,
+      "end_time": 723.93
+    },
+    {
+      "text": "einige",
+      "start_time": 723.93,
+      "end_time": 724.41
+    },
+    {
+      "text": "häufige",
+      "start_time": 724.41,
+      "end_time": 724.81
+    },
+    {
+      "text": "Fehler",
+      "start_time": 724.81,
+      "end_time": 725.21
+    },
+    {
+      "text": "lange",
+      "start_time": 725.21,
+      "end_time": 725.45
+    },
+    {
+      "text": "Großbuchstabenlehnwörter",
+      "start_time": 725.53,
+      "end_time": 727.05
+    },
+    {
+      "text": "Wörter",
+      "start_time": 727.37,
+      "end_time": 727.85
+    },
+    {
+      "text": "die",
+      "start_time": 728.25,
+      "end_time": 728.33
+    },
+    {
+      "text": "beispielsweise",
+      "start_time": 728.33,
+      "end_time": 729.21
+    },
+    {
+      "text": "sowohl",
+      "start_time": 729.21,
+      "end_time": 729.61
+    },
+    {
+      "text": "auf",
+      "start_time": 729.61,
+      "end_time": 729.77
+    },
+    {
+      "text": "Englisch",
+      "start_time": 729.77,
+      "end_time": 730.17
+    },
+    {
+      "text": "als",
+      "start_time": 730.17,
+      "end_time": 730.41
+    },
+    {
+      "text": "auch",
+      "start_time": 730.41,
+      "end_time": 730.57
+    },
+    {
+      "text": "auf",
+      "start_time": 730.57,
+      "end_time": 730.73
+    },
+    {
+      "text": "Spanisch",
+      "start_time": 730.73,
+      "end_time": 731.21
+    },
+    {
+      "text": "existieren",
+      "start_time": 731.21,
+      "end_time": 731.93
+    },
+    {
+      "text": "Interessanterweise",
+      "start_time": 732.25,
+      "end_time": 733.53
+    },
+    {
+      "text": "scheinen",
+      "start_time": 733.69,
+      "end_time": 734.09
+    },
+    {
+      "text": "BPEEmbeddings",
+      "start_time": 734.09,
+      "end_time": 734.97
+    },
+    {
+      "text": "den",
+      "start_time": 734.97,
+      "end_time": 735.13
+    },
+    {
+      "text": "F1Score",
+      "start_time": 735.13,
+      "end_time": 735.93
+    },
+    {
+      "text": "zu",
+      "start_time": 735.93,
+      "end_time": 736.01
+    },
+    {
+      "text": "verbessern",
+      "start_time": 736.01,
+      "end_time": 736.73
+    },
+    {
+      "text": "Zeichenembeddings",
+      "start_time": 737.05,
+      "end_time": 738.09
+    },
+    {
+      "text": "scheinen",
+      "start_time": 738.09,
+      "end_time": 738.49
+    },
+    {
+      "text": "den",
+      "start_time": 738.49,
+      "end_time": 738.65
+    },
+    {
+      "text": "Recall",
+      "start_time": 738.65,
+      "end_time": 739.05
+    },
+    {
+      "text": "zu",
+      "start_time": 739.05,
+      "end_time": 739.13
+    },
+    {
+      "text": "verbessern",
+      "start_time": 739.13,
+      "end_time": 739.85
+    },
+    {
+      "text": "Es",
+      "start_time": 740.09,
+      "end_time": 740.25
+    },
+    {
+      "text": "ist",
+      "start_time": 740.25,
+      "end_time": 740.49
+    },
+    {
+      "text": "ein",
+      "start_time": 740.49,
+      "end_time": 740.49
+    },
+    {
+      "text": "interessanter",
+      "start_time": 740.49,
+      "end_time": 741.13
+    },
+    {
+      "text": "Befund",
+      "start_time": 741.13,
+      "end_time": 741.77
+    },
+    {
+      "text": "den",
+      "start_time": 741.93,
+      "end_time": 742.17
+    },
+    {
+      "text": "wir",
+      "start_time": 742.17,
+      "end_time": 742.25
+    },
+    {
+      "text": "vielleicht",
+      "start_time": 742.25,
+      "end_time": 742.73
+    },
+    {
+      "text": "in",
+      "start_time": 742.73,
+      "end_time": 742.81
+    },
+    {
+      "text": "zukünftigen",
+      "start_time": 742.81,
+      "end_time": 743.45
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 743.45,
+      "end_time": 744.01
+    },
+    {
+      "text": "erforschen",
+      "start_time": 744.01,
+      "end_time": 744.57
+    },
+    {
+      "text": "können",
+      "start_time": 744.57,
+      "end_time": 744.97
+    },
+    {
+      "text": "Das",
+      "start_time": 745.21,
+      "end_time": 745.45
+    },
+    {
+      "text": "ist",
+      "start_time": 745.45,
+      "end_time": 745.61
+    },
+    {
+      "text": "alles",
+      "start_time": 745.61,
+      "end_time": 746.09
+    },
+    {
+      "text": "was",
+      "start_time": 746.41,
+      "end_time": 746.65
+    },
+    {
+      "text": "ich",
+      "start_time": 746.65,
+      "end_time": 746.81
+    },
+    {
+      "text": "habe",
+      "start_time": 746.81,
+      "end_time": 747.37
+    },
+    {
+      "text": "Vielen",
+      "start_time": 747.45,
+      "end_time": 747.69
+    },
+    {
+      "text": "Dank",
+      "start_time": 747.69,
+      "end_time": 747.93
+    },
+    {
+      "text": "fürs",
+      "start_time": 747.93,
+      "end_time": 748.17
+    },
+    {
+      "text": "Zuhören",
+      "start_time": 748.17,
+      "end_time": 748.97
+    }
+  ]
+}
