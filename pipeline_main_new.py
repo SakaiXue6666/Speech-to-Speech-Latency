@@ -4,12 +4,21 @@ import torch
 from pipeline_qwen3_asr2 import step1_asr
 from pipeline_segale_align_new import step2_segale
 from pipeline_longyaal_new import step3_longyaal
+from pipeline_plot_ending_offset_delay import ending_offset_delay
 
 import argparse
 import json
 import os
 import wave
 import yaml
+
+'''
+de:
+python -m pip install "https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl"
+ja:
+python -m pip install ginza ja_ginza
+python -m pip install "sacrebleu[ja]"
+'''
 
 
 # ============================================================================\
@@ -389,13 +398,43 @@ def instances_to_segale(
 model_name = "seed"
 input_version = ""
 output_version = ""
+src_lang = "en"
+tgt_lang = "zh"
+lang_map = {
+    "en": "English",
+    "zh": "Chinese",
+    "de": "German",
+    "ja": "Japanese",
+    # 其他语言映射...
+}
+bleu_map = {
+    "en": "13a",
+    "zh": "zh",
+    "de": "13a",
+    "ja": "ja-mecab",
+    # 其他语言映射...
+}
 
 def main():
-    manifest = f"data2/{model_name}/output_wav{input_version}/manifest.jsonl"
-    tgt_language = "Chinese"
-    output_dir_asr = f"data2/{model_name}/output_asr{output_version}"
-    batch_size = 2
+    manifest = f"data2/{model_name}/{src_lang}_{tgt_lang}/output_wav{input_version}/manifest.jsonl"
+    tgt_language = lang_map.get(tgt_lang, tgt_lang)
+    output_dir_asr = f"data2/{model_name}/{src_lang}_{tgt_lang}/output_asr{output_version}"
+    batch_size = 3
     max_new_tokens = 1024
+
+    output_dir_asr_ = output_dir_asr + "_"
+
+    src_segments_yaml = f"data2/input/ACL.ACLdev2023.{src_lang}-xx.gold_segments.yaml"
+    output_path_instances = os.path.join(output_dir_asr_, "instances.log")
+
+    src_txt = f"data2/input/ACL.6060.dev.{src_lang}-xx.{src_lang}.txt"
+    tgt_ref_txt = f"data2/input/ACL.6060.dev.{src_lang}-xx.{tgt_lang}.txt"
+    output_dir_segale = f"data2/{model_name}/{src_lang}_{tgt_lang}/output_segale{output_version}"
+
+    segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
+    output_dir_longyaal = f"data2/{model_name}/{src_lang}_{tgt_lang}/output_longyaal{output_version}"
+
+    # ================================================================
 
     # print("\n" + "=" * 60)
     # print("Starting ASR...")
@@ -412,17 +451,11 @@ def main():
     #     torch.cuda.empty_cache()
     # print("ASR finished.")
 
-    output_dir_asr_ = output_dir_asr + "_"
-
-
+    # # ---------------------------------------------------------------
     # add_char_spans_for_dir(
     #     output_dir_asr,
     #     output_dir_asr_
     # )
-
-    src_segments_yaml = f"data2/input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
-    output_path_instances = os.path.join(output_dir_asr_, "instances.log")
-
 
     # asr_to_instances(
     #     s2s=True,
@@ -431,10 +464,6 @@ def main():
     #     output_file=output_path_instances,
     # )
 
-    src_txt = f"data2/input/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt = f"data2/input/ACL.6060.dev.en-xx.zh.txt"
-    output_dir_segale = f"data2/{model_name}/output_segale{output_version}"
-
     # instances_to_segale(
     #     src_txt=src_txt, 
     #     tgt_ref_txt=tgt_ref_txt, 
@@ -442,8 +471,7 @@ def main():
     #     instances=output_path_instances,
     #     out_dir=output_dir_segale
     # )
-
-    task_lang = "zh"
+    # # ---------------------------------------------------------------
 
     # print("\n" + "=" * 60)
     # print("Starting Segale...")
@@ -451,26 +479,31 @@ def main():
     #     system_file=os.path.join(output_dir_segale, "hyp.jsonl"),
     #     ref_file=os.path.join(output_dir_segale, "ref.jsonl"),
     #     segmenter="spacy",
-    #     task_lang=task_lang,
+    #     task_lang=tgt_lang,
     #     proc_device="cuda",
     #     embedding_model= "sentence-transformers/LaBSE"  # "BAAI/bge-m3"
     # )
     # print("Segale finished.")
 
-    segale_file = os.path.join(output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
-    output_dir_longyaal = f"data2/{model_name}/output_longyaal{output_version}"
+    # # ---------------------------------------------------------------
 
-    print("\n" + "=" * 60)
-    print("Starting Longyaal...")
-    step3_longyaal(
-        yaml_file=src_segments_yaml,
-        source_sentences_file=src_txt,
-        instances_log=output_path_instances,
-        segale_file=segale_file,
-        output_folder=output_dir_longyaal,
-        bleu_tokenizer=task_lang,
+    # print("\n" + "=" * 60)
+    # print("Starting Longyaal...")
+    # step3_longyaal(
+    #     yaml_file=src_segments_yaml,
+    #     source_sentences_file=src_txt,
+    #     instances_log=output_path_instances,
+    #     segale_file=segale_file,
+    #     output_folder=output_dir_longyaal,
+    #     bleu_tokenizer=bleu_map.get(tgt_lang, "13a")
+    # )
+    # print("Longyaal finished.")
+
+    ending_offset_delay(
+        instances=os.path.join(output_dir_longyaal, "instances.resegmented.json"),
+        out_png=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.png"),
+        out_csv=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.csv"),
     )
-    print("Longyaal finished.")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,8747 @@
+{
+  "src": "data2/input/acl_6060_dev/2022.acl-long.117.wav",
+  "tgt": "data2\\seed\\en_de\\output_wav\\2022.acl-long.117.wav",
+  "text": "Hallo. Ich werde unsere Arbeit zur Generierung von Refals für Fragen-Beantwortungsaufgaben diskutieren. Dies ist die Arbeit, die während meines Praktikums bei Google Research geleistet wurde, wo ich von Maschinellem und Human betreut wurde, um die Aufgabe zu motivieren. Lassen Sie mich zunächst eine Kontrafaktualität definieren. In dieser Arbeit definieren wir eine Kontrafaktualität als eine Störung des Eingabetextes, die sich in einer bedeutungsvollen, kontrollierten Weise vom Originaltext unterscheidet und uns ermöglicht, über die Änderungen im Ergebnis oder der Aufgabenbezeichnung nachzudenken. Zum Beispiel das Wort versinnern, die wie immer, kugel oder erwartet, in Versinnern, die wie ändert die Wertung dieses Zinnsions. Ändlich das Hinzufügen des Qualifizs zur Frage ändert die Antwort auf die Frage im Beispiel unten. Menschen sind typischerweise robust gegen solche Störungen im Vergleich zu NLP-Modellen, die für diese Aufgabe trainiert wurden. Warum ist das so? Der Datensatz kann systematische Verzerrungen aufweisen, die zu einer einfachen Entscheidungsgrenze führen, die durch den Kontrafaktual ist verletzt wird. Wir in diesem zweiten Klassifikationsproblem gezeigt. Frühere Arbeiten haben herausgefunden, dass das Hinzufügen von Kontrafaktualbeispielen zu den Trainingsdaten das Modell gegenüber solchen Störungen robust machen kann. Wenn also Kontrafaktualbeispiele wertvoll sind, wie können wir sie generieren? Diese Aufgabe ist für eine besonders schwierig, weil hier drei Beispiele aus drei verschiedenen NLP-Aufgaben sind, wie Sie sehen können, Beispiele, die die Entscheidungsgrenze verletzen. Zwischen Ergebnissen müssen sehr sorgfältig durch die Störung einiger hier unterstrichener Textattribute erstellt werden. Dies könnte durch menschliche Annotation erfolgen, aber das ist teuer und vorrangig. Einige frühere Arbeiten konzentrierten sich auf die Verwendung von Synonymen oder semantischer Regelbeschriftung, aber die Menge der durch diese Techniken erzeugten Störungen ist durch den semantischen Rahmen begrenzt. Neueste Arbeiten haben maschinelles Sprachmodelle verwendet, um maschierte Teile des Textes auszufüllen und Etiketten zu ändern, aber herauszufinden, welche Teile des Textes gestört werden sollen, kann eine Herausforderung sein. Es gibt weitere Herausforderungen bei der Generierung von Kontrafakten für die Beantwortung von Fragen. Diese Aufgabe erfordert Hintergrundwissen, zum Beispiel, um die ursprüngliche Frage zu stellen: Ist Indiana Jones Temple of Doom ein Prequel? Wir müssen uns der anderen Filme in der Franchise bewusst sein, um zu einer Frage wie Ist Indiana Jones Raiders of the Lost Ark ein Prequel? zu gelangen. Außerdem können zufällige Störungen zu Fragen führen, die mit den verfügbaren Beweisen nicht beantwortet werden können oder falsche Prämissen enthalten. Außerdem können einige Störungen zu einer signifikanten semantischen Drift vom ursprünglichen Eingang führen.Zum Beispiel lautet diese Frage: Praktiziert Indiana Jones in der Tempel des Schreckens Kinderarbeit aus? Wir schlagen eine sehr einfache, aber effektive Technik namens Retrieval-Generate-Filter oder RGF vor, um gegen Fragestörungen von Fragen zu begegnen und auch alle anderen oben genannten Herausforderungen zu bewältigen. Die Kerninformation hinter RGF ist, dass die notwendigen Hintergrundinformationen, die zur Erzeugung von Störungen benötigt werden, in den falschen Antworten sein können, die ein Frage-Antwort-Modell macht. Das modernste Modell will zum Beispiel als Folge die folgenden Top-K-Antworten auf die Frage: Wer ist der Kapitän des Richmond Football Clubs? Nun, es stellt zwar den ursprünglichen Referenzabschnitt und die Antwortkategorien wieder her, als die Top-Wahl. Es holt auch zusätzliche Passagen und Antworten ab, die zur Anleitung von Fragestörungen verwendet werden können. Zum Beispiel holt es zwei weitere Antworten auf, die den Kapitän des Reserve-Teams und des Frauen-Teams entsprechen, dieselben Vereins, und dies kann zu interessanten Bearbeitungen führen. Zusammengefasst holt RGF zuerst die Top-K-relevantesten Antworten und Kontexte heraus, die nicht mit der Referenzantwort und dem Kontext übereinstimmen. Nach diesem Schritt generiert das Fragegenerierungsmodell Bedingungen für diese alternativen Antworten, eine Frage, die ihnen entspricht, und schließlich können wir die generierten Fragen basierend auf Minimalität oder basierend auf der Art der semantischen Störungen filtern, die wir einführen möchten. Wenn wir jeden Schritt genauer durchgehen, verwenden wir für die Abfrage ein Abrufen-Daten-lesen-Modell wie R. Dies nimmt die Originalfrage und einen großen Vorrat wie Wikipedia als Eingabe. Es besteht aus zwei Modulen. Das Retrieval-Modul führt eine Ähnlichkeitssuche über einen Nischenindex von Passagen durch, um die Top-K-relevantesten Passagen zur Frage abzurufen, und ein Lesemodul extrahiert dann einen spannhaften Passagen als mögliche Antwort. Wir ablehnen gemeinsam die goldene Passage und die Antwort ab. In dieser Arbeit interessieren wir uns jedoch mehr für die Antworten und Kontexte, die weiter unten abrufen. Im nächsten Schritt der Fragegenerierung verwenden wir diese alternativen Antworten und Kontexte, um neue Fragen zu generieren, die diesen Alternativen entsprechen. Das Fragegenerierungsmodell ist ein vortrainiertes Text-zu-Text-Transformer, das auf den Encoder-Teil fein abgestimmt wird, um eine Frage für eine Antwort zu generieren, die im Kontext markiert ist. Während der Inference liefern wir dem Fragegenerierungsmodell die alternativen Antwort und den Kontext, die wir im vorherigen Schritt abgefragt haben. Zum Beispiel für die Abfrage: Wer ist der Kapitän des Richmond Football Clubs? Wird es zu Abfrage an das Männer-Team auf das von der Skandinavie leitet wird und das Fragegenerierungsmodell generiert die Abfrage: Wer war der Kapitän des ersten Frauenmannschaftsteams des Richmond Football Clubs, das spezifische semantische Störung aufweist? Ähnlich erhalten wir auch Abfragen wie: Wer war der Kapitän des NFL Reserve-Teams von Richmond?Oder wen hat Graham im Grand Final letztes Jahr negiert? Zum Schluss filtern wir einen Teil mehrerer generierten Abfragen basierend auf gewünschten Eigenschaften heraus. Wie bereits erwähnt, möchten wir sicherstellen, dass die neue Frage semantisch noch in der Nähe zum Original liegt. Bei einer Filtertechnik, die keine zusätzliche Überwachung erfordert, behalten wir einfach neue Fragen, weil wir eine geringe Tokenlevel-Edit-Distanz zur Originalfrage haben. Zum Beispiel entfernen wir die Frage, wer hat Graham im letzten Jahr Grand Final negiert, weil sie eine längere Edit-Distanz zur Originalfrage hat. In unseren Experimenten zeigen wir, dass diese einfache Heuristik zur Erweiterung von Encodetraining-Daten verwendet werden kann. Wir experimentieren auch mit einer Filterstrategie, die auf der Art der semantischen Störung basiert. Zu diesem Zweck verwenden wir ein allgemeines abfragende Kompositionsframework, mit dem namens Codi. Codi identifiziert zwei Teile der Frage: ein Prädikat und eine Referenz. Referenzen sind nur Wörter in der Frage, die Entitäten im Kontext entsprechen. Ein Prädikat ist im Grunde der verbleibende Teil der Frage. Zum Beispiel, wir sind in der Lage, die Abfrage zu zerlegen: Wer war der Kapitänin von Richmond's ersten Frauenmannschaft? In zwei Referenzen Richmond Football Club Frauenmannschaft und das Prädikat Wer war der Kapitän von X? Ein auf die Referenz Prädikaten Anmerkungen für Encodierte Modelle gibt uns diese Fragezerlegung. Wir zeigen die ursprüngliche und die generierte basierend auf Codi zu legen. Ermutigt es uns, unsere generierten Kontraktualisierungen für die Bewertung zu kategorisieren? Insbesondere erhalten wir zwei Gruppen von Fragen: diejenigen, die eine Referenzänderung erfahren, werden Sie Prädikate beibehalten, und diejenigen, die eine Prädikatsänderung erfahren und optional Referenzen hinzufügen. Zum Beispiel, wer war der Kapitän von Richmond's zweiter Reserve-Team? Es eine Referenzänderung. Wenn World Team Nummer neun für den Verein. Eine Prädikatsänderung ist. Wir bewerten nun die Wirksamkeit von Ärgestörungen bei der eigenen Encodetraining-Daten, um die Wirksamkeit der Kontraktualisierung insbesondere effektiv zu bewerten. Experimentieren wir mit zwei Baseline's für die Datenaugmentation. Die erste Baseline heißt Zufallsantwort und Fragengenerierung. Fügt Daten hinzu, die keinen Bezug zur ursprünglichen Frage haben. Das heißt, Passagen und Antworten werden einfach zufällig aus der Wikipedia genommen. Diese Baseline fügt im Grunde mehr Daten hinzu, die wie entweder aussehen. Bei der zweiten Baseline, Goldantwort und Fragengenerierung, entfernen wir speziell die Referenzen unserer Methode. Hier werden alternative Antworten einfach aus der selben Passage ausgewählt, die die Goldantwort enthält. Wie wir sehen, die Baseline und die Ärgestörung bei der Leseverständnisleistung, der Wahrheit des Modells zurück auf die Frage und den Kontext. Wir experimentieren mit sechs Art of Domain-Datensätzen und präsentieren hier die Ergebnisse.Dabei wird das Training der Daten in der Weiterung verdoppelt. Wir stellen fest, dass beide Datenargumentierungsbaseline nicht in der Lage sind, die Out-of-domain-Generalisierung zu verbessern. Tatsächlich leistet ein Ensemble von sechs Modellen, die auf den Originaldaten trainiert wurden, die Anschein mit sechster Baseline zu sein scheint. Im Vergleich zu dieser Baseline stellen wir fest, dass alle Kontraktuale in der Lage sind, die Out-of-domain-Performance zu verbessern, während die In-domain-Performance beibehalten wird. Dies deutet darauf hin, dass das Schließen der Argumentationslücken des Modells durch Kontraktualisierung effektiver ist als das Hinzufügen von mehr Daten aus der Trainingsverteilung. Außerdem stellen wir fest, dass die Verwendung von Referenzstichproben als alternative Ergebnisse oder Antworten wichtig für effektive CL is. Wir experimentieren auch mit einem Open-domain-Set, bei dem das Modell nur die Frage sieht, und noch einmal bewerten wir vier Out-of-domain-Datensätzen. Wir stellen fest, dass beide Modelle für die Out-of-domain-Generalisierung nicht so effektiv sind. Allerdings zeigt die Datenverstärkung mit Ergebnis deutlichere Verbesserungen. Wir verbessern sogar im In-domain-Encoder-Datensatz. Wir vermuten, dass die Kontraktualdatenverstärkung dem Modell hilft, bessere Abfrage-Englungs für sehr ähnliche Abfragen zu lernen. Zum Schluss bewerten wir auch die Fähigkeit des Modells, die Konsistenz in der lokalen Nachbarschaft der ursprünglichen Frage zu verbessern. Konsistenz mit dem Wortproben-S fragen, auf die das Modell korrekt geantwortet hat, bei denen sowohl die ursprüngliche als auch die Kontraktualfrage korrekt beantwortet werden. Dies hilft uns explizit, die Robustheit des Modells zu messen gegen kleine Störungen in der Nachbarschaft des ursprünglichen Eingabes. Wir experimentieren mit fünf Datensätzen, die Paare von Fragen enthalten, die semantisch nahe beieinander liegen, abgesehen von den drei Datensätzen, die Bigus und Cora-Contrast bereits verfügbar sind. Bewerten wir auch Kontraktualisierungen, die mit Original-Englungsfragen gepaart sind, basierend darauf, ob sie eine Predikats- oder Referenzänderung erfahren haben. Diese Untergruppen wurden intern annotiert, um Rauschen zu eliminieren und werden als Ressource bereitgestellt. Alle Baselines sind nicht in der Lage, die Konsistenz signifikant zu verbessern mit dem Ensemble-Modell, das die Konsistenz nur geringfügig verbessert. Allerdings erzielt die Kontraktualisierungsverstärkung beeindruckende Verbesserungen in der Konsistenz, sowohl an den vorherigen Datensätzen als auch an den von uns zusammengestellten beiden Teilmenge für Referenz- und Predikatsstörungen. Beachten Sie, dass die erweiterten Ergebnisdaten nicht durch den Störungstyp verzerrt sind, nur wie Evaluierungsset sind es. Tatsächlich eine qualitative Inspektion der generierten Art von Kontraktualisierungen zeigt, dass die generierten Fragen mehrere verschiedene Störungen enthalten, zum Beispiel dazu ursprüngliche Fragen zum Befall von Walnut Grove Minnesota.Wird entlang verschiedener Dimensionen gestartet, wie Stadt, Bundesstaat, Land und entlang verschiedener Prädikate, Lage, Armut, Anzahl der Schulen. Ladewirrungen sind kontextspezifisch. Zum Beispiel für diese andere Frage über das Schwimmbad Einzelturnier. Die Störung ist nach Spielart, Turnierart oder Spielausgang platziert. Wir gehen die Aufgabe der Gegenfaktendatenerweiterung an und Störungen für Informationsuchendeabfragen und bewältigen seine einzigartigen Herausforderungen. Wir wenden den Generationsansatz um. Wir übergenerieren mit nahezu verpassten Ergebnissen des Modells und viertens basierend auf Störungsart oder Minimalität. Wir stellen fest, dass diese Technik keine zusätzliche Überwachung benötigt und die Beispiele für die Erweiterung gekennzeichnet sind. Die Erweiterung verbessert die Generalisierung außerhalb des Domänenbereichs und die Nachbarschaftskonsistenz. Und wir stellen fest, dass eigefkontrafaktensemantisch vielfältig sind, ohne bei der Erweiterung Vorurteile einzuführen. Vielen Dank.",
+  "time_stamps": [
+    {
+      "text": "Hallo",
+      "start_time": 3.36,
+      "end_time": 4.0
+    },
+    {
+      "text": "Ich",
+      "start_time": 7.2,
+      "end_time": 7.36
+    },
+    {
+      "text": "werde",
+      "start_time": 7.36,
+      "end_time": 7.6
+    },
+    {
+      "text": "unsere",
+      "start_time": 7.6,
+      "end_time": 8.0
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 8.0,
+      "end_time": 8.32
+    },
+    {
+      "text": "zur",
+      "start_time": 8.32,
+      "end_time": 8.4
+    },
+    {
+      "text": "Generierung",
+      "start_time": 8.4,
+      "end_time": 9.04
+    },
+    {
+      "text": "von",
+      "start_time": 9.04,
+      "end_time": 9.28
+    },
+    {
+      "text": "Refals",
+      "start_time": 9.28,
+      "end_time": 9.76
+    },
+    {
+      "text": "für",
+      "start_time": 9.76,
+      "end_time": 9.92
+    },
+    {
+      "text": "FragenBeantwortungsaufgaben",
+      "start_time": 9.92,
+      "end_time": 11.52
+    },
+    {
+      "text": "diskutieren",
+      "start_time": 11.52,
+      "end_time": 12.24
+    },
+    {
+      "text": "Dies",
+      "start_time": 12.56,
+      "end_time": 12.72
+    },
+    {
+      "text": "ist",
+      "start_time": 12.72,
+      "end_time": 12.88
+    },
+    {
+      "text": "die",
+      "start_time": 12.88,
+      "end_time": 12.96
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 12.96,
+      "end_time": 13.44
+    },
+    {
+      "text": "die",
+      "start_time": 13.76,
+      "end_time": 13.92
+    },
+    {
+      "text": "während",
+      "start_time": 13.92,
+      "end_time": 14.16
+    },
+    {
+      "text": "meines",
+      "start_time": 14.16,
+      "end_time": 14.48
+    },
+    {
+      "text": "Praktikums",
+      "start_time": 14.48,
+      "end_time": 15.12
+    },
+    {
+      "text": "bei",
+      "start_time": 15.12,
+      "end_time": 15.28
+    },
+    {
+      "text": "Google",
+      "start_time": 15.28,
+      "end_time": 15.6
+    },
+    {
+      "text": "Research",
+      "start_time": 15.6,
+      "end_time": 16.0
+    },
+    {
+      "text": "geleistet",
+      "start_time": 16.0,
+      "end_time": 16.56
+    },
+    {
+      "text": "wurde",
+      "start_time": 16.56,
+      "end_time": 16.88
+    },
+    {
+      "text": "wo",
+      "start_time": 17.12,
+      "end_time": 17.28
+    },
+    {
+      "text": "ich",
+      "start_time": 17.28,
+      "end_time": 17.44
+    },
+    {
+      "text": "von",
+      "start_time": 17.44,
+      "end_time": 17.6
+    },
+    {
+      "text": "Maschinellem",
+      "start_time": 17.6,
+      "end_time": 18.24
+    },
+    {
+      "text": "und",
+      "start_time": 18.24,
+      "end_time": 18.48
+    },
+    {
+      "text": "Human",
+      "start_time": 18.48,
+      "end_time": 18.88
+    },
+    {
+      "text": "betreut",
+      "start_time": 18.88,
+      "end_time": 19.36
+    },
+    {
+      "text": "wurde",
+      "start_time": 19.36,
+      "end_time": 19.68
+    },
+    {
+      "text": "um",
+      "start_time": 19.92,
+      "end_time": 20.16
+    },
+    {
+      "text": "die",
+      "start_time": 20.16,
+      "end_time": 20.32
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 20.32,
+      "end_time": 20.8
+    },
+    {
+      "text": "zu",
+      "start_time": 20.8,
+      "end_time": 20.96
+    },
+    {
+      "text": "motivieren",
+      "start_time": 20.96,
+      "end_time": 21.68
+    },
+    {
+      "text": "Lassen",
+      "start_time": 21.92,
+      "end_time": 22.24
+    },
+    {
+      "text": "Sie",
+      "start_time": 22.24,
+      "end_time": 22.32
+    },
+    {
+      "text": "mich",
+      "start_time": 22.32,
+      "end_time": 22.64
+    },
+    {
+      "text": "zunächst",
+      "start_time": 22.64,
+      "end_time": 22.72
+    },
+    {
+      "text": "eine",
+      "start_time": 22.72,
+      "end_time": 22.96
+    },
+    {
+      "text": "Kontrafaktualität",
+      "start_time": 22.96,
+      "end_time": 24.16
+    },
+    {
+      "text": "definieren",
+      "start_time": 24.16,
+      "end_time": 24.8
+    },
+    {
+      "text": "In",
+      "start_time": 25.04,
+      "end_time": 25.28
+    },
+    {
+      "text": "dieser",
+      "start_time": 25.28,
+      "end_time": 25.6
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 25.6,
+      "end_time": 25.92
+    },
+    {
+      "text": "definieren",
+      "start_time": 25.92,
+      "end_time": 26.4
+    },
+    {
+      "text": "wir",
+      "start_time": 26.4,
+      "end_time": 26.56
+    },
+    {
+      "text": "eine",
+      "start_time": 26.56,
+      "end_time": 26.8
+    },
+    {
+      "text": "Kontrafaktualität",
+      "start_time": 26.8,
+      "end_time": 28.0
+    },
+    {
+      "text": "als",
+      "start_time": 28.0,
+      "end_time": 28.16
+    },
+    {
+      "text": "eine",
+      "start_time": 28.16,
+      "end_time": 28.32
+    },
+    {
+      "text": "Störung",
+      "start_time": 28.32,
+      "end_time": 28.88
+    },
+    {
+      "text": "des",
+      "start_time": 28.88,
+      "end_time": 29.04
+    },
+    {
+      "text": "Eingabetextes",
+      "start_time": 29.04,
+      "end_time": 30.16
+    },
+    {
+      "text": "die",
+      "start_time": 30.48,
+      "end_time": 30.56
+    },
+    {
+      "text": "sich",
+      "start_time": 30.56,
+      "end_time": 30.8
+    },
+    {
+      "text": "in",
+      "start_time": 30.8,
+      "end_time": 30.88
+    },
+    {
+      "text": "einer",
+      "start_time": 30.88,
+      "end_time": 31.12
+    },
+    {
+      "text": "bedeutungsvollen",
+      "start_time": 31.12,
+      "end_time": 32.08
+    },
+    {
+      "text": "kontrollierten",
+      "start_time": 32.24,
+      "end_time": 32.96
+    },
+    {
+      "text": "Weise",
+      "start_time": 32.96,
+      "end_time": 33.28
+    },
+    {
+      "text": "vom",
+      "start_time": 33.28,
+      "end_time": 33.52
+    },
+    {
+      "text": "Originaltext",
+      "start_time": 33.52,
+      "end_time": 34.4
+    },
+    {
+      "text": "unterscheidet",
+      "start_time": 34.4,
+      "end_time": 35.12
+    },
+    {
+      "text": "und",
+      "start_time": 35.44,
+      "end_time": 35.6
+    },
+    {
+      "text": "uns",
+      "start_time": 35.6,
+      "end_time": 35.76
+    },
+    {
+      "text": "ermöglicht",
+      "start_time": 35.76,
+      "end_time": 36.4
+    },
+    {
+      "text": "über",
+      "start_time": 36.72,
+      "end_time": 36.96
+    },
+    {
+      "text": "die",
+      "start_time": 36.96,
+      "end_time": 37.12
+    },
+    {
+      "text": "Änderungen",
+      "start_time": 37.12,
+      "end_time": 37.6
+    },
+    {
+      "text": "im",
+      "start_time": 37.6,
+      "end_time": 37.76
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 37.76,
+      "end_time": 38.4
+    },
+    {
+      "text": "oder",
+      "start_time": 38.4,
+      "end_time": 38.56
+    },
+    {
+      "text": "der",
+      "start_time": 38.56,
+      "end_time": 38.8
+    },
+    {
+      "text": "Aufgabenbezeichnung",
+      "start_time": 38.8,
+      "end_time": 39.76
+    },
+    {
+      "text": "nachzudenken",
+      "start_time": 39.76,
+      "end_time": 40.64
+    },
+    {
+      "text": "Zum",
+      "start_time": 40.96,
+      "end_time": 41.12
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 41.12,
+      "end_time": 41.92
+    },
+    {
+      "text": "das",
+      "start_time": 41.92,
+      "end_time": 42.16
+    },
+    {
+      "text": "Wort",
+      "start_time": 42.16,
+      "end_time": 42.4
+    },
+    {
+      "text": "versinnern",
+      "start_time": 42.4,
+      "end_time": 42.96
+    },
+    {
+      "text": "die",
+      "start_time": 42.96,
+      "end_time": 43.12
+    },
+    {
+      "text": "wie",
+      "start_time": 43.28,
+      "end_time": 43.52
+    },
+    {
+      "text": "immer",
+      "start_time": 43.52,
+      "end_time": 43.84
+    },
+    {
+      "text": "kugel",
+      "start_time": 44.32,
+      "end_time": 44.8
+    },
+    {
+      "text": "oder",
+      "start_time": 45.12,
+      "end_time": 45.36
+    },
+    {
+      "text": "erwartet",
+      "start_time": 45.36,
+      "end_time": 46.0
+    },
+    {
+      "text": "in",
+      "start_time": 46.0,
+      "end_time": 46.08
+    },
+    {
+      "text": "Versinnern",
+      "start_time": 46.08,
+      "end_time": 46.8
+    },
+    {
+      "text": "die",
+      "start_time": 46.8,
+      "end_time": 47.28
+    },
+    {
+      "text": "wie",
+      "start_time": 47.28,
+      "end_time": 47.28
+    },
+    {
+      "text": "ändert",
+      "start_time": 47.76,
+      "end_time": 48.16
+    },
+    {
+      "text": "die",
+      "start_time": 48.16,
+      "end_time": 48.32
+    },
+    {
+      "text": "Wertung",
+      "start_time": 48.32,
+      "end_time": 48.72
+    },
+    {
+      "text": "dieses",
+      "start_time": 48.72,
+      "end_time": 49.04
+    },
+    {
+      "text": "Zinnsions",
+      "start_time": 49.04,
+      "end_time": 50.32
+    },
+    {
+      "text": "Ändlich",
+      "start_time": 50.48,
+      "end_time": 51.04
+    },
+    {
+      "text": "das",
+      "start_time": 51.28,
+      "end_time": 51.52
+    },
+    {
+      "text": "Hinzufügen",
+      "start_time": 51.52,
+      "end_time": 52.16
+    },
+    {
+      "text": "des",
+      "start_time": 52.16,
+      "end_time": 52.32
+    },
+    {
+      "text": "Qualifizs",
+      "start_time": 52.32,
+      "end_time": 52.88
+    },
+    {
+      "text": "zur",
+      "start_time": 53.2,
+      "end_time": 53.36
+    },
+    {
+      "text": "Frage",
+      "start_time": 53.36,
+      "end_time": 53.84
+    },
+    {
+      "text": "ändert",
+      "start_time": 54.24,
+      "end_time": 54.56
+    },
+    {
+      "text": "die",
+      "start_time": 54.56,
+      "end_time": 54.64
+    },
+    {
+      "text": "Antwort",
+      "start_time": 54.64,
+      "end_time": 55.04
+    },
+    {
+      "text": "auf",
+      "start_time": 55.04,
+      "end_time": 55.2
+    },
+    {
+      "text": "die",
+      "start_time": 55.2,
+      "end_time": 55.28
+    },
+    {
+      "text": "Frage",
+      "start_time": 55.28,
+      "end_time": 55.68
+    },
+    {
+      "text": "im",
+      "start_time": 55.68,
+      "end_time": 55.76
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 55.76,
+      "end_time": 56.24
+    },
+    {
+      "text": "unten",
+      "start_time": 56.24,
+      "end_time": 56.72
+    },
+    {
+      "text": "Menschen",
+      "start_time": 57.04,
+      "end_time": 57.52
+    },
+    {
+      "text": "sind",
+      "start_time": 57.52,
+      "end_time": 57.76
+    },
+    {
+      "text": "typischerweise",
+      "start_time": 57.76,
+      "end_time": 58.48
+    },
+    {
+      "text": "robust",
+      "start_time": 58.48,
+      "end_time": 58.96
+    },
+    {
+      "text": "gegen",
+      "start_time": 58.96,
+      "end_time": 59.28
+    },
+    {
+      "text": "solche",
+      "start_time": 59.28,
+      "end_time": 59.6
+    },
+    {
+      "text": "Störungen",
+      "start_time": 59.6,
+      "end_time": 60.32
+    },
+    {
+      "text": "im",
+      "start_time": 60.56,
+      "end_time": 60.72
+    },
+    {
+      "text": "Vergleich",
+      "start_time": 60.72,
+      "end_time": 61.2
+    },
+    {
+      "text": "zu",
+      "start_time": 61.2,
+      "end_time": 61.36
+    },
+    {
+      "text": "NLPModellen",
+      "start_time": 61.36,
+      "end_time": 62.4
+    },
+    {
+      "text": "die",
+      "start_time": 62.8,
+      "end_time": 62.88
+    },
+    {
+      "text": "für",
+      "start_time": 62.88,
+      "end_time": 63.04
+    },
+    {
+      "text": "diese",
+      "start_time": 63.04,
+      "end_time": 63.36
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 63.36,
+      "end_time": 63.84
+    },
+    {
+      "text": "trainiert",
+      "start_time": 63.84,
+      "end_time": 64.32
+    },
+    {
+      "text": "wurden",
+      "start_time": 64.32,
+      "end_time": 64.72
+    },
+    {
+      "text": "Warum",
+      "start_time": 64.96,
+      "end_time": 65.28
+    },
+    {
+      "text": "ist",
+      "start_time": 65.36,
+      "end_time": 65.52
+    },
+    {
+      "text": "das",
+      "start_time": 65.52,
+      "end_time": 65.76
+    },
+    {
+      "text": "so",
+      "start_time": 65.76,
+      "end_time": 66.0
+    },
+    {
+      "text": "Der",
+      "start_time": 66.32,
+      "end_time": 66.4
+    },
+    {
+      "text": "Datensatz",
+      "start_time": 66.4,
+      "end_time": 67.12
+    },
+    {
+      "text": "kann",
+      "start_time": 67.12,
+      "end_time": 67.28
+    },
+    {
+      "text": "systematische",
+      "start_time": 67.28,
+      "end_time": 68.08
+    },
+    {
+      "text": "Verzerrungen",
+      "start_time": 68.08,
+      "end_time": 68.72
+    },
+    {
+      "text": "aufweisen",
+      "start_time": 68.72,
+      "end_time": 69.44
+    },
+    {
+      "text": "die",
+      "start_time": 69.84,
+      "end_time": 69.92
+    },
+    {
+      "text": "zu",
+      "start_time": 69.92,
+      "end_time": 70.08
+    },
+    {
+      "text": "einer",
+      "start_time": 70.08,
+      "end_time": 70.4
+    },
+    {
+      "text": "einfachen",
+      "start_time": 70.4,
+      "end_time": 70.88
+    },
+    {
+      "text": "Entscheidungsgrenze",
+      "start_time": 70.88,
+      "end_time": 71.84
+    },
+    {
+      "text": "führen",
+      "start_time": 71.84,
+      "end_time": 72.32
+    },
+    {
+      "text": "die",
+      "start_time": 72.72,
+      "end_time": 72.8
+    },
+    {
+      "text": "durch",
+      "start_time": 72.8,
+      "end_time": 73.04
+    },
+    {
+      "text": "den",
+      "start_time": 73.04,
+      "end_time": 73.28
+    },
+    {
+      "text": "Kontrafaktual",
+      "start_time": 73.28,
+      "end_time": 74.08
+    },
+    {
+      "text": "ist",
+      "start_time": 74.08,
+      "end_time": 74.32
+    },
+    {
+      "text": "verletzt",
+      "start_time": 74.32,
+      "end_time": 74.8
+    },
+    {
+      "text": "wird",
+      "start_time": 74.8,
+      "end_time": 75.04
+    },
+    {
+      "text": "Wir",
+      "start_time": 75.36,
+      "end_time": 75.52
+    },
+    {
+      "text": "in",
+      "start_time": 75.52,
+      "end_time": 75.6
+    },
+    {
+      "text": "diesem",
+      "start_time": 75.6,
+      "end_time": 75.92
+    },
+    {
+      "text": "zweiten",
+      "start_time": 75.92,
+      "end_time": 76.32
+    },
+    {
+      "text": "Klassifikationsproblem",
+      "start_time": 76.32,
+      "end_time": 77.28
+    },
+    {
+      "text": "gezeigt",
+      "start_time": 77.76,
+      "end_time": 78.4
+    },
+    {
+      "text": "Frühere",
+      "start_time": 78.64,
+      "end_time": 79.04
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 79.04,
+      "end_time": 79.76
+    },
+    {
+      "text": "haben",
+      "start_time": 79.76,
+      "end_time": 79.92
+    },
+    {
+      "text": "herausgefunden",
+      "start_time": 79.92,
+      "end_time": 81.04
+    },
+    {
+      "text": "dass",
+      "start_time": 81.36,
+      "end_time": 82.0
+    },
+    {
+      "text": "das",
+      "start_time": 82.0,
+      "end_time": 82.24
+    },
+    {
+      "text": "Hinzufügen",
+      "start_time": 82.24,
+      "end_time": 82.88
+    },
+    {
+      "text": "von",
+      "start_time": 82.88,
+      "end_time": 83.04
+    },
+    {
+      "text": "Kontrafaktualbeispielen",
+      "start_time": 83.04,
+      "end_time": 84.32
+    },
+    {
+      "text": "zu",
+      "start_time": 84.32,
+      "end_time": 84.48
+    },
+    {
+      "text": "den",
+      "start_time": 84.48,
+      "end_time": 84.64
+    },
+    {
+      "text": "Trainingsdaten",
+      "start_time": 84.64,
+      "end_time": 85.68
+    },
+    {
+      "text": "das",
+      "start_time": 85.92,
+      "end_time": 86.16
+    },
+    {
+      "text": "Modell",
+      "start_time": 86.16,
+      "end_time": 86.56
+    },
+    {
+      "text": "gegenüber",
+      "start_time": 86.56,
+      "end_time": 87.04
+    },
+    {
+      "text": "solchen",
+      "start_time": 87.12,
+      "end_time": 87.52
+    },
+    {
+      "text": "Störungen",
+      "start_time": 87.52,
+      "end_time": 88.08
+    },
+    {
+      "text": "robust",
+      "start_time": 88.08,
+      "end_time": 88.64
+    },
+    {
+      "text": "machen",
+      "start_time": 88.64,
+      "end_time": 88.96
+    },
+    {
+      "text": "kann",
+      "start_time": 88.96,
+      "end_time": 89.28
+    },
+    {
+      "text": "Wenn",
+      "start_time": 89.52,
+      "end_time": 89.76
+    },
+    {
+      "text": "also",
+      "start_time": 89.76,
+      "end_time": 90.0
+    },
+    {
+      "text": "Kontrafaktualbeispiele",
+      "start_time": 90.0,
+      "end_time": 91.2
+    },
+    {
+      "text": "wertvoll",
+      "start_time": 91.2,
+      "end_time": 91.68
+    },
+    {
+      "text": "sind",
+      "start_time": 91.68,
+      "end_time": 92.08
+    },
+    {
+      "text": "wie",
+      "start_time": 92.32,
+      "end_time": 92.56
+    },
+    {
+      "text": "können",
+      "start_time": 92.56,
+      "end_time": 92.8
+    },
+    {
+      "text": "wir",
+      "start_time": 92.8,
+      "end_time": 92.96
+    },
+    {
+      "text": "sie",
+      "start_time": 92.96,
+      "end_time": 93.04
+    },
+    {
+      "text": "generieren",
+      "start_time": 93.04,
+      "end_time": 93.76
+    },
+    {
+      "text": "Diese",
+      "start_time": 94.08,
+      "end_time": 94.32
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 94.32,
+      "end_time": 94.88
+    },
+    {
+      "text": "ist",
+      "start_time": 94.88,
+      "end_time": 95.04
+    },
+    {
+      "text": "für",
+      "start_time": 95.04,
+      "end_time": 95.12
+    },
+    {
+      "text": "eine",
+      "start_time": 95.12,
+      "end_time": 95.36
+    },
+    {
+      "text": "besonders",
+      "start_time": 95.36,
+      "end_time": 96.0
+    },
+    {
+      "text": "schwierig",
+      "start_time": 96.0,
+      "end_time": 96.56
+    },
+    {
+      "text": "weil",
+      "start_time": 96.8,
+      "end_time": 97.12
+    },
+    {
+      "text": "hier",
+      "start_time": 97.12,
+      "end_time": 97.28
+    },
+    {
+      "text": "drei",
+      "start_time": 97.28,
+      "end_time": 97.52
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 97.52,
+      "end_time": 98.16
+    },
+    {
+      "text": "aus",
+      "start_time": 98.16,
+      "end_time": 98.32
+    },
+    {
+      "text": "drei",
+      "start_time": 98.32,
+      "end_time": 98.56
+    },
+    {
+      "text": "verschiedenen",
+      "start_time": 98.56,
+      "end_time": 99.04
+    },
+    {
+      "text": "NLPAufgaben",
+      "start_time": 99.04,
+      "end_time": 100.0
+    },
+    {
+      "text": "sind",
+      "start_time": 100.0,
+      "end_time": 100.4
+    },
+    {
+      "text": "wie",
+      "start_time": 100.64,
+      "end_time": 100.8
+    },
+    {
+      "text": "Sie",
+      "start_time": 100.8,
+      "end_time": 100.96
+    },
+    {
+      "text": "sehen",
+      "start_time": 100.96,
+      "end_time": 101.28
+    },
+    {
+      "text": "können",
+      "start_time": 101.28,
+      "end_time": 101.76
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 102.0,
+      "end_time": 102.64
+    },
+    {
+      "text": "die",
+      "start_time": 102.96,
+      "end_time": 103.12
+    },
+    {
+      "text": "die",
+      "start_time": 103.12,
+      "end_time": 103.2
+    },
+    {
+      "text": "Entscheidungsgrenze",
+      "start_time": 103.2,
+      "end_time": 104.16
+    },
+    {
+      "text": "verletzen",
+      "start_time": 104.16,
+      "end_time": 104.8
+    },
+    {
+      "text": "Zwischen",
+      "start_time": 105.04,
+      "end_time": 105.44
+    },
+    {
+      "text": "Ergebnissen",
+      "start_time": 105.44,
+      "end_time": 106.08
+    },
+    {
+      "text": "müssen",
+      "start_time": 106.08,
+      "end_time": 106.4
+    },
+    {
+      "text": "sehr",
+      "start_time": 106.4,
+      "end_time": 106.56
+    },
+    {
+      "text": "sorgfältig",
+      "start_time": 106.56,
+      "end_time": 107.28
+    },
+    {
+      "text": "durch",
+      "start_time": 107.28,
+      "end_time": 107.44
+    },
+    {
+      "text": "die",
+      "start_time": 107.44,
+      "end_time": 107.52
+    },
+    {
+      "text": "Störung",
+      "start_time": 107.52,
+      "end_time": 108.0
+    },
+    {
+      "text": "einiger",
+      "start_time": 108.0,
+      "end_time": 108.4
+    },
+    {
+      "text": "hier",
+      "start_time": 108.4,
+      "end_time": 108.64
+    },
+    {
+      "text": "unterstrichener",
+      "start_time": 108.64,
+      "end_time": 109.28
+    },
+    {
+      "text": "Textattribute",
+      "start_time": 109.36,
+      "end_time": 110.24
+    },
+    {
+      "text": "erstellt",
+      "start_time": 110.24,
+      "end_time": 110.72
+    },
+    {
+      "text": "werden",
+      "start_time": 110.72,
+      "end_time": 111.12
+    },
+    {
+      "text": "Dies",
+      "start_time": 111.36,
+      "end_time": 111.68
+    },
+    {
+      "text": "könnte",
+      "start_time": 111.68,
+      "end_time": 112.0
+    },
+    {
+      "text": "durch",
+      "start_time": 112.0,
+      "end_time": 112.16
+    },
+    {
+      "text": "menschliche",
+      "start_time": 112.16,
+      "end_time": 112.72
+    },
+    {
+      "text": "Annotation",
+      "start_time": 112.72,
+      "end_time": 113.1
+    },
+    {
+      "text": "erfolgen",
+      "start_time": 113.48,
+      "end_time": 113.86
+    },
+    {
+      "text": "aber",
+      "start_time": 114.24,
+      "end_time": 114.24
+    },
+    {
+      "text": "das",
+      "start_time": 114.64,
+      "end_time": 114.8
+    },
+    {
+      "text": "ist",
+      "start_time": 114.8,
+      "end_time": 115.04
+    },
+    {
+      "text": "teuer",
+      "start_time": 115.04,
+      "end_time": 115.36
+    },
+    {
+      "text": "und",
+      "start_time": 115.76,
+      "end_time": 115.76
+    },
+    {
+      "text": "vorrangig",
+      "start_time": 115.92,
+      "end_time": 116.48
+    },
+    {
+      "text": "Einige",
+      "start_time": 116.64,
+      "end_time": 117.52
+    },
+    {
+      "text": "frühere",
+      "start_time": 117.52,
+      "end_time": 117.92
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 117.92,
+      "end_time": 118.4
+    },
+    {
+      "text": "konzentrierten",
+      "start_time": 118.4,
+      "end_time": 119.12
+    },
+    {
+      "text": "sich",
+      "start_time": 119.12,
+      "end_time": 119.36
+    },
+    {
+      "text": "auf",
+      "start_time": 119.36,
+      "end_time": 119.52
+    },
+    {
+      "text": "die",
+      "start_time": 119.52,
+      "end_time": 119.6
+    },
+    {
+      "text": "Verwendung",
+      "start_time": 119.6,
+      "end_time": 120.08
+    },
+    {
+      "text": "von",
+      "start_time": 120.08,
+      "end_time": 120.32
+    },
+    {
+      "text": "Synonymen",
+      "start_time": 120.32,
+      "end_time": 121.04
+    },
+    {
+      "text": "oder",
+      "start_time": 121.04,
+      "end_time": 121.36
+    },
+    {
+      "text": "semantischer",
+      "start_time": 121.36,
+      "end_time": 121.92
+    },
+    {
+      "text": "Regelbeschriftung",
+      "start_time": 121.92,
+      "end_time": 122.96
+    },
+    {
+      "text": "aber",
+      "start_time": 123.2,
+      "end_time": 123.52
+    },
+    {
+      "text": "die",
+      "start_time": 123.52,
+      "end_time": 123.6
+    },
+    {
+      "text": "Menge",
+      "start_time": 123.6,
+      "end_time": 123.84
+    },
+    {
+      "text": "der",
+      "start_time": 123.84,
+      "end_time": 124.0
+    },
+    {
+      "text": "durch",
+      "start_time": 124.0,
+      "end_time": 124.24
+    },
+    {
+      "text": "diese",
+      "start_time": 124.24,
+      "end_time": 124.48
+    },
+    {
+      "text": "Techniken",
+      "start_time": 124.48,
+      "end_time": 124.96
+    },
+    {
+      "text": "erzeugten",
+      "start_time": 124.96,
+      "end_time": 125.52
+    },
+    {
+      "text": "Störungen",
+      "start_time": 125.52,
+      "end_time": 126.16
+    },
+    {
+      "text": "ist",
+      "start_time": 126.16,
+      "end_time": 126.4
+    },
+    {
+      "text": "durch",
+      "start_time": 126.4,
+      "end_time": 126.48
+    },
+    {
+      "text": "den",
+      "start_time": 126.48,
+      "end_time": 126.64
+    },
+    {
+      "text": "semantischen",
+      "start_time": 126.64,
+      "end_time": 127.28
+    },
+    {
+      "text": "Rahmen",
+      "start_time": 127.28,
+      "end_time": 127.52
+    },
+    {
+      "text": "begrenzt",
+      "start_time": 127.52,
+      "end_time": 128.24
+    },
+    {
+      "text": "Neueste",
+      "start_time": 128.48,
+      "end_time": 128.96
+    },
+    {
+      "text": "Arbeiten",
+      "start_time": 128.96,
+      "end_time": 129.44
+    },
+    {
+      "text": "haben",
+      "start_time": 129.44,
+      "end_time": 129.68
+    },
+    {
+      "text": "maschinelles",
+      "start_time": 129.68,
+      "end_time": 130.16
+    },
+    {
+      "text": "Sprachmodelle",
+      "start_time": 130.16,
+      "end_time": 130.96
+    },
+    {
+      "text": "verwendet",
+      "start_time": 130.96,
+      "end_time": 131.52
+    },
+    {
+      "text": "um",
+      "start_time": 131.92,
+      "end_time": 132.08
+    },
+    {
+      "text": "maschierte",
+      "start_time": 132.08,
+      "end_time": 132.48
+    },
+    {
+      "text": "Teile",
+      "start_time": 132.48,
+      "end_time": 132.88
+    },
+    {
+      "text": "des",
+      "start_time": 132.88,
+      "end_time": 133.04
+    },
+    {
+      "text": "Textes",
+      "start_time": 133.04,
+      "end_time": 133.52
+    },
+    {
+      "text": "auszufüllen",
+      "start_time": 133.52,
+      "end_time": 134.4
+    },
+    {
+      "text": "und",
+      "start_time": 134.72,
+      "end_time": 134.88
+    },
+    {
+      "text": "Etiketten",
+      "start_time": 134.88,
+      "end_time": 135.44
+    },
+    {
+      "text": "zu",
+      "start_time": 135.44,
+      "end_time": 135.6
+    },
+    {
+      "text": "ändern",
+      "start_time": 135.6,
+      "end_time": 136.08
+    },
+    {
+      "text": "aber",
+      "start_time": 136.4,
+      "end_time": 136.8
+    },
+    {
+      "text": "herauszufinden",
+      "start_time": 136.8,
+      "end_time": 137.52
+    },
+    {
+      "text": "welche",
+      "start_time": 137.84,
+      "end_time": 138.16
+    },
+    {
+      "text": "Teile",
+      "start_time": 138.16,
+      "end_time": 138.48
+    },
+    {
+      "text": "des",
+      "start_time": 138.48,
+      "end_time": 138.64
+    },
+    {
+      "text": "Textes",
+      "start_time": 138.64,
+      "end_time": 139.12
+    },
+    {
+      "text": "gestört",
+      "start_time": 139.12,
+      "end_time": 139.6
+    },
+    {
+      "text": "werden",
+      "start_time": 139.6,
+      "end_time": 139.84
+    },
+    {
+      "text": "sollen",
+      "start_time": 139.84,
+      "end_time": 140.32
+    },
+    {
+      "text": "kann",
+      "start_time": 140.64,
+      "end_time": 140.8
+    },
+    {
+      "text": "eine",
+      "start_time": 140.8,
+      "end_time": 140.96
+    },
+    {
+      "text": "Herausforderung",
+      "start_time": 140.96,
+      "end_time": 141.76
+    },
+    {
+      "text": "sein",
+      "start_time": 141.76,
+      "end_time": 142.16
+    },
+    {
+      "text": "Es",
+      "start_time": 142.4,
+      "end_time": 142.64
+    },
+    {
+      "text": "gibt",
+      "start_time": 142.64,
+      "end_time": 142.88
+    },
+    {
+      "text": "weitere",
+      "start_time": 142.88,
+      "end_time": 143.2
+    },
+    {
+      "text": "Herausforderungen",
+      "start_time": 143.2,
+      "end_time": 144.08
+    },
+    {
+      "text": "bei",
+      "start_time": 144.08,
+      "end_time": 144.32
+    },
+    {
+      "text": "der",
+      "start_time": 144.32,
+      "end_time": 144.32
+    },
+    {
+      "text": "Generierung",
+      "start_time": 144.32,
+      "end_time": 144.96
+    },
+    {
+      "text": "von",
+      "start_time": 144.96,
+      "end_time": 145.12
+    },
+    {
+      "text": "Kontrafakten",
+      "start_time": 145.12,
+      "end_time": 145.92
+    },
+    {
+      "text": "für",
+      "start_time": 145.92,
+      "end_time": 146.0
+    },
+    {
+      "text": "die",
+      "start_time": 146.0,
+      "end_time": 146.16
+    },
+    {
+      "text": "Beantwortung",
+      "start_time": 146.16,
+      "end_time": 146.8
+    },
+    {
+      "text": "von",
+      "start_time": 146.8,
+      "end_time": 146.96
+    },
+    {
+      "text": "Fragen",
+      "start_time": 146.96,
+      "end_time": 147.52
+    },
+    {
+      "text": "Diese",
+      "start_time": 147.76,
+      "end_time": 148.0
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 148.0,
+      "end_time": 148.48
+    },
+    {
+      "text": "erfordert",
+      "start_time": 148.48,
+      "end_time": 148.96
+    },
+    {
+      "text": "Hintergrundwissen",
+      "start_time": 148.96,
+      "end_time": 149.92
+    },
+    {
+      "text": "zum",
+      "start_time": 150.16,
+      "end_time": 150.4
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 150.4,
+      "end_time": 150.96
+    },
+    {
+      "text": "um",
+      "start_time": 150.96,
+      "end_time": 151.36
+    },
+    {
+      "text": "die",
+      "start_time": 151.36,
+      "end_time": 151.52
+    },
+    {
+      "text": "ursprüngliche",
+      "start_time": 151.52,
+      "end_time": 152.24
+    },
+    {
+      "text": "Frage",
+      "start_time": 152.24,
+      "end_time": 152.56
+    },
+    {
+      "text": "zu",
+      "start_time": 152.56,
+      "end_time": 152.72
+    },
+    {
+      "text": "stellen",
+      "start_time": 152.72,
+      "end_time": 153.2
+    },
+    {
+      "text": "Ist",
+      "start_time": 153.52,
+      "end_time": 153.68
+    },
+    {
+      "text": "Indiana",
+      "start_time": 153.68,
+      "end_time": 154.16
+    },
+    {
+      "text": "Jones",
+      "start_time": 154.16,
+      "end_time": 154.64
+    },
+    {
+      "text": "Temple",
+      "start_time": 154.64,
+      "end_time": 154.96
+    },
+    {
+      "text": "of",
+      "start_time": 154.96,
+      "end_time": 155.2
+    },
+    {
+      "text": "Doom",
+      "start_time": 155.2,
+      "end_time": 155.52
+    },
+    {
+      "text": "ein",
+      "start_time": 155.52,
+      "end_time": 155.76
+    },
+    {
+      "text": "Prequel",
+      "start_time": 155.76,
+      "end_time": 156.24
+    },
+    {
+      "text": "Wir",
+      "start_time": 156.56,
+      "end_time": 156.56
+    },
+    {
+      "text": "müssen",
+      "start_time": 156.72,
+      "end_time": 157.04
+    },
+    {
+      "text": "uns",
+      "start_time": 157.04,
+      "end_time": 157.28
+    },
+    {
+      "text": "der",
+      "start_time": 157.28,
+      "end_time": 157.36
+    },
+    {
+      "text": "anderen",
+      "start_time": 157.36,
+      "end_time": 157.76
+    },
+    {
+      "text": "Filme",
+      "start_time": 157.76,
+      "end_time": 158.16
+    },
+    {
+      "text": "in",
+      "start_time": 158.16,
+      "end_time": 158.24
+    },
+    {
+      "text": "der",
+      "start_time": 158.24,
+      "end_time": 158.32
+    },
+    {
+      "text": "Franchise",
+      "start_time": 158.32,
+      "end_time": 158.96
+    },
+    {
+      "text": "bewusst",
+      "start_time": 158.96,
+      "end_time": 159.36
+    },
+    {
+      "text": "sein",
+      "start_time": 159.36,
+      "end_time": 159.6
+    },
+    {
+      "text": "um",
+      "start_time": 159.92,
+      "end_time": 160.16
+    },
+    {
+      "text": "zu",
+      "start_time": 160.16,
+      "end_time": 160.32
+    },
+    {
+      "text": "einer",
+      "start_time": 160.32,
+      "end_time": 160.48
+    },
+    {
+      "text": "Frage",
+      "start_time": 160.48,
+      "end_time": 160.88
+    },
+    {
+      "text": "wie",
+      "start_time": 160.88,
+      "end_time": 161.2
+    },
+    {
+      "text": "Ist",
+      "start_time": 161.52,
+      "end_time": 161.76
+    },
+    {
+      "text": "Indiana",
+      "start_time": 161.76,
+      "end_time": 162.16
+    },
+    {
+      "text": "Jones",
+      "start_time": 162.16,
+      "end_time": 162.64
+    },
+    {
+      "text": "Raiders",
+      "start_time": 162.64,
+      "end_time": 162.96
+    },
+    {
+      "text": "of",
+      "start_time": 162.96,
+      "end_time": 163.12
+    },
+    {
+      "text": "the",
+      "start_time": 163.12,
+      "end_time": 163.2
+    },
+    {
+      "text": "Lost",
+      "start_time": 163.2,
+      "end_time": 163.52
+    },
+    {
+      "text": "Ark",
+      "start_time": 163.52,
+      "end_time": 163.6
+    },
+    {
+      "text": "ein",
+      "start_time": 163.68,
+      "end_time": 163.84
+    },
+    {
+      "text": "Prequel",
+      "start_time": 163.84,
+      "end_time": 164.4
+    },
+    {
+      "text": "zu",
+      "start_time": 164.4,
+      "end_time": 164.4
+    },
+    {
+      "text": "gelangen",
+      "start_time": 164.4,
+      "end_time": 165.28
+    },
+    {
+      "text": "Außerdem",
+      "start_time": 165.68,
+      "end_time": 166.16
+    },
+    {
+      "text": "können",
+      "start_time": 166.16,
+      "end_time": 166.4
+    },
+    {
+      "text": "zufällige",
+      "start_time": 166.4,
+      "end_time": 166.88
+    },
+    {
+      "text": "Störungen",
+      "start_time": 166.96,
+      "end_time": 167.44
+    },
+    {
+      "text": "zu",
+      "start_time": 167.44,
+      "end_time": 167.6
+    },
+    {
+      "text": "Fragen",
+      "start_time": 167.6,
+      "end_time": 168.0
+    },
+    {
+      "text": "führen",
+      "start_time": 168.0,
+      "end_time": 168.4
+    },
+    {
+      "text": "die",
+      "start_time": 168.8,
+      "end_time": 168.88
+    },
+    {
+      "text": "mit",
+      "start_time": 168.88,
+      "end_time": 169.04
+    },
+    {
+      "text": "den",
+      "start_time": 169.04,
+      "end_time": 169.12
+    },
+    {
+      "text": "verfügbaren",
+      "start_time": 169.12,
+      "end_time": 169.76
+    },
+    {
+      "text": "Beweisen",
+      "start_time": 169.76,
+      "end_time": 170.24
+    },
+    {
+      "text": "nicht",
+      "start_time": 170.24,
+      "end_time": 170.48
+    },
+    {
+      "text": "beantwortet",
+      "start_time": 170.48,
+      "end_time": 171.12
+    },
+    {
+      "text": "werden",
+      "start_time": 171.12,
+      "end_time": 171.36
+    },
+    {
+      "text": "können",
+      "start_time": 171.36,
+      "end_time": 171.68
+    },
+    {
+      "text": "oder",
+      "start_time": 172.08,
+      "end_time": 172.24
+    },
+    {
+      "text": "falsche",
+      "start_time": 172.24,
+      "end_time": 172.64
+    },
+    {
+      "text": "Prämissen",
+      "start_time": 172.64,
+      "end_time": 173.12
+    },
+    {
+      "text": "enthalten",
+      "start_time": 173.12,
+      "end_time": 173.84
+    },
+    {
+      "text": "Außerdem",
+      "start_time": 174.24,
+      "end_time": 174.8
+    },
+    {
+      "text": "können",
+      "start_time": 174.8,
+      "end_time": 174.96
+    },
+    {
+      "text": "einige",
+      "start_time": 174.96,
+      "end_time": 175.36
+    },
+    {
+      "text": "Störungen",
+      "start_time": 175.36,
+      "end_time": 175.84
+    },
+    {
+      "text": "zu",
+      "start_time": 175.84,
+      "end_time": 176.0
+    },
+    {
+      "text": "einer",
+      "start_time": 176.0,
+      "end_time": 176.24
+    },
+    {
+      "text": "signifikanten",
+      "start_time": 176.24,
+      "end_time": 177.12
+    },
+    {
+      "text": "semantischen",
+      "start_time": 177.12,
+      "end_time": 177.76
+    },
+    {
+      "text": "Drift",
+      "start_time": 177.76,
+      "end_time": 178.08
+    },
+    {
+      "text": "vom",
+      "start_time": 178.08,
+      "end_time": 178.32
+    },
+    {
+      "text": "ursprünglichen",
+      "start_time": 178.32,
+      "end_time": 178.96
+    },
+    {
+      "text": "Eingang",
+      "start_time": 178.96,
+      "end_time": 179.44
+    },
+    {
+      "text": "führen",
+      "start_time": 179.44,
+      "end_time": 179.92
+    },
+    {
+      "text": "Zum",
+      "start_time": 180.198,
+      "end_time": 180.358
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 180.358,
+      "end_time": 180.758
+    },
+    {
+      "text": "lautet",
+      "start_time": 180.758,
+      "end_time": 181.078
+    },
+    {
+      "text": "diese",
+      "start_time": 181.158,
+      "end_time": 181.398
+    },
+    {
+      "text": "Frage",
+      "start_time": 181.398,
+      "end_time": 181.878
+    },
+    {
+      "text": "Praktiziert",
+      "start_time": 182.198,
+      "end_time": 182.838
+    },
+    {
+      "text": "Indiana",
+      "start_time": 182.838,
+      "end_time": 183.318
+    },
+    {
+      "text": "Jones",
+      "start_time": 183.318,
+      "end_time": 183.638
+    },
+    {
+      "text": "in",
+      "start_time": 183.638,
+      "end_time": 183.718
+    },
+    {
+      "text": "der",
+      "start_time": 183.718,
+      "end_time": 183.878
+    },
+    {
+      "text": "Tempel",
+      "start_time": 183.878,
+      "end_time": 184.198
+    },
+    {
+      "text": "des",
+      "start_time": 184.198,
+      "end_time": 184.438
+    },
+    {
+      "text": "Schreckens",
+      "start_time": 184.438,
+      "end_time": 184.838
+    },
+    {
+      "text": "Kinderarbeit",
+      "start_time": 184.838,
+      "end_time": 185.558
+    },
+    {
+      "text": "aus",
+      "start_time": 185.558,
+      "end_time": 185.878
+    },
+    {
+      "text": "Wir",
+      "start_time": 186.118,
+      "end_time": 186.358
+    },
+    {
+      "text": "schlagen",
+      "start_time": 186.358,
+      "end_time": 186.678
+    },
+    {
+      "text": "eine",
+      "start_time": 186.678,
+      "end_time": 186.918
+    },
+    {
+      "text": "sehr",
+      "start_time": 186.918,
+      "end_time": 187.158
+    },
+    {
+      "text": "einfache",
+      "start_time": 187.158,
+      "end_time": 187.718
+    },
+    {
+      "text": "aber",
+      "start_time": 188.118,
+      "end_time": 188.278
+    },
+    {
+      "text": "effektive",
+      "start_time": 188.278,
+      "end_time": 188.838
+    },
+    {
+      "text": "Technik",
+      "start_time": 188.838,
+      "end_time": 189.318
+    },
+    {
+      "text": "namens",
+      "start_time": 189.318,
+      "end_time": 189.718
+    },
+    {
+      "text": "RetrievalGenerateFilter",
+      "start_time": 189.718,
+      "end_time": 191.238
+    },
+    {
+      "text": "oder",
+      "start_time": 191.238,
+      "end_time": 191.478
+    },
+    {
+      "text": "RGF",
+      "start_time": 191.478,
+      "end_time": 192.278
+    },
+    {
+      "text": "vor",
+      "start_time": 192.278,
+      "end_time": 192.278
+    },
+    {
+      "text": "um",
+      "start_time": 192.598,
+      "end_time": 192.838
+    },
+    {
+      "text": "gegen",
+      "start_time": 192.838,
+      "end_time": 193.078
+    },
+    {
+      "text": "Fragestörungen",
+      "start_time": 193.078,
+      "end_time": 194.038
+    },
+    {
+      "text": "von",
+      "start_time": 194.038,
+      "end_time": 194.198
+    },
+    {
+      "text": "Fragen",
+      "start_time": 194.198,
+      "end_time": 194.678
+    },
+    {
+      "text": "zu",
+      "start_time": 194.678,
+      "end_time": 194.838
+    },
+    {
+      "text": "begegnen",
+      "start_time": 194.838,
+      "end_time": 195.398
+    },
+    {
+      "text": "und",
+      "start_time": 195.718,
+      "end_time": 195.878
+    },
+    {
+      "text": "auch",
+      "start_time": 195.878,
+      "end_time": 196.118
+    },
+    {
+      "text": "alle",
+      "start_time": 196.118,
+      "end_time": 196.358
+    },
+    {
+      "text": "anderen",
+      "start_time": 196.358,
+      "end_time": 196.678
+    },
+    {
+      "text": "oben",
+      "start_time": 196.678,
+      "end_time": 196.998
+    },
+    {
+      "text": "genannten",
+      "start_time": 196.998,
+      "end_time": 197.478
+    },
+    {
+      "text": "Herausforderungen",
+      "start_time": 197.478,
+      "end_time": 198.358
+    },
+    {
+      "text": "zu",
+      "start_time": 198.358,
+      "end_time": 198.518
+    },
+    {
+      "text": "bewältigen",
+      "start_time": 198.518,
+      "end_time": 199.238
+    },
+    {
+      "text": "Die",
+      "start_time": 199.478,
+      "end_time": 199.638
+    },
+    {
+      "text": "Kerninformation",
+      "start_time": 199.638,
+      "end_time": 200.438
+    },
+    {
+      "text": "hinter",
+      "start_time": 200.438,
+      "end_time": 200.758
+    },
+    {
+      "text": "RGF",
+      "start_time": 200.918,
+      "end_time": 201.478
+    },
+    {
+      "text": "ist",
+      "start_time": 201.478,
+      "end_time": 201.478
+    },
+    {
+      "text": "dass",
+      "start_time": 201.798,
+      "end_time": 202.038
+    },
+    {
+      "text": "die",
+      "start_time": 202.038,
+      "end_time": 202.118
+    },
+    {
+      "text": "notwendigen",
+      "start_time": 202.118,
+      "end_time": 202.758
+    },
+    {
+      "text": "Hintergrundinformationen",
+      "start_time": 202.758,
+      "end_time": 204.278
+    },
+    {
+      "text": "die",
+      "start_time": 204.518,
+      "end_time": 204.678
+    },
+    {
+      "text": "zur",
+      "start_time": 204.678,
+      "end_time": 204.918
+    },
+    {
+      "text": "Erzeugung",
+      "start_time": 204.918,
+      "end_time": 205.398
+    },
+    {
+      "text": "von",
+      "start_time": 205.398,
+      "end_time": 205.558
+    },
+    {
+      "text": "Störungen",
+      "start_time": 205.558,
+      "end_time": 206.118
+    },
+    {
+      "text": "benötigt",
+      "start_time": 206.118,
+      "end_time": 206.678
+    },
+    {
+      "text": "werden",
+      "start_time": 206.678,
+      "end_time": 207.078
+    },
+    {
+      "text": "in",
+      "start_time": 207.398,
+      "end_time": 207.558
+    },
+    {
+      "text": "den",
+      "start_time": 207.558,
+      "end_time": 207.718
+    },
+    {
+      "text": "falschen",
+      "start_time": 207.718,
+      "end_time": 208.118
+    },
+    {
+      "text": "Antworten",
+      "start_time": 208.118,
+      "end_time": 208.758
+    },
+    {
+      "text": "sein",
+      "start_time": 208.758,
+      "end_time": 208.998
+    },
+    {
+      "text": "können",
+      "start_time": 208.998,
+      "end_time": 209.398
+    },
+    {
+      "text": "die",
+      "start_time": 209.718,
+      "end_time": 209.878
+    },
+    {
+      "text": "ein",
+      "start_time": 209.878,
+      "end_time": 209.958
+    },
+    {
+      "text": "FrageAntwortModell",
+      "start_time": 209.958,
+      "end_time": 211.078
+    },
+    {
+      "text": "macht",
+      "start_time": 211.078,
+      "end_time": 211.478
+    },
+    {
+      "text": "Das",
+      "start_time": 211.798,
+      "end_time": 211.958
+    },
+    {
+      "text": "modernste",
+      "start_time": 211.958,
+      "end_time": 212.438
+    },
+    {
+      "text": "Modell",
+      "start_time": 212.438,
+      "end_time": 212.838
+    },
+    {
+      "text": "will",
+      "start_time": 212.838,
+      "end_time": 212.998
+    },
+    {
+      "text": "zum",
+      "start_time": 213.238,
+      "end_time": 213.398
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 213.398,
+      "end_time": 213.718
+    },
+    {
+      "text": "als",
+      "start_time": 213.718,
+      "end_time": 213.958
+    },
+    {
+      "text": "Folge",
+      "start_time": 213.958,
+      "end_time": 214.358
+    },
+    {
+      "text": "die",
+      "start_time": 214.358,
+      "end_time": 214.358
+    },
+    {
+      "text": "folgenden",
+      "start_time": 214.358,
+      "end_time": 214.838
+    },
+    {
+      "text": "TopKAntworten",
+      "start_time": 214.838,
+      "end_time": 215.958
+    },
+    {
+      "text": "auf",
+      "start_time": 216.278,
+      "end_time": 216.438
+    },
+    {
+      "text": "die",
+      "start_time": 216.438,
+      "end_time": 216.598
+    },
+    {
+      "text": "Frage",
+      "start_time": 216.598,
+      "end_time": 217.078
+    },
+    {
+      "text": "Wer",
+      "start_time": 217.478,
+      "end_time": 217.638
+    },
+    {
+      "text": "ist",
+      "start_time": 217.638,
+      "end_time": 217.798
+    },
+    {
+      "text": "der",
+      "start_time": 217.798,
+      "end_time": 217.878
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 217.878,
+      "end_time": 218.358
+    },
+    {
+      "text": "des",
+      "start_time": 218.358,
+      "end_time": 218.598
+    },
+    {
+      "text": "Richmond",
+      "start_time": 218.598,
+      "end_time": 218.918
+    },
+    {
+      "text": "Football",
+      "start_time": 218.918,
+      "end_time": 219.318
+    },
+    {
+      "text": "Clubs",
+      "start_time": 219.318,
+      "end_time": 219.798
+    },
+    {
+      "text": "Nun",
+      "start_time": 220.038,
+      "end_time": 220.438
+    },
+    {
+      "text": "es",
+      "start_time": 220.758,
+      "end_time": 220.918
+    },
+    {
+      "text": "stellt",
+      "start_time": 220.918,
+      "end_time": 221.158
+    },
+    {
+      "text": "zwar",
+      "start_time": 221.158,
+      "end_time": 221.398
+    },
+    {
+      "text": "den",
+      "start_time": 221.398,
+      "end_time": 221.558
+    },
+    {
+      "text": "ursprünglichen",
+      "start_time": 221.558,
+      "end_time": 222.198
+    },
+    {
+      "text": "Referenzabschnitt",
+      "start_time": 222.198,
+      "end_time": 223.238
+    },
+    {
+      "text": "und",
+      "start_time": 223.238,
+      "end_time": 223.398
+    },
+    {
+      "text": "die",
+      "start_time": 223.398,
+      "end_time": 223.478
+    },
+    {
+      "text": "Antwortkategorien",
+      "start_time": 223.478,
+      "end_time": 224.598
+    },
+    {
+      "text": "wieder",
+      "start_time": 224.598,
+      "end_time": 224.758
+    },
+    {
+      "text": "her",
+      "start_time": 224.758,
+      "end_time": 225.238
+    },
+    {
+      "text": "als",
+      "start_time": 225.398,
+      "end_time": 225.638
+    },
+    {
+      "text": "die",
+      "start_time": 225.638,
+      "end_time": 225.718
+    },
+    {
+      "text": "TopWahl",
+      "start_time": 225.718,
+      "end_time": 226.278
+    },
+    {
+      "text": "Es",
+      "start_time": 226.518,
+      "end_time": 226.758
+    },
+    {
+      "text": "holt",
+      "start_time": 226.758,
+      "end_time": 226.998
+    },
+    {
+      "text": "auch",
+      "start_time": 226.998,
+      "end_time": 227.158
+    },
+    {
+      "text": "zusätzliche",
+      "start_time": 227.158,
+      "end_time": 227.878
+    },
+    {
+      "text": "Passagen",
+      "start_time": 227.878,
+      "end_time": 228.438
+    },
+    {
+      "text": "und",
+      "start_time": 228.438,
+      "end_time": 228.598
+    },
+    {
+      "text": "Antworten",
+      "start_time": 228.598,
+      "end_time": 229.158
+    },
+    {
+      "text": "ab",
+      "start_time": 229.158,
+      "end_time": 229.318
+    },
+    {
+      "text": "die",
+      "start_time": 229.718,
+      "end_time": 229.798
+    },
+    {
+      "text": "zur",
+      "start_time": 229.798,
+      "end_time": 229.958
+    },
+    {
+      "text": "Anleitung",
+      "start_time": 229.958,
+      "end_time": 230.518
+    },
+    {
+      "text": "von",
+      "start_time": 230.518,
+      "end_time": 230.678
+    },
+    {
+      "text": "Fragestörungen",
+      "start_time": 230.678,
+      "end_time": 231.558
+    },
+    {
+      "text": "verwendet",
+      "start_time": 231.558,
+      "end_time": 232.118
+    },
+    {
+      "text": "werden",
+      "start_time": 232.118,
+      "end_time": 232.358
+    },
+    {
+      "text": "können",
+      "start_time": 232.358,
+      "end_time": 232.758
+    },
+    {
+      "text": "Zum",
+      "start_time": 232.998,
+      "end_time": 233.238
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 233.238,
+      "end_time": 233.718
+    },
+    {
+      "text": "holt",
+      "start_time": 233.718,
+      "end_time": 233.878
+    },
+    {
+      "text": "es",
+      "start_time": 233.878,
+      "end_time": 234.038
+    },
+    {
+      "text": "zwei",
+      "start_time": 234.038,
+      "end_time": 234.278
+    },
+    {
+      "text": "weitere",
+      "start_time": 234.278,
+      "end_time": 234.598
+    },
+    {
+      "text": "Antworten",
+      "start_time": 234.678,
+      "end_time": 235.158
+    },
+    {
+      "text": "auf",
+      "start_time": 235.158,
+      "end_time": 235.478
+    },
+    {
+      "text": "die",
+      "start_time": 235.878,
+      "end_time": 235.958
+    },
+    {
+      "text": "den",
+      "start_time": 235.958,
+      "end_time": 236.118
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 236.118,
+      "end_time": 236.678
+    },
+    {
+      "text": "des",
+      "start_time": 236.758,
+      "end_time": 236.918
+    },
+    {
+      "text": "ReserveTeams",
+      "start_time": 236.998,
+      "end_time": 237.718
+    },
+    {
+      "text": "und",
+      "start_time": 237.718,
+      "end_time": 237.878
+    },
+    {
+      "text": "des",
+      "start_time": 237.878,
+      "end_time": 238.038
+    },
+    {
+      "text": "FrauenTeams",
+      "start_time": 238.038,
+      "end_time": 238.678
+    },
+    {
+      "text": "entsprechen",
+      "start_time": 238.678,
+      "end_time": 239.238
+    },
+    {
+      "text": "dieselben",
+      "start_time": 239.558,
+      "end_time": 239.958
+    },
+    {
+      "text": "Vereins",
+      "start_time": 239.958,
+      "end_time": 240.598
+    },
+    {
+      "text": "und",
+      "start_time": 240.838,
+      "end_time": 241.078
+    },
+    {
+      "text": "dies",
+      "start_time": 241.078,
+      "end_time": 241.238
+    },
+    {
+      "text": "kann",
+      "start_time": 241.238,
+      "end_time": 241.478
+    },
+    {
+      "text": "zu",
+      "start_time": 241.478,
+      "end_time": 241.558
+    },
+    {
+      "text": "interessanten",
+      "start_time": 241.558,
+      "end_time": 242.118
+    },
+    {
+      "text": "Bearbeitungen",
+      "start_time": 242.118,
+      "end_time": 242.838
+    },
+    {
+      "text": "führen",
+      "start_time": 242.838,
+      "end_time": 243.238
+    },
+    {
+      "text": "Zusammengefasst",
+      "start_time": 243.558,
+      "end_time": 244.438
+    },
+    {
+      "text": "holt",
+      "start_time": 244.438,
+      "end_time": 244.678
+    },
+    {
+      "text": "RGF",
+      "start_time": 244.678,
+      "end_time": 245.078
+    },
+    {
+      "text": "zuerst",
+      "start_time": 245.078,
+      "end_time": 245.318
+    },
+    {
+      "text": "die",
+      "start_time": 245.318,
+      "end_time": 245.478
+    },
+    {
+      "text": "TopKrelevantesten",
+      "start_time": 245.478,
+      "end_time": 246.678
+    },
+    {
+      "text": "Antworten",
+      "start_time": 246.678,
+      "end_time": 247.238
+    },
+    {
+      "text": "und",
+      "start_time": 247.238,
+      "end_time": 247.478
+    },
+    {
+      "text": "Kontexte",
+      "start_time": 247.478,
+      "end_time": 248.198
+    },
+    {
+      "text": "heraus",
+      "start_time": 248.438,
+      "end_time": 249.078
+    },
+    {
+      "text": "die",
+      "start_time": 249.398,
+      "end_time": 249.558
+    },
+    {
+      "text": "nicht",
+      "start_time": 249.558,
+      "end_time": 249.798
+    },
+    {
+      "text": "mit",
+      "start_time": 249.798,
+      "end_time": 249.878
+    },
+    {
+      "text": "der",
+      "start_time": 249.878,
+      "end_time": 250.038
+    },
+    {
+      "text": "Referenzantwort",
+      "start_time": 250.038,
+      "end_time": 250.998
+    },
+    {
+      "text": "und",
+      "start_time": 250.998,
+      "end_time": 251.158
+    },
+    {
+      "text": "dem",
+      "start_time": 251.158,
+      "end_time": 251.318
+    },
+    {
+      "text": "Kontext",
+      "start_time": 251.318,
+      "end_time": 251.798
+    },
+    {
+      "text": "übereinstimmen",
+      "start_time": 251.798,
+      "end_time": 252.678
+    },
+    {
+      "text": "Nach",
+      "start_time": 252.918,
+      "end_time": 253.158
+    },
+    {
+      "text": "diesem",
+      "start_time": 253.158,
+      "end_time": 253.478
+    },
+    {
+      "text": "Schritt",
+      "start_time": 253.478,
+      "end_time": 253.958
+    },
+    {
+      "text": "generiert",
+      "start_time": 254.198,
+      "end_time": 254.678
+    },
+    {
+      "text": "das",
+      "start_time": 254.678,
+      "end_time": 254.838
+    },
+    {
+      "text": "Fragegenerierungsmodell",
+      "start_time": 254.838,
+      "end_time": 256.198
+    },
+    {
+      "text": "Bedingungen",
+      "start_time": 256.198,
+      "end_time": 256.838
+    },
+    {
+      "text": "für",
+      "start_time": 256.838,
+      "end_time": 256.998
+    },
+    {
+      "text": "diese",
+      "start_time": 256.998,
+      "end_time": 257.318
+    },
+    {
+      "text": "alternativen",
+      "start_time": 257.318,
+      "end_time": 258.118
+    },
+    {
+      "text": "Antworten",
+      "start_time": 258.118,
+      "end_time": 258.758
+    },
+    {
+      "text": "eine",
+      "start_time": 259.078,
+      "end_time": 259.238
+    },
+    {
+      "text": "Frage",
+      "start_time": 259.238,
+      "end_time": 259.798
+    },
+    {
+      "text": "die",
+      "start_time": 260.118,
+      "end_time": 260.278
+    },
+    {
+      "text": "ihnen",
+      "start_time": 260.278,
+      "end_time": 260.438
+    },
+    {
+      "text": "entspricht",
+      "start_time": 260.438,
+      "end_time": 261.158
+    },
+    {
+      "text": "und",
+      "start_time": 261.398,
+      "end_time": 261.558
+    },
+    {
+      "text": "schließlich",
+      "start_time": 261.558,
+      "end_time": 262.118
+    },
+    {
+      "text": "können",
+      "start_time": 262.118,
+      "end_time": 262.358
+    },
+    {
+      "text": "wir",
+      "start_time": 262.358,
+      "end_time": 262.438
+    },
+    {
+      "text": "die",
+      "start_time": 262.438,
+      "end_time": 262.518
+    },
+    {
+      "text": "generierten",
+      "start_time": 262.518,
+      "end_time": 263.078
+    },
+    {
+      "text": "Fragen",
+      "start_time": 263.078,
+      "end_time": 263.478
+    },
+    {
+      "text": "basierend",
+      "start_time": 263.478,
+      "end_time": 263.958
+    },
+    {
+      "text": "auf",
+      "start_time": 263.958,
+      "end_time": 264.198
+    },
+    {
+      "text": "Minimalität",
+      "start_time": 264.198,
+      "end_time": 265.078
+    },
+    {
+      "text": "oder",
+      "start_time": 265.398,
+      "end_time": 265.638
+    },
+    {
+      "text": "basierend",
+      "start_time": 265.638,
+      "end_time": 266.198
+    },
+    {
+      "text": "auf",
+      "start_time": 266.198,
+      "end_time": 266.278
+    },
+    {
+      "text": "der",
+      "start_time": 266.278,
+      "end_time": 266.518
+    },
+    {
+      "text": "Art",
+      "start_time": 266.518,
+      "end_time": 266.678
+    },
+    {
+      "text": "der",
+      "start_time": 266.678,
+      "end_time": 266.838
+    },
+    {
+      "text": "semantischen",
+      "start_time": 266.838,
+      "end_time": 267.398
+    },
+    {
+      "text": "Störungen",
+      "start_time": 267.398,
+      "end_time": 267.958
+    },
+    {
+      "text": "filtern",
+      "start_time": 267.958,
+      "end_time": 268.518
+    },
+    {
+      "text": "die",
+      "start_time": 268.838,
+      "end_time": 268.998
+    },
+    {
+      "text": "wir",
+      "start_time": 268.998,
+      "end_time": 269.078
+    },
+    {
+      "text": "einführen",
+      "start_time": 269.158,
+      "end_time": 269.718
+    },
+    {
+      "text": "möchten",
+      "start_time": 269.718,
+      "end_time": 270.198
+    },
+    {
+      "text": "Wenn",
+      "start_time": 270.438,
+      "end_time": 270.598
+    },
+    {
+      "text": "wir",
+      "start_time": 270.598,
+      "end_time": 270.758
+    },
+    {
+      "text": "jeden",
+      "start_time": 270.758,
+      "end_time": 270.998
+    },
+    {
+      "text": "Schritt",
+      "start_time": 270.998,
+      "end_time": 271.318
+    },
+    {
+      "text": "genauer",
+      "start_time": 271.318,
+      "end_time": 271.718
+    },
+    {
+      "text": "durchgehen",
+      "start_time": 271.718,
+      "end_time": 272.278
+    },
+    {
+      "text": "verwenden",
+      "start_time": 272.598,
+      "end_time": 273.078
+    },
+    {
+      "text": "wir",
+      "start_time": 273.078,
+      "end_time": 273.238
+    },
+    {
+      "text": "für",
+      "start_time": 273.238,
+      "end_time": 273.318
+    },
+    {
+      "text": "die",
+      "start_time": 273.318,
+      "end_time": 273.478
+    },
+    {
+      "text": "Abfrage",
+      "start_time": 273.478,
+      "end_time": 274.038
+    },
+    {
+      "text": "ein",
+      "start_time": 274.038,
+      "end_time": 274.198
+    },
+    {
+      "text": "AbrufenDatenlesenModell",
+      "start_time": 274.198,
+      "end_time": 275.638
+    },
+    {
+      "text": "wie",
+      "start_time": 275.638,
+      "end_time": 275.878
+    },
+    {
+      "text": "R",
+      "start_time": 275.878,
+      "end_time": 276.278
+    },
+    {
+      "text": "Dies",
+      "start_time": 276.678,
+      "end_time": 276.918
+    },
+    {
+      "text": "nimmt",
+      "start_time": 276.998,
+      "end_time": 277.238
+    },
+    {
+      "text": "die",
+      "start_time": 277.238,
+      "end_time": 277.318
+    },
+    {
+      "text": "Originalfrage",
+      "start_time": 277.318,
+      "end_time": 278.198
+    },
+    {
+      "text": "und",
+      "start_time": 278.198,
+      "end_time": 278.358
+    },
+    {
+      "text": "einen",
+      "start_time": 278.358,
+      "end_time": 278.598
+    },
+    {
+      "text": "großen",
+      "start_time": 278.598,
+      "end_time": 278.998
+    },
+    {
+      "text": "Vorrat",
+      "start_time": 278.998,
+      "end_time": 279.238
+    },
+    {
+      "text": "wie",
+      "start_time": 279.238,
+      "end_time": 279.798
+    },
+    {
+      "text": "Wikipedia",
+      "start_time": 279.958,
+      "end_time": 280.278
+    },
+    {
+      "text": "als",
+      "start_time": 280.278,
+      "end_time": 280.518
+    },
+    {
+      "text": "Eingabe",
+      "start_time": 280.518,
+      "end_time": 281.158
+    },
+    {
+      "text": "Es",
+      "start_time": 281.478,
+      "end_time": 281.638
+    },
+    {
+      "text": "besteht",
+      "start_time": 281.638,
+      "end_time": 282.038
+    },
+    {
+      "text": "aus",
+      "start_time": 282.038,
+      "end_time": 282.278
+    },
+    {
+      "text": "zwei",
+      "start_time": 282.278,
+      "end_time": 282.518
+    },
+    {
+      "text": "Modulen",
+      "start_time": 282.518,
+      "end_time": 283.078
+    },
+    {
+      "text": "Das",
+      "start_time": 283.398,
+      "end_time": 283.638
+    },
+    {
+      "text": "RetrievalModul",
+      "start_time": 283.638,
+      "end_time": 284.358
+    },
+    {
+      "text": "führt",
+      "start_time": 284.438,
+      "end_time": 284.678
+    },
+    {
+      "text": "eine",
+      "start_time": 284.678,
+      "end_time": 284.918
+    },
+    {
+      "text": "Ähnlichkeitssuche",
+      "start_time": 284.918,
+      "end_time": 285.558
+    },
+    {
+      "text": "über",
+      "start_time": 285.718,
+      "end_time": 285.798
+    },
+    {
+      "text": "einen",
+      "start_time": 285.798,
+      "end_time": 285.878
+    },
+    {
+      "text": "Nischenindex",
+      "start_time": 286.278,
+      "end_time": 287.078
+    },
+    {
+      "text": "von",
+      "start_time": 287.078,
+      "end_time": 287.238
+    },
+    {
+      "text": "Passagen",
+      "start_time": 287.238,
+      "end_time": 287.798
+    },
+    {
+      "text": "durch",
+      "start_time": 287.798,
+      "end_time": 288.198
+    },
+    {
+      "text": "um",
+      "start_time": 288.518,
+      "end_time": 288.678
+    },
+    {
+      "text": "die",
+      "start_time": 288.678,
+      "end_time": 288.838
+    },
+    {
+      "text": "TopKrelevantesten",
+      "start_time": 288.838,
+      "end_time": 290.038
+    },
+    {
+      "text": "Passagen",
+      "start_time": 290.038,
+      "end_time": 290.598
+    },
+    {
+      "text": "zur",
+      "start_time": 290.598,
+      "end_time": 290.678
+    },
+    {
+      "text": "Frage",
+      "start_time": 290.758,
+      "end_time": 291.078
+    },
+    {
+      "text": "abzurufen",
+      "start_time": 291.078,
+      "end_time": 291.878
+    },
+    {
+      "text": "und",
+      "start_time": 292.118,
+      "end_time": 292.278
+    },
+    {
+      "text": "ein",
+      "start_time": 292.358,
+      "end_time": 292.438
+    },
+    {
+      "text": "Lesemodul",
+      "start_time": 292.438,
+      "end_time": 293.158
+    },
+    {
+      "text": "extrahiert",
+      "start_time": 293.158,
+      "end_time": 293.798
+    },
+    {
+      "text": "dann",
+      "start_time": 293.798,
+      "end_time": 293.958
+    },
+    {
+      "text": "einen",
+      "start_time": 293.958,
+      "end_time": 294.198
+    },
+    {
+      "text": "spannhaften",
+      "start_time": 294.198,
+      "end_time": 295.078
+    },
+    {
+      "text": "Passagen",
+      "start_time": 295.078,
+      "end_time": 295.638
+    },
+    {
+      "text": "als",
+      "start_time": 296.038,
+      "end_time": 296.198
+    },
+    {
+      "text": "mögliche",
+      "start_time": 296.198,
+      "end_time": 296.678
+    },
+    {
+      "text": "Antwort",
+      "start_time": 296.678,
+      "end_time": 297.238
+    },
+    {
+      "text": "Wir",
+      "start_time": 297.478,
+      "end_time": 297.638
+    },
+    {
+      "text": "ablehnen",
+      "start_time": 297.638,
+      "end_time": 298.198
+    },
+    {
+      "text": "gemeinsam",
+      "start_time": 298.198,
+      "end_time": 298.678
+    },
+    {
+      "text": "die",
+      "start_time": 298.678,
+      "end_time": 298.838
+    },
+    {
+      "text": "goldene",
+      "start_time": 299.078,
+      "end_time": 299.078
+    },
+    {
+      "text": "Passage",
+      "start_time": 299.798,
+      "end_time": 299.878
+    },
+    {
+      "text": "und",
+      "start_time": 299.878,
+      "end_time": 300.038
+    },
+    {
+      "text": "die",
+      "start_time": 300.038,
+      "end_time": 300.118
+    },
+    {
+      "text": "Antwort",
+      "start_time": 300.118,
+      "end_time": 300.598
+    },
+    {
+      "text": "ab",
+      "start_time": 300.598,
+      "end_time": 300.758
+    },
+    {
+      "text": "In",
+      "start_time": 301.078,
+      "end_time": 301.238
+    },
+    {
+      "text": "dieser",
+      "start_time": 301.238,
+      "end_time": 301.558
+    },
+    {
+      "text": "Arbeit",
+      "start_time": 301.558,
+      "end_time": 301.878
+    },
+    {
+      "text": "interessieren",
+      "start_time": 301.878,
+      "end_time": 302.358
+    },
+    {
+      "text": "wir",
+      "start_time": 302.358,
+      "end_time": 302.518
+    },
+    {
+      "text": "uns",
+      "start_time": 302.518,
+      "end_time": 302.598
+    },
+    {
+      "text": "jedoch",
+      "start_time": 302.598,
+      "end_time": 302.918
+    },
+    {
+      "text": "mehr",
+      "start_time": 302.918,
+      "end_time": 303.078
+    },
+    {
+      "text": "für",
+      "start_time": 303.078,
+      "end_time": 303.238
+    },
+    {
+      "text": "die",
+      "start_time": 303.238,
+      "end_time": 303.318
+    },
+    {
+      "text": "Antworten",
+      "start_time": 303.318,
+      "end_time": 303.958
+    },
+    {
+      "text": "und",
+      "start_time": 303.958,
+      "end_time": 304.118
+    },
+    {
+      "text": "Kontexte",
+      "start_time": 304.118,
+      "end_time": 304.918
+    },
+    {
+      "text": "die",
+      "start_time": 305.238,
+      "end_time": 305.318
+    },
+    {
+      "text": "weiter",
+      "start_time": 305.478,
+      "end_time": 305.798
+    },
+    {
+      "text": "unten",
+      "start_time": 305.798,
+      "end_time": 306.038
+    },
+    {
+      "text": "abrufen",
+      "start_time": 306.038,
+      "end_time": 306.678
+    },
+    {
+      "text": "Im",
+      "start_time": 306.918,
+      "end_time": 307.078
+    },
+    {
+      "text": "nächsten",
+      "start_time": 307.078,
+      "end_time": 307.478
+    },
+    {
+      "text": "Schritt",
+      "start_time": 307.478,
+      "end_time": 307.878
+    },
+    {
+      "text": "der",
+      "start_time": 308.118,
+      "end_time": 308.278
+    },
+    {
+      "text": "Fragegenerierung",
+      "start_time": 308.278,
+      "end_time": 309.398
+    },
+    {
+      "text": "verwenden",
+      "start_time": 309.638,
+      "end_time": 310.118
+    },
+    {
+      "text": "wir",
+      "start_time": 310.118,
+      "end_time": 310.278
+    },
+    {
+      "text": "diese",
+      "start_time": 310.278,
+      "end_time": 310.598
+    },
+    {
+      "text": "alternativen",
+      "start_time": 310.598,
+      "end_time": 311.238
+    },
+    {
+      "text": "Antworten",
+      "start_time": 311.238,
+      "end_time": 311.798
+    },
+    {
+      "text": "und",
+      "start_time": 311.798,
+      "end_time": 311.958
+    },
+    {
+      "text": "Kontexte",
+      "start_time": 311.958,
+      "end_time": 312.758
+    },
+    {
+      "text": "um",
+      "start_time": 313.078,
+      "end_time": 313.238
+    },
+    {
+      "text": "neue",
+      "start_time": 313.238,
+      "end_time": 313.478
+    },
+    {
+      "text": "Fragen",
+      "start_time": 313.478,
+      "end_time": 313.878
+    },
+    {
+      "text": "zu",
+      "start_time": 313.878,
+      "end_time": 314.038
+    },
+    {
+      "text": "generieren",
+      "start_time": 314.038,
+      "end_time": 314.758
+    },
+    {
+      "text": "die",
+      "start_time": 315.078,
+      "end_time": 315.158
+    },
+    {
+      "text": "diesen",
+      "start_time": 315.158,
+      "end_time": 315.478
+    },
+    {
+      "text": "Alternativen",
+      "start_time": 315.478,
+      "end_time": 316.918
+    },
+    {
+      "text": "entsprechen",
+      "start_time": 316.918,
+      "end_time": 316.918
+    },
+    {
+      "text": "Das",
+      "start_time": 317.238,
+      "end_time": 317.478
+    },
+    {
+      "text": "Fragegenerierungsmodell",
+      "start_time": 317.478,
+      "end_time": 318.838
+    },
+    {
+      "text": "ist",
+      "start_time": 318.838,
+      "end_time": 318.998
+    },
+    {
+      "text": "ein",
+      "start_time": 318.998,
+      "end_time": 319.158
+    },
+    {
+      "text": "vortrainiertes",
+      "start_time": 319.158,
+      "end_time": 319.878
+    },
+    {
+      "text": "TextzuTextTransformer",
+      "start_time": 319.878,
+      "end_time": 320.838
+    },
+    {
+      "text": "das",
+      "start_time": 321.558,
+      "end_time": 321.798
+    },
+    {
+      "text": "auf",
+      "start_time": 321.798,
+      "end_time": 321.878
+    },
+    {
+      "text": "den",
+      "start_time": 321.958,
+      "end_time": 322.118
+    },
+    {
+      "text": "EncoderTeil",
+      "start_time": 322.118,
+      "end_time": 322.838
+    },
+    {
+      "text": "fein",
+      "start_time": 322.838,
+      "end_time": 323.078
+    },
+    {
+      "text": "abgestimmt",
+      "start_time": 323.078,
+      "end_time": 323.718
+    },
+    {
+      "text": "wird",
+      "start_time": 323.718,
+      "end_time": 323.958
+    },
+    {
+      "text": "um",
+      "start_time": 324.278,
+      "end_time": 324.438
+    },
+    {
+      "text": "eine",
+      "start_time": 324.438,
+      "end_time": 324.678
+    },
+    {
+      "text": "Frage",
+      "start_time": 324.678,
+      "end_time": 325.158
+    },
+    {
+      "text": "für",
+      "start_time": 325.158,
+      "end_time": 325.238
+    },
+    {
+      "text": "eine",
+      "start_time": 325.238,
+      "end_time": 325.478
+    },
+    {
+      "text": "Antwort",
+      "start_time": 325.478,
+      "end_time": 325.878
+    },
+    {
+      "text": "zu",
+      "start_time": 325.878,
+      "end_time": 326.038
+    },
+    {
+      "text": "generieren",
+      "start_time": 326.038,
+      "end_time": 326.678
+    },
+    {
+      "text": "die",
+      "start_time": 326.998,
+      "end_time": 327.158
+    },
+    {
+      "text": "im",
+      "start_time": 327.158,
+      "end_time": 327.238
+    },
+    {
+      "text": "Kontext",
+      "start_time": 327.238,
+      "end_time": 327.798
+    },
+    {
+      "text": "markiert",
+      "start_time": 327.798,
+      "end_time": 328.278
+    },
+    {
+      "text": "ist",
+      "start_time": 328.278,
+      "end_time": 328.598
+    },
+    {
+      "text": "Während",
+      "start_time": 328.838,
+      "end_time": 329.238
+    },
+    {
+      "text": "der",
+      "start_time": 329.238,
+      "end_time": 329.318
+    },
+    {
+      "text": "Inference",
+      "start_time": 329.318,
+      "end_time": 330.198
+    },
+    {
+      "text": "liefern",
+      "start_time": 330.278,
+      "end_time": 330.598
+    },
+    {
+      "text": "wir",
+      "start_time": 330.598,
+      "end_time": 330.758
+    },
+    {
+      "text": "dem",
+      "start_time": 330.758,
+      "end_time": 330.998
+    },
+    {
+      "text": "Fragegenerierungsmodell",
+      "start_time": 330.998,
+      "end_time": 332.278
+    },
+    {
+      "text": "die",
+      "start_time": 332.278,
+      "end_time": 332.518
+    },
+    {
+      "text": "alternativen",
+      "start_time": 332.518,
+      "end_time": 333.158
+    },
+    {
+      "text": "Antwort",
+      "start_time": 333.158,
+      "end_time": 333.638
+    },
+    {
+      "text": "und",
+      "start_time": 333.638,
+      "end_time": 334.038
+    },
+    {
+      "text": "den",
+      "start_time": 334.038,
+      "end_time": 334.038
+    },
+    {
+      "text": "Kontext",
+      "start_time": 334.038,
+      "end_time": 334.678
+    },
+    {
+      "text": "die",
+      "start_time": 334.998,
+      "end_time": 335.078
+    },
+    {
+      "text": "wir",
+      "start_time": 335.078,
+      "end_time": 335.238
+    },
+    {
+      "text": "im",
+      "start_time": 335.238,
+      "end_time": 335.398
+    },
+    {
+      "text": "vorherigen",
+      "start_time": 335.398,
+      "end_time": 335.958
+    },
+    {
+      "text": "Schritt",
+      "start_time": 335.958,
+      "end_time": 336.278
+    },
+    {
+      "text": "abgefragt",
+      "start_time": 336.278,
+      "end_time": 336.758
+    },
+    {
+      "text": "haben",
+      "start_time": 336.758,
+      "end_time": 337.078
+    },
+    {
+      "text": "Zum",
+      "start_time": 337.318,
+      "end_time": 337.478
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 337.478,
+      "end_time": 337.878
+    },
+    {
+      "text": "für",
+      "start_time": 337.878,
+      "end_time": 338.038
+    },
+    {
+      "text": "die",
+      "start_time": 338.038,
+      "end_time": 338.198
+    },
+    {
+      "text": "Abfrage",
+      "start_time": 338.198,
+      "end_time": 338.838
+    },
+    {
+      "text": "Wer",
+      "start_time": 339.158,
+      "end_time": 339.318
+    },
+    {
+      "text": "ist",
+      "start_time": 339.318,
+      "end_time": 339.478
+    },
+    {
+      "text": "der",
+      "start_time": 339.478,
+      "end_time": 339.638
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 339.638,
+      "end_time": 340.038
+    },
+    {
+      "text": "des",
+      "start_time": 340.038,
+      "end_time": 340.198
+    },
+    {
+      "text": "Richmond",
+      "start_time": 340.198,
+      "end_time": 340.598
+    },
+    {
+      "text": "Football",
+      "start_time": 340.598,
+      "end_time": 340.998
+    },
+    {
+      "text": "Clubs",
+      "start_time": 340.998,
+      "end_time": 341.558
+    },
+    {
+      "text": "Wird",
+      "start_time": 341.718,
+      "end_time": 341.958
+    },
+    {
+      "text": "es",
+      "start_time": 341.958,
+      "end_time": 342.118
+    },
+    {
+      "text": "zu",
+      "start_time": 342.118,
+      "end_time": 342.278
+    },
+    {
+      "text": "Abfrage",
+      "start_time": 342.438,
+      "end_time": 342.998
+    },
+    {
+      "text": "an",
+      "start_time": 342.998,
+      "end_time": 343.078
+    },
+    {
+      "text": "das",
+      "start_time": 343.078,
+      "end_time": 343.238
+    },
+    {
+      "text": "MännerTeam",
+      "start_time": 343.238,
+      "end_time": 343.878
+    },
+    {
+      "text": "auf",
+      "start_time": 343.878,
+      "end_time": 344.198
+    },
+    {
+      "text": "das",
+      "start_time": 344.438,
+      "end_time": 344.678
+    },
+    {
+      "text": "von",
+      "start_time": 344.678,
+      "end_time": 344.838
+    },
+    {
+      "text": "der",
+      "start_time": 344.838,
+      "end_time": 345.078
+    },
+    {
+      "text": "Skandinavie",
+      "start_time": 345.078,
+      "end_time": 345.958
+    },
+    {
+      "text": "leitet",
+      "start_time": 345.958,
+      "end_time": 346.038
+    },
+    {
+      "text": "wird",
+      "start_time": 346.038,
+      "end_time": 346.358
+    },
+    {
+      "text": "und",
+      "start_time": 346.358,
+      "end_time": 346.838
+    },
+    {
+      "text": "das",
+      "start_time": 346.838,
+      "end_time": 346.998
+    },
+    {
+      "text": "Fragegenerierungsmodell",
+      "start_time": 346.998,
+      "end_time": 348.278
+    },
+    {
+      "text": "generiert",
+      "start_time": 348.278,
+      "end_time": 348.758
+    },
+    {
+      "text": "die",
+      "start_time": 348.758,
+      "end_time": 348.838
+    },
+    {
+      "text": "Abfrage",
+      "start_time": 348.838,
+      "end_time": 349.478
+    },
+    {
+      "text": "Wer",
+      "start_time": 349.478,
+      "end_time": 350.198
+    },
+    {
+      "text": "war",
+      "start_time": 350.198,
+      "end_time": 350.278
+    },
+    {
+      "text": "der",
+      "start_time": 350.358,
+      "end_time": 350.438
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 350.518,
+      "end_time": 351.078
+    },
+    {
+      "text": "des",
+      "start_time": 351.078,
+      "end_time": 351.238
+    },
+    {
+      "text": "ersten",
+      "start_time": 351.238,
+      "end_time": 351.558
+    },
+    {
+      "text": "Frauenmannschaftsteams",
+      "start_time": 351.558,
+      "end_time": 352.678
+    },
+    {
+      "text": "des",
+      "start_time": 352.678,
+      "end_time": 352.838
+    },
+    {
+      "text": "Richmond",
+      "start_time": 352.838,
+      "end_time": 353.238
+    },
+    {
+      "text": "Football",
+      "start_time": 353.238,
+      "end_time": 353.718
+    },
+    {
+      "text": "Clubs",
+      "start_time": 353.718,
+      "end_time": 354.118
+    },
+    {
+      "text": "das",
+      "start_time": 354.358,
+      "end_time": 354.518
+    },
+    {
+      "text": "spezifische",
+      "start_time": 354.758,
+      "end_time": 355.318
+    },
+    {
+      "text": "semantische",
+      "start_time": 355.318,
+      "end_time": 356.038
+    },
+    {
+      "text": "Störung",
+      "start_time": 356.038,
+      "end_time": 356.518
+    },
+    {
+      "text": "aufweist",
+      "start_time": 356.518,
+      "end_time": 357.158
+    },
+    {
+      "text": "Ähnlich",
+      "start_time": 357.478,
+      "end_time": 357.878
+    },
+    {
+      "text": "erhalten",
+      "start_time": 357.878,
+      "end_time": 358.358
+    },
+    {
+      "text": "wir",
+      "start_time": 358.358,
+      "end_time": 358.518
+    },
+    {
+      "text": "auch",
+      "start_time": 358.518,
+      "end_time": 358.598
+    },
+    {
+      "text": "Abfragen",
+      "start_time": 358.678,
+      "end_time": 359.318
+    },
+    {
+      "text": "wie",
+      "start_time": 359.318,
+      "end_time": 359.878
+    },
+    {
+      "text": "Wer",
+      "start_time": 360.198,
+      "end_time": 360.438
+    },
+    {
+      "text": "war",
+      "start_time": 360.438,
+      "end_time": 360.518
+    },
+    {
+      "text": "der",
+      "start_time": 360.518,
+      "end_time": 360.678
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 360.678,
+      "end_time": 361.238
+    },
+    {
+      "text": "des",
+      "start_time": 361.238,
+      "end_time": 361.398
+    },
+    {
+      "text": "NFL",
+      "start_time": 361.398,
+      "end_time": 361.958
+    },
+    {
+      "text": "ReserveTeams",
+      "start_time": 361.958,
+      "end_time": 362.678
+    },
+    {
+      "text": "von",
+      "start_time": 362.678,
+      "end_time": 362.918
+    },
+    {
+      "text": "Richmond",
+      "start_time": 362.918,
+      "end_time": 363.478
+    },
+    {
+      "text": "Oder",
+      "start_time": 363.779,
+      "end_time": 364.099
+    },
+    {
+      "text": "wen",
+      "start_time": 364.419,
+      "end_time": 364.659
+    },
+    {
+      "text": "hat",
+      "start_time": 364.659,
+      "end_time": 364.819
+    },
+    {
+      "text": "Graham",
+      "start_time": 364.819,
+      "end_time": 365.219
+    },
+    {
+      "text": "im",
+      "start_time": 365.219,
+      "end_time": 365.219
+    },
+    {
+      "text": "Grand",
+      "start_time": 365.219,
+      "end_time": 365.459
+    },
+    {
+      "text": "Final",
+      "start_time": 365.459,
+      "end_time": 365.939
+    },
+    {
+      "text": "letztes",
+      "start_time": 365.939,
+      "end_time": 366.339
+    },
+    {
+      "text": "Jahr",
+      "start_time": 366.339,
+      "end_time": 366.499
+    },
+    {
+      "text": "negiert",
+      "start_time": 366.499,
+      "end_time": 366.979
+    },
+    {
+      "text": "Zum",
+      "start_time": 367.299,
+      "end_time": 367.459
+    },
+    {
+      "text": "Schluss",
+      "start_time": 367.459,
+      "end_time": 367.779
+    },
+    {
+      "text": "filtern",
+      "start_time": 367.779,
+      "end_time": 368.259
+    },
+    {
+      "text": "wir",
+      "start_time": 368.259,
+      "end_time": 368.339
+    },
+    {
+      "text": "einen",
+      "start_time": 368.339,
+      "end_time": 368.579
+    },
+    {
+      "text": "Teil",
+      "start_time": 368.579,
+      "end_time": 368.899
+    },
+    {
+      "text": "mehrerer",
+      "start_time": 368.899,
+      "end_time": 369.299
+    },
+    {
+      "text": "generierten",
+      "start_time": 369.299,
+      "end_time": 369.859
+    },
+    {
+      "text": "Abfragen",
+      "start_time": 369.859,
+      "end_time": 370.499
+    },
+    {
+      "text": "basierend",
+      "start_time": 370.499,
+      "end_time": 370.979
+    },
+    {
+      "text": "auf",
+      "start_time": 370.979,
+      "end_time": 371.139
+    },
+    {
+      "text": "gewünschten",
+      "start_time": 371.139,
+      "end_time": 371.619
+    },
+    {
+      "text": "Eigenschaften",
+      "start_time": 371.619,
+      "end_time": 372.339
+    },
+    {
+      "text": "heraus",
+      "start_time": 372.339,
+      "end_time": 372.899
+    },
+    {
+      "text": "Wie",
+      "start_time": 373.139,
+      "end_time": 373.379
+    },
+    {
+      "text": "bereits",
+      "start_time": 373.379,
+      "end_time": 373.779
+    },
+    {
+      "text": "erwähnt",
+      "start_time": 373.779,
+      "end_time": 374.419
+    },
+    {
+      "text": "möchten",
+      "start_time": 374.499,
+      "end_time": 374.979
+    },
+    {
+      "text": "wir",
+      "start_time": 374.979,
+      "end_time": 375.139
+    },
+    {
+      "text": "sicherstellen",
+      "start_time": 375.139,
+      "end_time": 375.859
+    },
+    {
+      "text": "dass",
+      "start_time": 376.179,
+      "end_time": 376.339
+    },
+    {
+      "text": "die",
+      "start_time": 376.339,
+      "end_time": 376.419
+    },
+    {
+      "text": "neue",
+      "start_time": 376.419,
+      "end_time": 376.739
+    },
+    {
+      "text": "Frage",
+      "start_time": 376.739,
+      "end_time": 377.139
+    },
+    {
+      "text": "semantisch",
+      "start_time": 377.139,
+      "end_time": 377.699
+    },
+    {
+      "text": "noch",
+      "start_time": 377.699,
+      "end_time": 377.859
+    },
+    {
+      "text": "in",
+      "start_time": 377.859,
+      "end_time": 378.019
+    },
+    {
+      "text": "der",
+      "start_time": 378.019,
+      "end_time": 378.179
+    },
+    {
+      "text": "Nähe",
+      "start_time": 378.179,
+      "end_time": 378.499
+    },
+    {
+      "text": "zum",
+      "start_time": 378.499,
+      "end_time": 378.659
+    },
+    {
+      "text": "Original",
+      "start_time": 378.659,
+      "end_time": 379.219
+    },
+    {
+      "text": "liegt",
+      "start_time": 379.219,
+      "end_time": 379.619
+    },
+    {
+      "text": "Bei",
+      "start_time": 379.859,
+      "end_time": 380.019
+    },
+    {
+      "text": "einer",
+      "start_time": 380.019,
+      "end_time": 380.179
+    },
+    {
+      "text": "Filtertechnik",
+      "start_time": 380.179,
+      "end_time": 380.979
+    },
+    {
+      "text": "die",
+      "start_time": 381.299,
+      "end_time": 381.379
+    },
+    {
+      "text": "keine",
+      "start_time": 381.379,
+      "end_time": 381.699
+    },
+    {
+      "text": "zusätzliche",
+      "start_time": 381.699,
+      "end_time": 382.419
+    },
+    {
+      "text": "Überwachung",
+      "start_time": 382.419,
+      "end_time": 382.979
+    },
+    {
+      "text": "erfordert",
+      "start_time": 382.979,
+      "end_time": 383.619
+    },
+    {
+      "text": "behalten",
+      "start_time": 383.939,
+      "end_time": 384.419
+    },
+    {
+      "text": "wir",
+      "start_time": 384.419,
+      "end_time": 384.579
+    },
+    {
+      "text": "einfach",
+      "start_time": 384.579,
+      "end_time": 384.819
+    },
+    {
+      "text": "neue",
+      "start_time": 384.819,
+      "end_time": 385.139
+    },
+    {
+      "text": "Fragen",
+      "start_time": 385.139,
+      "end_time": 385.619
+    },
+    {
+      "text": "weil",
+      "start_time": 385.939,
+      "end_time": 386.259
+    },
+    {
+      "text": "wir",
+      "start_time": 386.579,
+      "end_time": 386.739
+    },
+    {
+      "text": "eine",
+      "start_time": 386.739,
+      "end_time": 386.899
+    },
+    {
+      "text": "geringe",
+      "start_time": 386.899,
+      "end_time": 387.379
+    },
+    {
+      "text": "TokenlevelEditDistanz",
+      "start_time": 387.379,
+      "end_time": 388.739
+    },
+    {
+      "text": "zur",
+      "start_time": 388.739,
+      "end_time": 388.979
+    },
+    {
+      "text": "Originalfrage",
+      "start_time": 388.979,
+      "end_time": 389.779
+    },
+    {
+      "text": "haben",
+      "start_time": 389.779,
+      "end_time": 390.099
+    },
+    {
+      "text": "Zum",
+      "start_time": 390.339,
+      "end_time": 390.579
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 390.579,
+      "end_time": 391.379
+    },
+    {
+      "text": "entfernen",
+      "start_time": 391.459,
+      "end_time": 391.939
+    },
+    {
+      "text": "wir",
+      "start_time": 391.939,
+      "end_time": 392.019
+    },
+    {
+      "text": "die",
+      "start_time": 392.019,
+      "end_time": 392.179
+    },
+    {
+      "text": "Frage",
+      "start_time": 392.179,
+      "end_time": 392.579
+    },
+    {
+      "text": "wer",
+      "start_time": 392.579,
+      "end_time": 392.659
+    },
+    {
+      "text": "hat",
+      "start_time": 392.659,
+      "end_time": 392.899
+    },
+    {
+      "text": "Graham",
+      "start_time": 392.899,
+      "end_time": 393.139
+    },
+    {
+      "text": "im",
+      "start_time": 393.139,
+      "end_time": 393.299
+    },
+    {
+      "text": "letzten",
+      "start_time": 393.299,
+      "end_time": 393.619
+    },
+    {
+      "text": "Jahr",
+      "start_time": 393.619,
+      "end_time": 393.779
+    },
+    {
+      "text": "Grand",
+      "start_time": 393.779,
+      "end_time": 394.099
+    },
+    {
+      "text": "Final",
+      "start_time": 394.099,
+      "end_time": 394.499
+    },
+    {
+      "text": "negiert",
+      "start_time": 394.499,
+      "end_time": 394.979
+    },
+    {
+      "text": "weil",
+      "start_time": 395.379,
+      "end_time": 395.779
+    },
+    {
+      "text": "sie",
+      "start_time": 395.779,
+      "end_time": 395.859
+    },
+    {
+      "text": "eine",
+      "start_time": 395.859,
+      "end_time": 396.099
+    },
+    {
+      "text": "längere",
+      "start_time": 396.099,
+      "end_time": 396.499
+    },
+    {
+      "text": "EditDistanz",
+      "start_time": 396.499,
+      "end_time": 397.299
+    },
+    {
+      "text": "zur",
+      "start_time": 397.299,
+      "end_time": 397.539
+    },
+    {
+      "text": "Originalfrage",
+      "start_time": 397.539,
+      "end_time": 398.339
+    },
+    {
+      "text": "hat",
+      "start_time": 398.419,
+      "end_time": 398.659
+    },
+    {
+      "text": "In",
+      "start_time": 398.979,
+      "end_time": 399.139
+    },
+    {
+      "text": "unseren",
+      "start_time": 399.139,
+      "end_time": 399.539
+    },
+    {
+      "text": "Experimenten",
+      "start_time": 399.539,
+      "end_time": 400.499
+    },
+    {
+      "text": "zeigen",
+      "start_time": 400.739,
+      "end_time": 401.139
+    },
+    {
+      "text": "wir",
+      "start_time": 401.139,
+      "end_time": 401.459
+    },
+    {
+      "text": "dass",
+      "start_time": 401.779,
+      "end_time": 402.019
+    },
+    {
+      "text": "diese",
+      "start_time": 402.019,
+      "end_time": 402.259
+    },
+    {
+      "text": "einfache",
+      "start_time": 402.259,
+      "end_time": 402.819
+    },
+    {
+      "text": "Heuristik",
+      "start_time": 402.819,
+      "end_time": 403.459
+    },
+    {
+      "text": "zur",
+      "start_time": 403.699,
+      "end_time": 403.859
+    },
+    {
+      "text": "Erweiterung",
+      "start_time": 403.859,
+      "end_time": 404.579
+    },
+    {
+      "text": "von",
+      "start_time": 404.579,
+      "end_time": 404.819
+    },
+    {
+      "text": "EncodetrainingDaten",
+      "start_time": 404.819,
+      "end_time": 406.019
+    },
+    {
+      "text": "verwendet",
+      "start_time": 406.019,
+      "end_time": 406.579
+    },
+    {
+      "text": "werden",
+      "start_time": 406.579,
+      "end_time": 406.819
+    },
+    {
+      "text": "kann",
+      "start_time": 406.819,
+      "end_time": 407.139
+    },
+    {
+      "text": "Wir",
+      "start_time": 407.459,
+      "end_time": 407.619
+    },
+    {
+      "text": "experimentieren",
+      "start_time": 407.699,
+      "end_time": 408.419
+    },
+    {
+      "text": "auch",
+      "start_time": 408.419,
+      "end_time": 408.659
+    },
+    {
+      "text": "mit",
+      "start_time": 408.659,
+      "end_time": 408.819
+    },
+    {
+      "text": "einer",
+      "start_time": 408.819,
+      "end_time": 409.059
+    },
+    {
+      "text": "Filterstrategie",
+      "start_time": 409.059,
+      "end_time": 410.019
+    },
+    {
+      "text": "die",
+      "start_time": 410.019,
+      "end_time": 410.019
+    },
+    {
+      "text": "auf",
+      "start_time": 410.499,
+      "end_time": 410.659
+    },
+    {
+      "text": "der",
+      "start_time": 410.659,
+      "end_time": 410.819
+    },
+    {
+      "text": "Art",
+      "start_time": 410.819,
+      "end_time": 411.059
+    },
+    {
+      "text": "der",
+      "start_time": 411.059,
+      "end_time": 411.139
+    },
+    {
+      "text": "semantischen",
+      "start_time": 411.139,
+      "end_time": 411.779
+    },
+    {
+      "text": "Störung",
+      "start_time": 411.779,
+      "end_time": 412.339
+    },
+    {
+      "text": "basiert",
+      "start_time": 412.339,
+      "end_time": 412.819
+    },
+    {
+      "text": "Zu",
+      "start_time": 413.139,
+      "end_time": 413.219
+    },
+    {
+      "text": "diesem",
+      "start_time": 413.219,
+      "end_time": 413.539
+    },
+    {
+      "text": "Zweck",
+      "start_time": 413.539,
+      "end_time": 413.859
+    },
+    {
+      "text": "verwenden",
+      "start_time": 413.859,
+      "end_time": 414.339
+    },
+    {
+      "text": "wir",
+      "start_time": 414.339,
+      "end_time": 414.499
+    },
+    {
+      "text": "ein",
+      "start_time": 414.499,
+      "end_time": 414.659
+    },
+    {
+      "text": "allgemeines",
+      "start_time": 414.659,
+      "end_time": 415.299
+    },
+    {
+      "text": "abfragende",
+      "start_time": 415.299,
+      "end_time": 415.939
+    },
+    {
+      "text": "Kompositionsframework",
+      "start_time": 415.939,
+      "end_time": 417.299
+    },
+    {
+      "text": "mit",
+      "start_time": 417.619,
+      "end_time": 417.779
+    },
+    {
+      "text": "dem",
+      "start_time": 417.779,
+      "end_time": 418.019
+    },
+    {
+      "text": "namens",
+      "start_time": 418.019,
+      "end_time": 418.259
+    },
+    {
+      "text": "Codi",
+      "start_time": 418.259,
+      "end_time": 418.899
+    },
+    {
+      "text": "Codi",
+      "start_time": 418.979,
+      "end_time": 419.299
+    },
+    {
+      "text": "identifiziert",
+      "start_time": 419.299,
+      "end_time": 420.099
+    },
+    {
+      "text": "zwei",
+      "start_time": 420.099,
+      "end_time": 420.339
+    },
+    {
+      "text": "Teile",
+      "start_time": 420.339,
+      "end_time": 420.659
+    },
+    {
+      "text": "der",
+      "start_time": 420.659,
+      "end_time": 420.819
+    },
+    {
+      "text": "Frage",
+      "start_time": 420.819,
+      "end_time": 421.299
+    },
+    {
+      "text": "ein",
+      "start_time": 421.619,
+      "end_time": 421.779
+    },
+    {
+      "text": "Prädikat",
+      "start_time": 421.779,
+      "end_time": 422.419
+    },
+    {
+      "text": "und",
+      "start_time": 422.419,
+      "end_time": 422.579
+    },
+    {
+      "text": "eine",
+      "start_time": 422.579,
+      "end_time": 422.739
+    },
+    {
+      "text": "Referenz",
+      "start_time": 422.739,
+      "end_time": 423.459
+    },
+    {
+      "text": "Referenzen",
+      "start_time": 423.779,
+      "end_time": 424.419
+    },
+    {
+      "text": "sind",
+      "start_time": 424.419,
+      "end_time": 424.659
+    },
+    {
+      "text": "nur",
+      "start_time": 424.659,
+      "end_time": 424.739
+    },
+    {
+      "text": "Wörter",
+      "start_time": 424.739,
+      "end_time": 425.219
+    },
+    {
+      "text": "in",
+      "start_time": 425.219,
+      "end_time": 425.379
+    },
+    {
+      "text": "der",
+      "start_time": 425.379,
+      "end_time": 425.539
+    },
+    {
+      "text": "Frage",
+      "start_time": 425.539,
+      "end_time": 426.019
+    },
+    {
+      "text": "die",
+      "start_time": 426.339,
+      "end_time": 426.499
+    },
+    {
+      "text": "Entitäten",
+      "start_time": 426.499,
+      "end_time": 427.139
+    },
+    {
+      "text": "im",
+      "start_time": 427.139,
+      "end_time": 427.299
+    },
+    {
+      "text": "Kontext",
+      "start_time": 427.299,
+      "end_time": 427.779
+    },
+    {
+      "text": "entsprechen",
+      "start_time": 427.779,
+      "end_time": 428.499
+    },
+    {
+      "text": "Ein",
+      "start_time": 428.819,
+      "end_time": 428.979
+    },
+    {
+      "text": "Prädikat",
+      "start_time": 428.979,
+      "end_time": 429.539
+    },
+    {
+      "text": "ist",
+      "start_time": 429.539,
+      "end_time": 429.699
+    },
+    {
+      "text": "im",
+      "start_time": 429.779,
+      "end_time": 429.859
+    },
+    {
+      "text": "Grunde",
+      "start_time": 429.859,
+      "end_time": 430.179
+    },
+    {
+      "text": "der",
+      "start_time": 430.179,
+      "end_time": 430.339
+    },
+    {
+      "text": "verbleibende",
+      "start_time": 430.339,
+      "end_time": 430.899
+    },
+    {
+      "text": "Teil",
+      "start_time": 430.979,
+      "end_time": 431.219
+    },
+    {
+      "text": "der",
+      "start_time": 431.219,
+      "end_time": 431.379
+    },
+    {
+      "text": "Frage",
+      "start_time": 431.379,
+      "end_time": 431.859
+    },
+    {
+      "text": "Zum",
+      "start_time": 432.099,
+      "end_time": 432.339
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 432.339,
+      "end_time": 432.979
+    },
+    {
+      "text": "wir",
+      "start_time": 433.219,
+      "end_time": 433.459
+    },
+    {
+      "text": "sind",
+      "start_time": 433.459,
+      "end_time": 433.779
+    },
+    {
+      "text": "in",
+      "start_time": 433.779,
+      "end_time": 433.939
+    },
+    {
+      "text": "der",
+      "start_time": 433.939,
+      "end_time": 434.019
+    },
+    {
+      "text": "Lage",
+      "start_time": 434.019,
+      "end_time": 434.499
+    },
+    {
+      "text": "die",
+      "start_time": 434.899,
+      "end_time": 434.979
+    },
+    {
+      "text": "Abfrage",
+      "start_time": 434.979,
+      "end_time": 435.459
+    },
+    {
+      "text": "zu",
+      "start_time": 435.459,
+      "end_time": 435.619
+    },
+    {
+      "text": "zerlegen",
+      "start_time": 435.619,
+      "end_time": 436.259
+    },
+    {
+      "text": "Wer",
+      "start_time": 436.899,
+      "end_time": 437.139
+    },
+    {
+      "text": "war",
+      "start_time": 437.139,
+      "end_time": 437.299
+    },
+    {
+      "text": "der",
+      "start_time": 437.299,
+      "end_time": 437.459
+    },
+    {
+      "text": "Kapitänin",
+      "start_time": 437.459,
+      "end_time": 438.099
+    },
+    {
+      "text": "von",
+      "start_time": 438.099,
+      "end_time": 438.259
+    },
+    {
+      "text": "Richmond's",
+      "start_time": 438.259,
+      "end_time": 438.739
+    },
+    {
+      "text": "ersten",
+      "start_time": 438.739,
+      "end_time": 439.139
+    },
+    {
+      "text": "Frauenmannschaft",
+      "start_time": 439.139,
+      "end_time": 440.019
+    },
+    {
+      "text": "In",
+      "start_time": 440.339,
+      "end_time": 440.579
+    },
+    {
+      "text": "zwei",
+      "start_time": 440.579,
+      "end_time": 440.819
+    },
+    {
+      "text": "Referenzen",
+      "start_time": 440.819,
+      "end_time": 441.539
+    },
+    {
+      "text": "Richmond",
+      "start_time": 441.539,
+      "end_time": 441.939
+    },
+    {
+      "text": "Football",
+      "start_time": 441.939,
+      "end_time": 442.419
+    },
+    {
+      "text": "Club",
+      "start_time": 442.419,
+      "end_time": 442.739
+    },
+    {
+      "text": "Frauenmannschaft",
+      "start_time": 442.979,
+      "end_time": 443.939
+    },
+    {
+      "text": "und",
+      "start_time": 444.179,
+      "end_time": 444.419
+    },
+    {
+      "text": "das",
+      "start_time": 444.419,
+      "end_time": 444.579
+    },
+    {
+      "text": "Prädikat",
+      "start_time": 444.579,
+      "end_time": 445.219
+    },
+    {
+      "text": "Wer",
+      "start_time": 445.459,
+      "end_time": 445.779
+    },
+    {
+      "text": "war",
+      "start_time": 445.779,
+      "end_time": 445.859
+    },
+    {
+      "text": "der",
+      "start_time": 445.859,
+      "end_time": 446.019
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 446.019,
+      "end_time": 446.579
+    },
+    {
+      "text": "von",
+      "start_time": 446.579,
+      "end_time": 446.819
+    },
+    {
+      "text": "X",
+      "start_time": 446.819,
+      "end_time": 447.459
+    },
+    {
+      "text": "Ein",
+      "start_time": 447.539,
+      "end_time": 447.699
+    },
+    {
+      "text": "auf",
+      "start_time": 447.699,
+      "end_time": 447.859
+    },
+    {
+      "text": "die",
+      "start_time": 447.859,
+      "end_time": 448.019
+    },
+    {
+      "text": "Referenz",
+      "start_time": 448.019,
+      "end_time": 448.579
+    },
+    {
+      "text": "Prädikaten",
+      "start_time": 448.579,
+      "end_time": 449.139
+    },
+    {
+      "text": "Anmerkungen",
+      "start_time": 449.139,
+      "end_time": 449.779
+    },
+    {
+      "text": "für",
+      "start_time": 449.779,
+      "end_time": 449.939
+    },
+    {
+      "text": "Encodierte",
+      "start_time": 449.939,
+      "end_time": 450.819
+    },
+    {
+      "text": "Modelle",
+      "start_time": 450.819,
+      "end_time": 451.299
+    },
+    {
+      "text": "gibt",
+      "start_time": 451.539,
+      "end_time": 451.859
+    },
+    {
+      "text": "uns",
+      "start_time": 451.859,
+      "end_time": 452.019
+    },
+    {
+      "text": "diese",
+      "start_time": 452.019,
+      "end_time": 452.259
+    },
+    {
+      "text": "Fragezerlegung",
+      "start_time": 452.259,
+      "end_time": 453.219
+    },
+    {
+      "text": "Wir",
+      "start_time": 453.539,
+      "end_time": 453.699
+    },
+    {
+      "text": "zeigen",
+      "start_time": 453.699,
+      "end_time": 454.259
+    },
+    {
+      "text": "die",
+      "start_time": 454.579,
+      "end_time": 454.659
+    },
+    {
+      "text": "ursprüngliche",
+      "start_time": 454.659,
+      "end_time": 455.379
+    },
+    {
+      "text": "und",
+      "start_time": 455.379,
+      "end_time": 455.539
+    },
+    {
+      "text": "die",
+      "start_time": 455.539,
+      "end_time": 455.619
+    },
+    {
+      "text": "generierte",
+      "start_time": 455.619,
+      "end_time": 456.339
+    },
+    {
+      "text": "basierend",
+      "start_time": 456.659,
+      "end_time": 457.219
+    },
+    {
+      "text": "auf",
+      "start_time": 457.219,
+      "end_time": 457.379
+    },
+    {
+      "text": "Codi",
+      "start_time": 457.379,
+      "end_time": 457.699
+    },
+    {
+      "text": "zu",
+      "start_time": 457.699,
+      "end_time": 457.859
+    },
+    {
+      "text": "legen",
+      "start_time": 457.859,
+      "end_time": 458.259
+    },
+    {
+      "text": "Ermutigt",
+      "start_time": 458.499,
+      "end_time": 459.139
+    },
+    {
+      "text": "es",
+      "start_time": 459.139,
+      "end_time": 459.219
+    },
+    {
+      "text": "uns",
+      "start_time": 459.219,
+      "end_time": 459.619
+    },
+    {
+      "text": "unsere",
+      "start_time": 459.859,
+      "end_time": 460.259
+    },
+    {
+      "text": "generierten",
+      "start_time": 460.259,
+      "end_time": 460.819
+    },
+    {
+      "text": "Kontraktualisierungen",
+      "start_time": 460.819,
+      "end_time": 462.179
+    },
+    {
+      "text": "für",
+      "start_time": 462.179,
+      "end_time": 462.339
+    },
+    {
+      "text": "die",
+      "start_time": 462.339,
+      "end_time": 462.419
+    },
+    {
+      "text": "Bewertung",
+      "start_time": 462.419,
+      "end_time": 462.979
+    },
+    {
+      "text": "zu",
+      "start_time": 462.979,
+      "end_time": 463.139
+    },
+    {
+      "text": "kategorisieren",
+      "start_time": 463.139,
+      "end_time": 464.099
+    },
+    {
+      "text": "Insbesondere",
+      "start_time": 464.339,
+      "end_time": 465.059
+    },
+    {
+      "text": "erhalten",
+      "start_time": 465.059,
+      "end_time": 465.539
+    },
+    {
+      "text": "wir",
+      "start_time": 465.539,
+      "end_time": 465.699
+    },
+    {
+      "text": "zwei",
+      "start_time": 465.699,
+      "end_time": 465.939
+    },
+    {
+      "text": "Gruppen",
+      "start_time": 465.939,
+      "end_time": 466.339
+    },
+    {
+      "text": "von",
+      "start_time": 466.339,
+      "end_time": 466.499
+    },
+    {
+      "text": "Fragen",
+      "start_time": 466.499,
+      "end_time": 467.059
+    },
+    {
+      "text": "diejenigen",
+      "start_time": 467.299,
+      "end_time": 467.939
+    },
+    {
+      "text": "die",
+      "start_time": 468.259,
+      "end_time": 468.419
+    },
+    {
+      "text": "eine",
+      "start_time": 468.419,
+      "end_time": 468.659
+    },
+    {
+      "text": "Referenzänderung",
+      "start_time": 468.659,
+      "end_time": 469.619
+    },
+    {
+      "text": "erfahren",
+      "start_time": 469.619,
+      "end_time": 470.179
+    },
+    {
+      "text": "werden",
+      "start_time": 470.419,
+      "end_time": 470.819
+    },
+    {
+      "text": "Sie",
+      "start_time": 470.819,
+      "end_time": 470.899
+    },
+    {
+      "text": "Prädikate",
+      "start_time": 470.899,
+      "end_time": 471.459
+    },
+    {
+      "text": "beibehalten",
+      "start_time": 471.459,
+      "end_time": 472.259
+    },
+    {
+      "text": "und",
+      "start_time": 472.579,
+      "end_time": 472.739
+    },
+    {
+      "text": "diejenigen",
+      "start_time": 472.739,
+      "end_time": 473.299
+    },
+    {
+      "text": "die",
+      "start_time": 473.619,
+      "end_time": 473.699
+    },
+    {
+      "text": "eine",
+      "start_time": 473.699,
+      "end_time": 473.859
+    },
+    {
+      "text": "Prädikatsänderung",
+      "start_time": 473.859,
+      "end_time": 474.899
+    },
+    {
+      "text": "erfahren",
+      "start_time": 474.899,
+      "end_time": 475.379
+    },
+    {
+      "text": "und",
+      "start_time": 475.379,
+      "end_time": 475.619
+    },
+    {
+      "text": "optional",
+      "start_time": 475.619,
+      "end_time": 475.779
+    },
+    {
+      "text": "Referenzen",
+      "start_time": 475.779,
+      "end_time": 476.739
+    },
+    {
+      "text": "hinzufügen",
+      "start_time": 476.739,
+      "end_time": 477.539
+    },
+    {
+      "text": "Zum",
+      "start_time": 477.779,
+      "end_time": 477.939
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 477.939,
+      "end_time": 478.579
+    },
+    {
+      "text": "wer",
+      "start_time": 479.139,
+      "end_time": 479.459
+    },
+    {
+      "text": "war",
+      "start_time": 479.459,
+      "end_time": 479.539
+    },
+    {
+      "text": "der",
+      "start_time": 479.539,
+      "end_time": 479.699
+    },
+    {
+      "text": "Kapitän",
+      "start_time": 479.699,
+      "end_time": 480.259
+    },
+    {
+      "text": "von",
+      "start_time": 480.259,
+      "end_time": 480.419
+    },
+    {
+      "text": "Richmond's",
+      "start_time": 480.419,
+      "end_time": 480.979
+    },
+    {
+      "text": "zweiter",
+      "start_time": 480.979,
+      "end_time": 481.219
+    },
+    {
+      "text": "ReserveTeam",
+      "start_time": 481.219,
+      "end_time": 482.179
+    },
+    {
+      "text": "Es",
+      "start_time": 482.499,
+      "end_time": 482.659
+    },
+    {
+      "text": "eine",
+      "start_time": 482.659,
+      "end_time": 482.899
+    },
+    {
+      "text": "Referenzänderung",
+      "start_time": 482.899,
+      "end_time": 484.019
+    },
+    {
+      "text": "Wenn",
+      "start_time": 484.259,
+      "end_time": 484.579
+    },
+    {
+      "text": "World",
+      "start_time": 484.819,
+      "end_time": 485.139
+    },
+    {
+      "text": "Team",
+      "start_time": 485.139,
+      "end_time": 485.539
+    },
+    {
+      "text": "Nummer",
+      "start_time": 485.539,
+      "end_time": 485.699
+    },
+    {
+      "text": "neun",
+      "start_time": 485.699,
+      "end_time": 486.019
+    },
+    {
+      "text": "für",
+      "start_time": 486.019,
+      "end_time": 486.099
+    },
+    {
+      "text": "den",
+      "start_time": 486.099,
+      "end_time": 486.259
+    },
+    {
+      "text": "Verein",
+      "start_time": 486.259,
+      "end_time": 486.659
+    },
+    {
+      "text": "Eine",
+      "start_time": 486.979,
+      "end_time": 487.219
+    },
+    {
+      "text": "Prädikatsänderung",
+      "start_time": 487.219,
+      "end_time": 488.259
+    },
+    {
+      "text": "ist",
+      "start_time": 488.259,
+      "end_time": 488.579
+    },
+    {
+      "text": "Wir",
+      "start_time": 488.819,
+      "end_time": 489.059
+    },
+    {
+      "text": "bewerten",
+      "start_time": 489.059,
+      "end_time": 489.459
+    },
+    {
+      "text": "nun",
+      "start_time": 489.459,
+      "end_time": 489.619
+    },
+    {
+      "text": "die",
+      "start_time": 489.619,
+      "end_time": 489.779
+    },
+    {
+      "text": "Wirksamkeit",
+      "start_time": 489.779,
+      "end_time": 490.419
+    },
+    {
+      "text": "von",
+      "start_time": 490.419,
+      "end_time": 490.739
+    },
+    {
+      "text": "Ärgestörungen",
+      "start_time": 490.739,
+      "end_time": 491.699
+    },
+    {
+      "text": "bei",
+      "start_time": 492.019,
+      "end_time": 492.179
+    },
+    {
+      "text": "der",
+      "start_time": 492.179,
+      "end_time": 492.259
+    },
+    {
+      "text": "eigenen",
+      "start_time": 492.259,
+      "end_time": 492.579
+    },
+    {
+      "text": "EncodetrainingDaten",
+      "start_time": 492.579,
+      "end_time": 494.019
+    },
+    {
+      "text": "um",
+      "start_time": 494.019,
+      "end_time": 494.227
+    },
+    {
+      "text": "die",
+      "start_time": 494.435,
+      "end_time": 494.643
+    },
+    {
+      "text": "Wirksamkeit",
+      "start_time": 494.851,
+      "end_time": 495.059
+    },
+    {
+      "text": "der",
+      "start_time": 495.059,
+      "end_time": 495.139
+    },
+    {
+      "text": "Kontraktualisierung",
+      "start_time": 495.139,
+      "end_time": 497.379
+    },
+    {
+      "text": "insbesondere",
+      "start_time": 497.379,
+      "end_time": 497.539
+    },
+    {
+      "text": "effektiv",
+      "start_time": 497.779,
+      "end_time": 498.259
+    },
+    {
+      "text": "zu",
+      "start_time": 498.259,
+      "end_time": 498.419
+    },
+    {
+      "text": "bewerten",
+      "start_time": 498.419,
+      "end_time": 498.979
+    },
+    {
+      "text": "Experimentieren",
+      "start_time": 499.299,
+      "end_time": 500.099
+    },
+    {
+      "text": "wir",
+      "start_time": 500.099,
+      "end_time": 500.259
+    },
+    {
+      "text": "mit",
+      "start_time": 500.259,
+      "end_time": 500.419
+    },
+    {
+      "text": "zwei",
+      "start_time": 500.419,
+      "end_time": 500.659
+    },
+    {
+      "text": "Baseline's",
+      "start_time": 500.659,
+      "end_time": 501.139
+    },
+    {
+      "text": "für",
+      "start_time": 501.699,
+      "end_time": 501.859
+    },
+    {
+      "text": "die",
+      "start_time": 501.859,
+      "end_time": 501.939
+    },
+    {
+      "text": "Datenaugmentation",
+      "start_time": 501.939,
+      "end_time": 503.059
+    },
+    {
+      "text": "Die",
+      "start_time": 503.379,
+      "end_time": 503.459
+    },
+    {
+      "text": "erste",
+      "start_time": 503.459,
+      "end_time": 503.699
+    },
+    {
+      "text": "Baseline",
+      "start_time": 503.699,
+      "end_time": 504.339
+    },
+    {
+      "text": "heißt",
+      "start_time": 504.339,
+      "end_time": 504.579
+    },
+    {
+      "text": "Zufallsantwort",
+      "start_time": 504.579,
+      "end_time": 504.579
+    },
+    {
+      "text": "und",
+      "start_time": 505.699,
+      "end_time": 505.699
+    },
+    {
+      "text": "Fragengenerierung",
+      "start_time": 505.699,
+      "end_time": 506.659
+    },
+    {
+      "text": "Fügt",
+      "start_time": 506.899,
+      "end_time": 507.219
+    },
+    {
+      "text": "Daten",
+      "start_time": 507.219,
+      "end_time": 507.459
+    },
+    {
+      "text": "hinzu",
+      "start_time": 507.459,
+      "end_time": 508.019
+    },
+    {
+      "text": "die",
+      "start_time": 508.019,
+      "end_time": 508.099
+    },
+    {
+      "text": "keinen",
+      "start_time": 508.419,
+      "end_time": 508.739
+    },
+    {
+      "text": "Bezug",
+      "start_time": 508.739,
+      "end_time": 509.139
+    },
+    {
+      "text": "zur",
+      "start_time": 509.139,
+      "end_time": 509.299
+    },
+    {
+      "text": "ursprünglichen",
+      "start_time": 509.299,
+      "end_time": 510.019
+    },
+    {
+      "text": "Frage",
+      "start_time": 510.019,
+      "end_time": 510.739
+    },
+    {
+      "text": "haben",
+      "start_time": 510.739,
+      "end_time": 510.739
+    },
+    {
+      "text": "Das",
+      "start_time": 511.059,
+      "end_time": 511.219
+    },
+    {
+      "text": "heißt",
+      "start_time": 511.219,
+      "end_time": 511.539
+    },
+    {
+      "text": "Passagen",
+      "start_time": 511.859,
+      "end_time": 512.419
+    },
+    {
+      "text": "und",
+      "start_time": 512.419,
+      "end_time": 512.579
+    },
+    {
+      "text": "Antworten",
+      "start_time": 512.579,
+      "end_time": 513.059
+    },
+    {
+      "text": "werden",
+      "start_time": 513.059,
+      "end_time": 513.379
+    },
+    {
+      "text": "einfach",
+      "start_time": 513.379,
+      "end_time": 513.699
+    },
+    {
+      "text": "zufällig",
+      "start_time": 513.699,
+      "end_time": 514.179
+    },
+    {
+      "text": "aus",
+      "start_time": 514.179,
+      "end_time": 514.339
+    },
+    {
+      "text": "der",
+      "start_time": 514.339,
+      "end_time": 514.499
+    },
+    {
+      "text": "Wikipedia",
+      "start_time": 514.499,
+      "end_time": 515.059
+    },
+    {
+      "text": "genommen",
+      "start_time": 515.139,
+      "end_time": 515.619
+    },
+    {
+      "text": "Diese",
+      "start_time": 515.939,
+      "end_time": 516.099
+    },
+    {
+      "text": "Baseline",
+      "start_time": 516.179,
+      "end_time": 516.499
+    },
+    {
+      "text": "fügt",
+      "start_time": 516.499,
+      "end_time": 516.819
+    },
+    {
+      "text": "im",
+      "start_time": 516.819,
+      "end_time": 516.819
+    },
+    {
+      "text": "Grunde",
+      "start_time": 516.819,
+      "end_time": 517.139
+    },
+    {
+      "text": "mehr",
+      "start_time": 517.139,
+      "end_time": 517.379
+    },
+    {
+      "text": "Daten",
+      "start_time": 517.379,
+      "end_time": 517.699
+    },
+    {
+      "text": "hinzu",
+      "start_time": 517.699,
+      "end_time": 518.259
+    },
+    {
+      "text": "die",
+      "start_time": 518.579,
+      "end_time": 518.659
+    },
+    {
+      "text": "wie",
+      "start_time": 518.739,
+      "end_time": 518.819
+    },
+    {
+      "text": "entweder",
+      "start_time": 518.819,
+      "end_time": 519.219
+    },
+    {
+      "text": "aussehen",
+      "start_time": 519.219,
+      "end_time": 519.699
+    },
+    {
+      "text": "Bei",
+      "start_time": 520.019,
+      "end_time": 520.179
+    },
+    {
+      "text": "der",
+      "start_time": 520.179,
+      "end_time": 520.339
+    },
+    {
+      "text": "zweiten",
+      "start_time": 520.339,
+      "end_time": 520.739
+    },
+    {
+      "text": "Baseline",
+      "start_time": 520.739,
+      "end_time": 521.299
+    },
+    {
+      "text": "Goldantwort",
+      "start_time": 521.299,
+      "end_time": 521.299
+    },
+    {
+      "text": "und",
+      "start_time": 522.579,
+      "end_time": 522.579
+    },
+    {
+      "text": "Fragengenerierung",
+      "start_time": 522.659,
+      "end_time": 523.699
+    },
+    {
+      "text": "entfernen",
+      "start_time": 524.019,
+      "end_time": 524.419
+    },
+    {
+      "text": "wir",
+      "start_time": 524.419,
+      "end_time": 524.659
+    },
+    {
+      "text": "speziell",
+      "start_time": 524.659,
+      "end_time": 525.059
+    },
+    {
+      "text": "die",
+      "start_time": 525.059,
+      "end_time": 525.219
+    },
+    {
+      "text": "Referenzen",
+      "start_time": 525.219,
+      "end_time": 525.539
+    },
+    {
+      "text": "unserer",
+      "start_time": 525.859,
+      "end_time": 526.259
+    },
+    {
+      "text": "Methode",
+      "start_time": 526.259,
+      "end_time": 526.819
+    },
+    {
+      "text": "Hier",
+      "start_time": 527.059,
+      "end_time": 527.299
+    },
+    {
+      "text": "werden",
+      "start_time": 527.299,
+      "end_time": 527.539
+    },
+    {
+      "text": "alternative",
+      "start_time": 527.539,
+      "end_time": 527.779
+    },
+    {
+      "text": "Antworten",
+      "start_time": 528.019,
+      "end_time": 528.819
+    },
+    {
+      "text": "einfach",
+      "start_time": 528.819,
+      "end_time": 529.059
+    },
+    {
+      "text": "aus",
+      "start_time": 529.059,
+      "end_time": 529.219
+    },
+    {
+      "text": "der",
+      "start_time": 529.219,
+      "end_time": 529.299
+    },
+    {
+      "text": "selben",
+      "start_time": 529.299,
+      "end_time": 529.699
+    },
+    {
+      "text": "Passage",
+      "start_time": 529.699,
+      "end_time": 530.179
+    },
+    {
+      "text": "ausgewählt",
+      "start_time": 530.179,
+      "end_time": 530.819
+    },
+    {
+      "text": "die",
+      "start_time": 531.219,
+      "end_time": 531.299
+    },
+    {
+      "text": "die",
+      "start_time": 531.299,
+      "end_time": 531.459
+    },
+    {
+      "text": "Goldantwort",
+      "start_time": 531.459,
+      "end_time": 532.099
+    },
+    {
+      "text": "enthält",
+      "start_time": 532.099,
+      "end_time": 532.659
+    },
+    {
+      "text": "Wie",
+      "start_time": 532.899,
+      "end_time": 533.139
+    },
+    {
+      "text": "wir",
+      "start_time": 533.139,
+      "end_time": 533.299
+    },
+    {
+      "text": "sehen",
+      "start_time": 533.379,
+      "end_time": 533.539
+    },
+    {
+      "text": "die",
+      "start_time": 533.539,
+      "end_time": 533.619
+    },
+    {
+      "text": "Baseline",
+      "start_time": 533.619,
+      "end_time": 534.499
+    },
+    {
+      "text": "und",
+      "start_time": 534.499,
+      "end_time": 534.499
+    },
+    {
+      "text": "die",
+      "start_time": 534.499,
+      "end_time": 534.499
+    },
+    {
+      "text": "Ärgestörung",
+      "start_time": 534.499,
+      "end_time": 535.379
+    },
+    {
+      "text": "bei",
+      "start_time": 535.619,
+      "end_time": 535.779
+    },
+    {
+      "text": "der",
+      "start_time": 535.779,
+      "end_time": 535.939
+    },
+    {
+      "text": "Leseverständnisleistung",
+      "start_time": 535.939,
+      "end_time": 536.179
+    },
+    {
+      "text": "der",
+      "start_time": 536.659,
+      "end_time": 536.912
+    },
+    {
+      "text": "Wahrheit",
+      "start_time": 537.165,
+      "end_time": 537.419
+    },
+    {
+      "text": "des",
+      "start_time": 537.672,
+      "end_time": 537.925
+    },
+    {
+      "text": "Modells",
+      "start_time": 538.179,
+      "end_time": 538.579
+    },
+    {
+      "text": "zurück",
+      "start_time": 538.579,
+      "end_time": 538.819
+    },
+    {
+      "text": "auf",
+      "start_time": 538.819,
+      "end_time": 538.979
+    },
+    {
+      "text": "die",
+      "start_time": 539.059,
+      "end_time": 539.139
+    },
+    {
+      "text": "Frage",
+      "start_time": 539.139,
+      "end_time": 539.539
+    },
+    {
+      "text": "und",
+      "start_time": 539.539,
+      "end_time": 539.699
+    },
+    {
+      "text": "den",
+      "start_time": 539.699,
+      "end_time": 539.859
+    },
+    {
+      "text": "Kontext",
+      "start_time": 539.859,
+      "end_time": 540.499
+    },
+    {
+      "text": "Wir",
+      "start_time": 540.739,
+      "end_time": 540.979
+    },
+    {
+      "text": "experimentieren",
+      "start_time": 540.979,
+      "end_time": 541.779
+    },
+    {
+      "text": "mit",
+      "start_time": 541.779,
+      "end_time": 541.939
+    },
+    {
+      "text": "sechs",
+      "start_time": 541.939,
+      "end_time": 542.259
+    },
+    {
+      "text": "Art",
+      "start_time": 542.259,
+      "end_time": 542.499
+    },
+    {
+      "text": "of",
+      "start_time": 542.499,
+      "end_time": 542.659
+    },
+    {
+      "text": "DomainDatensätzen",
+      "start_time": 542.659,
+      "end_time": 543.859
+    },
+    {
+      "text": "und",
+      "start_time": 544.179,
+      "end_time": 544.339
+    },
+    {
+      "text": "präsentieren",
+      "start_time": 544.339,
+      "end_time": 544.899
+    },
+    {
+      "text": "hier",
+      "start_time": 544.899,
+      "end_time": 545.059
+    },
+    {
+      "text": "die",
+      "start_time": 545.059,
+      "end_time": 545.219
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 545.219,
+      "end_time": 545.939
+    },
+    {
+      "text": "Dabei",
+      "start_time": 546.213,
+      "end_time": 546.533
+    },
+    {
+      "text": "wird",
+      "start_time": 546.533,
+      "end_time": 546.693
+    },
+    {
+      "text": "das",
+      "start_time": 546.693,
+      "end_time": 546.933
+    },
+    {
+      "text": "Training",
+      "start_time": 546.933,
+      "end_time": 547.173
+    },
+    {
+      "text": "der",
+      "start_time": 547.173,
+      "end_time": 547.493
+    },
+    {
+      "text": "Daten",
+      "start_time": 547.493,
+      "end_time": 547.573
+    },
+    {
+      "text": "in",
+      "start_time": 547.573,
+      "end_time": 547.653
+    },
+    {
+      "text": "der",
+      "start_time": 547.653,
+      "end_time": 547.813
+    },
+    {
+      "text": "Weiterung",
+      "start_time": 547.813,
+      "end_time": 548.293
+    },
+    {
+      "text": "verdoppelt",
+      "start_time": 548.293,
+      "end_time": 549.013
+    },
+    {
+      "text": "Wir",
+      "start_time": 549.173,
+      "end_time": 549.413
+    },
+    {
+      "text": "stellen",
+      "start_time": 549.413,
+      "end_time": 549.733
+    },
+    {
+      "text": "fest",
+      "start_time": 549.733,
+      "end_time": 550.133
+    },
+    {
+      "text": "dass",
+      "start_time": 550.453,
+      "end_time": 550.613
+    },
+    {
+      "text": "beide",
+      "start_time": 550.613,
+      "end_time": 550.853
+    },
+    {
+      "text": "Datenargumentierungsbaseline",
+      "start_time": 550.853,
+      "end_time": 552.293
+    },
+    {
+      "text": "nicht",
+      "start_time": 552.373,
+      "end_time": 552.533
+    },
+    {
+      "text": "in",
+      "start_time": 552.533,
+      "end_time": 552.613
+    },
+    {
+      "text": "der",
+      "start_time": 552.613,
+      "end_time": 552.693
+    },
+    {
+      "text": "Lage",
+      "start_time": 552.693,
+      "end_time": 553.013
+    },
+    {
+      "text": "sind",
+      "start_time": 553.013,
+      "end_time": 553.333
+    },
+    {
+      "text": "die",
+      "start_time": 553.653,
+      "end_time": 553.733
+    },
+    {
+      "text": "OutofdomainGeneralisierung",
+      "start_time": 553.733,
+      "end_time": 555.413
+    },
+    {
+      "text": "zu",
+      "start_time": 555.413,
+      "end_time": 555.493
+    },
+    {
+      "text": "verbessern",
+      "start_time": 555.493,
+      "end_time": 556.133
+    },
+    {
+      "text": "Tatsächlich",
+      "start_time": 556.453,
+      "end_time": 557.253
+    },
+    {
+      "text": "leistet",
+      "start_time": 557.493,
+      "end_time": 557.973
+    },
+    {
+      "text": "ein",
+      "start_time": 557.973,
+      "end_time": 558.053
+    },
+    {
+      "text": "Ensemble",
+      "start_time": 558.053,
+      "end_time": 558.533
+    },
+    {
+      "text": "von",
+      "start_time": 558.533,
+      "end_time": 558.693
+    },
+    {
+      "text": "sechs",
+      "start_time": 558.693,
+      "end_time": 559.013
+    },
+    {
+      "text": "Modellen",
+      "start_time": 559.013,
+      "end_time": 559.493
+    },
+    {
+      "text": "die",
+      "start_time": 559.893,
+      "end_time": 560.053
+    },
+    {
+      "text": "auf",
+      "start_time": 560.053,
+      "end_time": 560.213
+    },
+    {
+      "text": "den",
+      "start_time": 560.213,
+      "end_time": 560.373
+    },
+    {
+      "text": "Originaldaten",
+      "start_time": 560.373,
+      "end_time": 561.173
+    },
+    {
+      "text": "trainiert",
+      "start_time": 561.173,
+      "end_time": 561.653
+    },
+    {
+      "text": "wurden",
+      "start_time": 561.653,
+      "end_time": 561.973
+    },
+    {
+      "text": "die",
+      "start_time": 562.293,
+      "end_time": 562.453
+    },
+    {
+      "text": "Anschein",
+      "start_time": 562.453,
+      "end_time": 562.853
+    },
+    {
+      "text": "mit",
+      "start_time": 562.853,
+      "end_time": 562.933
+    },
+    {
+      "text": "sechster",
+      "start_time": 562.933,
+      "end_time": 563.333
+    },
+    {
+      "text": "Baseline",
+      "start_time": 563.333,
+      "end_time": 563.813
+    },
+    {
+      "text": "zu",
+      "start_time": 563.813,
+      "end_time": 563.893
+    },
+    {
+      "text": "sein",
+      "start_time": 563.893,
+      "end_time": 564.213
+    },
+    {
+      "text": "scheint",
+      "start_time": 564.213,
+      "end_time": 564.693
+    },
+    {
+      "text": "Im",
+      "start_time": 564.933,
+      "end_time": 565.093
+    },
+    {
+      "text": "Vergleich",
+      "start_time": 565.093,
+      "end_time": 565.573
+    },
+    {
+      "text": "zu",
+      "start_time": 565.573,
+      "end_time": 565.653
+    },
+    {
+      "text": "dieser",
+      "start_time": 565.653,
+      "end_time": 565.973
+    },
+    {
+      "text": "Baseline",
+      "start_time": 565.973,
+      "end_time": 566.613
+    },
+    {
+      "text": "stellen",
+      "start_time": 566.773,
+      "end_time": 567.173
+    },
+    {
+      "text": "wir",
+      "start_time": 567.173,
+      "end_time": 567.253
+    },
+    {
+      "text": "fest",
+      "start_time": 567.253,
+      "end_time": 567.733
+    },
+    {
+      "text": "dass",
+      "start_time": 567.973,
+      "end_time": 568.133
+    },
+    {
+      "text": "alle",
+      "start_time": 568.133,
+      "end_time": 568.373
+    },
+    {
+      "text": "Kontraktuale",
+      "start_time": 568.373,
+      "end_time": 569.333
+    },
+    {
+      "text": "in",
+      "start_time": 569.333,
+      "end_time": 569.413
+    },
+    {
+      "text": "der",
+      "start_time": 569.413,
+      "end_time": 569.573
+    },
+    {
+      "text": "Lage",
+      "start_time": 569.573,
+      "end_time": 569.893
+    },
+    {
+      "text": "sind",
+      "start_time": 569.893,
+      "end_time": 570.213
+    },
+    {
+      "text": "die",
+      "start_time": 570.533,
+      "end_time": 570.613
+    },
+    {
+      "text": "OutofdomainPerformance",
+      "start_time": 570.613,
+      "end_time": 571.973
+    },
+    {
+      "text": "zu",
+      "start_time": 571.973,
+      "end_time": 572.053
+    },
+    {
+      "text": "verbessern",
+      "start_time": 572.053,
+      "end_time": 572.693
+    },
+    {
+      "text": "während",
+      "start_time": 572.853,
+      "end_time": 573.333
+    },
+    {
+      "text": "die",
+      "start_time": 573.333,
+      "end_time": 573.413
+    },
+    {
+      "text": "IndomainPerformance",
+      "start_time": 573.413,
+      "end_time": 574.613
+    },
+    {
+      "text": "beibehalten",
+      "start_time": 574.613,
+      "end_time": 575.333
+    },
+    {
+      "text": "wird",
+      "start_time": 575.333,
+      "end_time": 575.573
+    },
+    {
+      "text": "Dies",
+      "start_time": 575.813,
+      "end_time": 576.053
+    },
+    {
+      "text": "deutet",
+      "start_time": 576.053,
+      "end_time": 576.373
+    },
+    {
+      "text": "darauf",
+      "start_time": 576.373,
+      "end_time": 576.613
+    },
+    {
+      "text": "hin",
+      "start_time": 576.613,
+      "end_time": 577.013
+    },
+    {
+      "text": "dass",
+      "start_time": 577.253,
+      "end_time": 577.493
+    },
+    {
+      "text": "das",
+      "start_time": 577.493,
+      "end_time": 577.653
+    },
+    {
+      "text": "Schließen",
+      "start_time": 577.653,
+      "end_time": 578.053
+    },
+    {
+      "text": "der",
+      "start_time": 578.053,
+      "end_time": 578.213
+    },
+    {
+      "text": "Argumentationslücken",
+      "start_time": 578.213,
+      "end_time": 579.333
+    },
+    {
+      "text": "des",
+      "start_time": 579.333,
+      "end_time": 579.493
+    },
+    {
+      "text": "Modells",
+      "start_time": 579.493,
+      "end_time": 579.973
+    },
+    {
+      "text": "durch",
+      "start_time": 579.973,
+      "end_time": 580.213
+    },
+    {
+      "text": "Kontraktualisierung",
+      "start_time": 580.213,
+      "end_time": 581.493
+    },
+    {
+      "text": "effektiver",
+      "start_time": 581.813,
+      "end_time": 582.373
+    },
+    {
+      "text": "ist",
+      "start_time": 582.373,
+      "end_time": 582.613
+    },
+    {
+      "text": "als",
+      "start_time": 582.613,
+      "end_time": 582.773
+    },
+    {
+      "text": "das",
+      "start_time": 582.773,
+      "end_time": 583.013
+    },
+    {
+      "text": "Hinzufügen",
+      "start_time": 583.013,
+      "end_time": 583.653
+    },
+    {
+      "text": "von",
+      "start_time": 583.653,
+      "end_time": 583.893
+    },
+    {
+      "text": "mehr",
+      "start_time": 583.893,
+      "end_time": 584.053
+    },
+    {
+      "text": "Daten",
+      "start_time": 584.053,
+      "end_time": 584.453
+    },
+    {
+      "text": "aus",
+      "start_time": 584.453,
+      "end_time": 584.613
+    },
+    {
+      "text": "der",
+      "start_time": 584.613,
+      "end_time": 584.773
+    },
+    {
+      "text": "Trainingsverteilung",
+      "start_time": 584.773,
+      "end_time": 585.733
+    },
+    {
+      "text": "Außerdem",
+      "start_time": 586.133,
+      "end_time": 586.613
+    },
+    {
+      "text": "stellen",
+      "start_time": 586.613,
+      "end_time": 586.933
+    },
+    {
+      "text": "wir",
+      "start_time": 586.933,
+      "end_time": 587.093
+    },
+    {
+      "text": "fest",
+      "start_time": 587.093,
+      "end_time": 587.573
+    },
+    {
+      "text": "dass",
+      "start_time": 587.893,
+      "end_time": 588.453
+    },
+    {
+      "text": "die",
+      "start_time": 588.533,
+      "end_time": 588.613
+    },
+    {
+      "text": "Verwendung",
+      "start_time": 588.613,
+      "end_time": 589.173
+    },
+    {
+      "text": "von",
+      "start_time": 589.173,
+      "end_time": 589.333
+    },
+    {
+      "text": "Referenzstichproben",
+      "start_time": 589.333,
+      "end_time": 590.533
+    },
+    {
+      "text": "als",
+      "start_time": 590.533,
+      "end_time": 590.693
+    },
+    {
+      "text": "alternative",
+      "start_time": 590.773,
+      "end_time": 590.773
+    },
+    {
+      "text": "Ergebnisse",
+      "start_time": 591.253,
+      "end_time": 591.973
+    },
+    {
+      "text": "oder",
+      "start_time": 591.973,
+      "end_time": 592.213
+    },
+    {
+      "text": "Antworten",
+      "start_time": 592.213,
+      "end_time": 592.853
+    },
+    {
+      "text": "wichtig",
+      "start_time": 593.173,
+      "end_time": 593.573
+    },
+    {
+      "text": "für",
+      "start_time": 593.573,
+      "end_time": 593.733
+    },
+    {
+      "text": "effektive",
+      "start_time": 593.733,
+      "end_time": 594.293
+    },
+    {
+      "text": "CL",
+      "start_time": 594.293,
+      "end_time": 595.093
+    },
+    {
+      "text": "is",
+      "start_time": 595.093,
+      "end_time": 595.173
+    },
+    {
+      "text": "Wir",
+      "start_time": 595.413,
+      "end_time": 595.653
+    },
+    {
+      "text": "experimentieren",
+      "start_time": 595.733,
+      "end_time": 596.453
+    },
+    {
+      "text": "auch",
+      "start_time": 596.453,
+      "end_time": 596.693
+    },
+    {
+      "text": "mit",
+      "start_time": 596.693,
+      "end_time": 596.853
+    },
+    {
+      "text": "einem",
+      "start_time": 596.853,
+      "end_time": 597.013
+    },
+    {
+      "text": "OpendomainSet",
+      "start_time": 597.013,
+      "end_time": 598.213
+    },
+    {
+      "text": "bei",
+      "start_time": 598.693,
+      "end_time": 598.933
+    },
+    {
+      "text": "dem",
+      "start_time": 598.933,
+      "end_time": 599.093
+    },
+    {
+      "text": "das",
+      "start_time": 599.093,
+      "end_time": 599.253
+    },
+    {
+      "text": "Modell",
+      "start_time": 599.253,
+      "end_time": 599.653
+    },
+    {
+      "text": "nur",
+      "start_time": 599.653,
+      "end_time": 599.893
+    },
+    {
+      "text": "die",
+      "start_time": 599.893,
+      "end_time": 599.973
+    },
+    {
+      "text": "Frage",
+      "start_time": 599.973,
+      "end_time": 600.373
+    },
+    {
+      "text": "sieht",
+      "start_time": 600.373,
+      "end_time": 600.693
+    },
+    {
+      "text": "und",
+      "start_time": 601.013,
+      "end_time": 601.173
+    },
+    {
+      "text": "noch",
+      "start_time": 601.173,
+      "end_time": 601.333
+    },
+    {
+      "text": "einmal",
+      "start_time": 601.333,
+      "end_time": 601.653
+    },
+    {
+      "text": "bewerten",
+      "start_time": 601.653,
+      "end_time": 602.133
+    },
+    {
+      "text": "wir",
+      "start_time": 602.133,
+      "end_time": 602.293
+    },
+    {
+      "text": "vier",
+      "start_time": 602.453,
+      "end_time": 602.773
+    },
+    {
+      "text": "OutofdomainDatensätzen",
+      "start_time": 602.773,
+      "end_time": 604.213
+    },
+    {
+      "text": "Wir",
+      "start_time": 604.533,
+      "end_time": 604.693
+    },
+    {
+      "text": "stellen",
+      "start_time": 604.693,
+      "end_time": 605.093
+    },
+    {
+      "text": "fest",
+      "start_time": 605.093,
+      "end_time": 605.413
+    },
+    {
+      "text": "dass",
+      "start_time": 605.813,
+      "end_time": 605.973
+    },
+    {
+      "text": "beide",
+      "start_time": 605.973,
+      "end_time": 606.293
+    },
+    {
+      "text": "Modelle",
+      "start_time": 606.293,
+      "end_time": 606.773
+    },
+    {
+      "text": "für",
+      "start_time": 606.773,
+      "end_time": 606.933
+    },
+    {
+      "text": "die",
+      "start_time": 606.933,
+      "end_time": 607.093
+    },
+    {
+      "text": "OutofdomainGeneralisierung",
+      "start_time": 607.093,
+      "end_time": 608.533
+    },
+    {
+      "text": "nicht",
+      "start_time": 608.533,
+      "end_time": 608.773
+    },
+    {
+      "text": "so",
+      "start_time": 608.773,
+      "end_time": 608.933
+    },
+    {
+      "text": "effektiv",
+      "start_time": 608.933,
+      "end_time": 609.493
+    },
+    {
+      "text": "sind",
+      "start_time": 609.493,
+      "end_time": 609.813
+    },
+    {
+      "text": "Allerdings",
+      "start_time": 610.133,
+      "end_time": 610.613
+    },
+    {
+      "text": "zeigt",
+      "start_time": 610.613,
+      "end_time": 610.933
+    },
+    {
+      "text": "die",
+      "start_time": 610.933,
+      "end_time": 611.013
+    },
+    {
+      "text": "Datenverstärkung",
+      "start_time": 611.013,
+      "end_time": 611.893
+    },
+    {
+      "text": "mit",
+      "start_time": 611.893,
+      "end_time": 612.053
+    },
+    {
+      "text": "Ergebnis",
+      "start_time": 612.053,
+      "end_time": 612.453
+    },
+    {
+      "text": "deutlichere",
+      "start_time": 612.453,
+      "end_time": 613.013
+    },
+    {
+      "text": "Verbesserungen",
+      "start_time": 613.013,
+      "end_time": 613.893
+    },
+    {
+      "text": "Wir",
+      "start_time": 614.053,
+      "end_time": 614.293
+    },
+    {
+      "text": "verbessern",
+      "start_time": 614.293,
+      "end_time": 614.853
+    },
+    {
+      "text": "sogar",
+      "start_time": 614.853,
+      "end_time": 615.173
+    },
+    {
+      "text": "im",
+      "start_time": 615.173,
+      "end_time": 615.253
+    },
+    {
+      "text": "IndomainEncoderDatensatz",
+      "start_time": 615.253,
+      "end_time": 617.093
+    },
+    {
+      "text": "Wir",
+      "start_time": 617.093,
+      "end_time": 617.333
+    },
+    {
+      "text": "vermuten",
+      "start_time": 617.333,
+      "end_time": 617.973
+    },
+    {
+      "text": "dass",
+      "start_time": 618.213,
+      "end_time": 618.373
+    },
+    {
+      "text": "die",
+      "start_time": 618.373,
+      "end_time": 618.453
+    },
+    {
+      "text": "Kontraktualdatenverstärkung",
+      "start_time": 618.453,
+      "end_time": 620.213
+    },
+    {
+      "text": "dem",
+      "start_time": 620.213,
+      "end_time": 620.373
+    },
+    {
+      "text": "Modell",
+      "start_time": 620.373,
+      "end_time": 620.693
+    },
+    {
+      "text": "hilft",
+      "start_time": 620.693,
+      "end_time": 621.173
+    },
+    {
+      "text": "bessere",
+      "start_time": 621.413,
+      "end_time": 621.893
+    },
+    {
+      "text": "AbfrageEnglungs",
+      "start_time": 621.893,
+      "end_time": 622.853
+    },
+    {
+      "text": "für",
+      "start_time": 622.853,
+      "end_time": 623.013
+    },
+    {
+      "text": "sehr",
+      "start_time": 623.013,
+      "end_time": 623.253
+    },
+    {
+      "text": "ähnliche",
+      "start_time": 623.333,
+      "end_time": 623.733
+    },
+    {
+      "text": "Abfragen",
+      "start_time": 623.733,
+      "end_time": 624.213
+    },
+    {
+      "text": "zu",
+      "start_time": 624.213,
+      "end_time": 624.373
+    },
+    {
+      "text": "lernen",
+      "start_time": 624.373,
+      "end_time": 624.773
+    },
+    {
+      "text": "Zum",
+      "start_time": 625.013,
+      "end_time": 625.253
+    },
+    {
+      "text": "Schluss",
+      "start_time": 625.253,
+      "end_time": 625.653
+    },
+    {
+      "text": "bewerten",
+      "start_time": 625.653,
+      "end_time": 626.053
+    },
+    {
+      "text": "wir",
+      "start_time": 626.053,
+      "end_time": 626.293
+    },
+    {
+      "text": "auch",
+      "start_time": 626.293,
+      "end_time": 626.373
+    },
+    {
+      "text": "die",
+      "start_time": 626.373,
+      "end_time": 626.453
+    },
+    {
+      "text": "Fähigkeit",
+      "start_time": 626.453,
+      "end_time": 627.013
+    },
+    {
+      "text": "des",
+      "start_time": 627.013,
+      "end_time": 627.173
+    },
+    {
+      "text": "Modells",
+      "start_time": 627.173,
+      "end_time": 627.653
+    },
+    {
+      "text": "die",
+      "start_time": 628.053,
+      "end_time": 628.133
+    },
+    {
+      "text": "Konsistenz",
+      "start_time": 628.133,
+      "end_time": 628.773
+    },
+    {
+      "text": "in",
+      "start_time": 628.773,
+      "end_time": 628.853
+    },
+    {
+      "text": "der",
+      "start_time": 628.853,
+      "end_time": 629.013
+    },
+    {
+      "text": "lokalen",
+      "start_time": 629.013,
+      "end_time": 629.493
+    },
+    {
+      "text": "Nachbarschaft",
+      "start_time": 629.493,
+      "end_time": 630.133
+    },
+    {
+      "text": "der",
+      "start_time": 630.133,
+      "end_time": 630.293
+    },
+    {
+      "text": "ursprünglichen",
+      "start_time": 630.293,
+      "end_time": 630.933
+    },
+    {
+      "text": "Frage",
+      "start_time": 630.933,
+      "end_time": 631.333
+    },
+    {
+      "text": "zu",
+      "start_time": 631.333,
+      "end_time": 631.493
+    },
+    {
+      "text": "verbessern",
+      "start_time": 631.493,
+      "end_time": 632.053
+    },
+    {
+      "text": "Konsistenz",
+      "start_time": 632.373,
+      "end_time": 633.013
+    },
+    {
+      "text": "mit",
+      "start_time": 633.013,
+      "end_time": 633.093
+    },
+    {
+      "text": "dem",
+      "start_time": 633.173,
+      "end_time": 633.333
+    },
+    {
+      "text": "WortprobenS",
+      "start_time": 633.573,
+      "end_time": 634.213
+    },
+    {
+      "text": "fragen",
+      "start_time": 634.213,
+      "end_time": 634.613
+    },
+    {
+      "text": "auf",
+      "start_time": 635.013,
+      "end_time": 635.173
+    },
+    {
+      "text": "die",
+      "start_time": 635.173,
+      "end_time": 635.253
+    },
+    {
+      "text": "das",
+      "start_time": 635.253,
+      "end_time": 635.413
+    },
+    {
+      "text": "Modell",
+      "start_time": 635.413,
+      "end_time": 635.733
+    },
+    {
+      "text": "korrekt",
+      "start_time": 635.733,
+      "end_time": 636.133
+    },
+    {
+      "text": "geantwortet",
+      "start_time": 636.133,
+      "end_time": 636.853
+    },
+    {
+      "text": "hat",
+      "start_time": 636.853,
+      "end_time": 637.093
+    },
+    {
+      "text": "bei",
+      "start_time": 637.333,
+      "end_time": 637.573
+    },
+    {
+      "text": "denen",
+      "start_time": 637.573,
+      "end_time": 637.813
+    },
+    {
+      "text": "sowohl",
+      "start_time": 637.813,
+      "end_time": 638.213
+    },
+    {
+      "text": "die",
+      "start_time": 638.213,
+      "end_time": 638.293
+    },
+    {
+      "text": "ursprüngliche",
+      "start_time": 638.293,
+      "end_time": 639.093
+    },
+    {
+      "text": "als",
+      "start_time": 639.093,
+      "end_time": 639.253
+    },
+    {
+      "text": "auch",
+      "start_time": 639.253,
+      "end_time": 639.413
+    },
+    {
+      "text": "die",
+      "start_time": 639.413,
+      "end_time": 639.493
+    },
+    {
+      "text": "Kontraktualfrage",
+      "start_time": 639.493,
+      "end_time": 640.533
+    },
+    {
+      "text": "korrekt",
+      "start_time": 640.533,
+      "end_time": 640.933
+    },
+    {
+      "text": "beantwortet",
+      "start_time": 640.933,
+      "end_time": 641.573
+    },
+    {
+      "text": "werden",
+      "start_time": 641.573,
+      "end_time": 641.893
+    },
+    {
+      "text": "Dies",
+      "start_time": 642.133,
+      "end_time": 642.373
+    },
+    {
+      "text": "hilft",
+      "start_time": 642.373,
+      "end_time": 642.693
+    },
+    {
+      "text": "uns",
+      "start_time": 642.693,
+      "end_time": 642.853
+    },
+    {
+      "text": "explizit",
+      "start_time": 642.853,
+      "end_time": 643.573
+    },
+    {
+      "text": "die",
+      "start_time": 643.973,
+      "end_time": 644.053
+    },
+    {
+      "text": "Robustheit",
+      "start_time": 644.053,
+      "end_time": 644.613
+    },
+    {
+      "text": "des",
+      "start_time": 644.613,
+      "end_time": 644.773
+    },
+    {
+      "text": "Modells",
+      "start_time": 644.773,
+      "end_time": 645.173
+    },
+    {
+      "text": "zu",
+      "start_time": 645.173,
+      "end_time": 645.333
+    },
+    {
+      "text": "messen",
+      "start_time": 645.333,
+      "end_time": 645.733
+    },
+    {
+      "text": "gegen",
+      "start_time": 646.053,
+      "end_time": 646.293
+    },
+    {
+      "text": "kleine",
+      "start_time": 646.293,
+      "end_time": 646.613
+    },
+    {
+      "text": "Störungen",
+      "start_time": 646.613,
+      "end_time": 647.173
+    },
+    {
+      "text": "in",
+      "start_time": 647.173,
+      "end_time": 647.333
+    },
+    {
+      "text": "der",
+      "start_time": 647.333,
+      "end_time": 647.493
+    },
+    {
+      "text": "Nachbarschaft",
+      "start_time": 647.493,
+      "end_time": 648.053
+    },
+    {
+      "text": "des",
+      "start_time": 648.053,
+      "end_time": 648.213
+    },
+    {
+      "text": "ursprünglichen",
+      "start_time": 648.213,
+      "end_time": 649.013
+    },
+    {
+      "text": "Eingabes",
+      "start_time": 649.013,
+      "end_time": 649.733
+    },
+    {
+      "text": "Wir",
+      "start_time": 649.893,
+      "end_time": 650.133
+    },
+    {
+      "text": "experimentieren",
+      "start_time": 650.133,
+      "end_time": 650.933
+    },
+    {
+      "text": "mit",
+      "start_time": 650.933,
+      "end_time": 651.093
+    },
+    {
+      "text": "fünf",
+      "start_time": 651.093,
+      "end_time": 651.413
+    },
+    {
+      "text": "Datensätzen",
+      "start_time": 651.413,
+      "end_time": 652.213
+    },
+    {
+      "text": "die",
+      "start_time": 652.533,
+      "end_time": 652.613
+    },
+    {
+      "text": "Paare",
+      "start_time": 652.613,
+      "end_time": 652.933
+    },
+    {
+      "text": "von",
+      "start_time": 652.933,
+      "end_time": 653.093
+    },
+    {
+      "text": "Fragen",
+      "start_time": 653.093,
+      "end_time": 653.493
+    },
+    {
+      "text": "enthalten",
+      "start_time": 653.493,
+      "end_time": 654.053
+    },
+    {
+      "text": "die",
+      "start_time": 654.373,
+      "end_time": 654.453
+    },
+    {
+      "text": "semantisch",
+      "start_time": 654.453,
+      "end_time": 655.013
+    },
+    {
+      "text": "nahe",
+      "start_time": 655.013,
+      "end_time": 655.253
+    },
+    {
+      "text": "beieinander",
+      "start_time": 655.253,
+      "end_time": 655.733
+    },
+    {
+      "text": "liegen",
+      "start_time": 655.733,
+      "end_time": 656.133
+    },
+    {
+      "text": "abgesehen",
+      "start_time": 656.373,
+      "end_time": 656.933
+    },
+    {
+      "text": "von",
+      "start_time": 656.933,
+      "end_time": 657.093
+    },
+    {
+      "text": "den",
+      "start_time": 657.093,
+      "end_time": 657.253
+    },
+    {
+      "text": "drei",
+      "start_time": 657.253,
+      "end_time": 657.493
+    },
+    {
+      "text": "Datensätzen",
+      "start_time": 657.493,
+      "end_time": 658.213
+    },
+    {
+      "text": "die",
+      "start_time": 658.213,
+      "end_time": 658.293
+    },
+    {
+      "text": "Bigus",
+      "start_time": 658.293,
+      "end_time": 659.493
+    },
+    {
+      "text": "und",
+      "start_time": 659.493,
+      "end_time": 659.653
+    },
+    {
+      "text": "CoraContrast",
+      "start_time": 659.653,
+      "end_time": 660.613
+    },
+    {
+      "text": "bereits",
+      "start_time": 660.613,
+      "end_time": 660.933
+    },
+    {
+      "text": "verfügbar",
+      "start_time": 662.133,
+      "end_time": 662.293
+    },
+    {
+      "text": "sind",
+      "start_time": 662.293,
+      "end_time": 662.693
+    },
+    {
+      "text": "Bewerten",
+      "start_time": 662.933,
+      "end_time": 663.493
+    },
+    {
+      "text": "wir",
+      "start_time": 663.493,
+      "end_time": 663.653
+    },
+    {
+      "text": "auch",
+      "start_time": 663.653,
+      "end_time": 663.813
+    },
+    {
+      "text": "Kontraktualisierungen",
+      "start_time": 663.813,
+      "end_time": 665.573
+    },
+    {
+      "text": "die",
+      "start_time": 665.973,
+      "end_time": 666.053
+    },
+    {
+      "text": "mit",
+      "start_time": 666.053,
+      "end_time": 666.293
+    },
+    {
+      "text": "OriginalEnglungsfragen",
+      "start_time": 666.293,
+      "end_time": 667.653
+    },
+    {
+      "text": "gepaart",
+      "start_time": 667.653,
+      "end_time": 668.133
+    },
+    {
+      "text": "sind",
+      "start_time": 668.133,
+      "end_time": 668.453
+    },
+    {
+      "text": "basierend",
+      "start_time": 668.693,
+      "end_time": 669.093
+    },
+    {
+      "text": "darauf",
+      "start_time": 669.093,
+      "end_time": 669.493
+    },
+    {
+      "text": "ob",
+      "start_time": 669.813,
+      "end_time": 669.893
+    },
+    {
+      "text": "sie",
+      "start_time": 669.893,
+      "end_time": 670.053
+    },
+    {
+      "text": "eine",
+      "start_time": 670.053,
+      "end_time": 670.293
+    },
+    {
+      "text": "Predikats",
+      "start_time": 670.293,
+      "end_time": 670.933
+    },
+    {
+      "text": "oder",
+      "start_time": 670.933,
+      "end_time": 671.093
+    },
+    {
+      "text": "Referenzänderung",
+      "start_time": 671.093,
+      "end_time": 672.053
+    },
+    {
+      "text": "erfahren",
+      "start_time": 672.053,
+      "end_time": 672.613
+    },
+    {
+      "text": "haben",
+      "start_time": 672.613,
+      "end_time": 672.933
+    },
+    {
+      "text": "Diese",
+      "start_time": 673.333,
+      "end_time": 673.573
+    },
+    {
+      "text": "Untergruppen",
+      "start_time": 673.573,
+      "end_time": 674.133
+    },
+    {
+      "text": "wurden",
+      "start_time": 674.133,
+      "end_time": 674.373
+    },
+    {
+      "text": "intern",
+      "start_time": 674.373,
+      "end_time": 674.773
+    },
+    {
+      "text": "annotiert",
+      "start_time": 674.773,
+      "end_time": 675.413
+    },
+    {
+      "text": "um",
+      "start_time": 675.813,
+      "end_time": 675.973
+    },
+    {
+      "text": "Rauschen",
+      "start_time": 675.973,
+      "end_time": 676.373
+    },
+    {
+      "text": "zu",
+      "start_time": 676.373,
+      "end_time": 676.533
+    },
+    {
+      "text": "eliminieren",
+      "start_time": 676.533,
+      "end_time": 677.333
+    },
+    {
+      "text": "und",
+      "start_time": 677.573,
+      "end_time": 677.733
+    },
+    {
+      "text": "werden",
+      "start_time": 677.733,
+      "end_time": 677.973
+    },
+    {
+      "text": "als",
+      "start_time": 677.973,
+      "end_time": 678.293
+    },
+    {
+      "text": "Ressource",
+      "start_time": 678.293,
+      "end_time": 678.693
+    },
+    {
+      "text": "bereitgestellt",
+      "start_time": 678.693,
+      "end_time": 679.653
+    },
+    {
+      "text": "Alle",
+      "start_time": 679.893,
+      "end_time": 680.213
+    },
+    {
+      "text": "Baselines",
+      "start_time": 680.213,
+      "end_time": 680.693
+    },
+    {
+      "text": "sind",
+      "start_time": 680.693,
+      "end_time": 680.853
+    },
+    {
+      "text": "nicht",
+      "start_time": 680.853,
+      "end_time": 681.093
+    },
+    {
+      "text": "in",
+      "start_time": 681.093,
+      "end_time": 681.173
+    },
+    {
+      "text": "der",
+      "start_time": 681.173,
+      "end_time": 681.333
+    },
+    {
+      "text": "Lage",
+      "start_time": 681.333,
+      "end_time": 681.653
+    },
+    {
+      "text": "die",
+      "start_time": 682.053,
+      "end_time": 682.213
+    },
+    {
+      "text": "Konsistenz",
+      "start_time": 682.213,
+      "end_time": 682.853
+    },
+    {
+      "text": "signifikant",
+      "start_time": 682.853,
+      "end_time": 683.493
+    },
+    {
+      "text": "zu",
+      "start_time": 683.493,
+      "end_time": 683.653
+    },
+    {
+      "text": "verbessern",
+      "start_time": 683.653,
+      "end_time": 684.293
+    },
+    {
+      "text": "mit",
+      "start_time": 684.533,
+      "end_time": 684.693
+    },
+    {
+      "text": "dem",
+      "start_time": 684.693,
+      "end_time": 684.853
+    },
+    {
+      "text": "EnsembleModell",
+      "start_time": 684.853,
+      "end_time": 685.733
+    },
+    {
+      "text": "das",
+      "start_time": 686.133,
+      "end_time": 686.293
+    },
+    {
+      "text": "die",
+      "start_time": 686.293,
+      "end_time": 686.453
+    },
+    {
+      "text": "Konsistenz",
+      "start_time": 686.453,
+      "end_time": 687.093
+    },
+    {
+      "text": "nur",
+      "start_time": 687.093,
+      "end_time": 687.253
+    },
+    {
+      "text": "geringfügig",
+      "start_time": 687.253,
+      "end_time": 687.973
+    },
+    {
+      "text": "verbessert",
+      "start_time": 687.973,
+      "end_time": 688.613
+    },
+    {
+      "text": "Allerdings",
+      "start_time": 688.853,
+      "end_time": 689.413
+    },
+    {
+      "text": "erzielt",
+      "start_time": 689.413,
+      "end_time": 689.813
+    },
+    {
+      "text": "die",
+      "start_time": 689.813,
+      "end_time": 689.893
+    },
+    {
+      "text": "Kontraktualisierungsverstärkung",
+      "start_time": 689.893,
+      "end_time": 692.133
+    },
+    {
+      "text": "beeindruckende",
+      "start_time": 692.133,
+      "end_time": 692.853
+    },
+    {
+      "text": "Verbesserungen",
+      "start_time": 692.853,
+      "end_time": 693.653
+    },
+    {
+      "text": "in",
+      "start_time": 693.653,
+      "end_time": 693.733
+    },
+    {
+      "text": "der",
+      "start_time": 693.813,
+      "end_time": 693.893
+    },
+    {
+      "text": "Konsistenz",
+      "start_time": 693.893,
+      "end_time": 694.693
+    },
+    {
+      "text": "sowohl",
+      "start_time": 694.933,
+      "end_time": 695.413
+    },
+    {
+      "text": "an",
+      "start_time": 695.413,
+      "end_time": 695.573
+    },
+    {
+      "text": "den",
+      "start_time": 695.573,
+      "end_time": 695.733
+    },
+    {
+      "text": "vorherigen",
+      "start_time": 695.733,
+      "end_time": 696.373
+    },
+    {
+      "text": "Datensätzen",
+      "start_time": 696.373,
+      "end_time": 697.093
+    },
+    {
+      "text": "als",
+      "start_time": 697.093,
+      "end_time": 697.333
+    },
+    {
+      "text": "auch",
+      "start_time": 697.333,
+      "end_time": 697.573
+    },
+    {
+      "text": "an",
+      "start_time": 697.573,
+      "end_time": 697.733
+    },
+    {
+      "text": "den",
+      "start_time": 697.733,
+      "end_time": 697.893
+    },
+    {
+      "text": "von",
+      "start_time": 697.893,
+      "end_time": 698.053
+    },
+    {
+      "text": "uns",
+      "start_time": 698.053,
+      "end_time": 698.293
+    },
+    {
+      "text": "zusammengestellten",
+      "start_time": 698.293,
+      "end_time": 699.333
+    },
+    {
+      "text": "beiden",
+      "start_time": 699.333,
+      "end_time": 699.653
+    },
+    {
+      "text": "Teilmenge",
+      "start_time": 699.653,
+      "end_time": 700.293
+    },
+    {
+      "text": "für",
+      "start_time": 700.613,
+      "end_time": 700.773
+    },
+    {
+      "text": "Referenz",
+      "start_time": 700.773,
+      "end_time": 701.333
+    },
+    {
+      "text": "und",
+      "start_time": 701.333,
+      "end_time": 701.493
+    },
+    {
+      "text": "Predikatsstörungen",
+      "start_time": 701.493,
+      "end_time": 702.693
+    },
+    {
+      "text": "Beachten",
+      "start_time": 702.693,
+      "end_time": 702.693
+    },
+    {
+      "text": "Sie",
+      "start_time": 703.493,
+      "end_time": 703.813
+    },
+    {
+      "text": "dass",
+      "start_time": 704.133,
+      "end_time": 704.293
+    },
+    {
+      "text": "die",
+      "start_time": 704.293,
+      "end_time": 704.373
+    },
+    {
+      "text": "erweiterten",
+      "start_time": 704.453,
+      "end_time": 705.013
+    },
+    {
+      "text": "Ergebnisdaten",
+      "start_time": 705.013,
+      "end_time": 705.653
+    },
+    {
+      "text": "nicht",
+      "start_time": 705.653,
+      "end_time": 705.893
+    },
+    {
+      "text": "durch",
+      "start_time": 705.893,
+      "end_time": 706.053
+    },
+    {
+      "text": "den",
+      "start_time": 706.053,
+      "end_time": 706.213
+    },
+    {
+      "text": "Störungstyp",
+      "start_time": 706.213,
+      "end_time": 706.933
+    },
+    {
+      "text": "verzerrt",
+      "start_time": 706.933,
+      "end_time": 707.333
+    },
+    {
+      "text": "sind",
+      "start_time": 707.333,
+      "end_time": 707.653
+    },
+    {
+      "text": "nur",
+      "start_time": 707.973,
+      "end_time": 708.293
+    },
+    {
+      "text": "wie",
+      "start_time": 708.293,
+      "end_time": 708.373
+    },
+    {
+      "text": "Evaluierungsset",
+      "start_time": 708.373,
+      "end_time": 709.253
+    },
+    {
+      "text": "sind",
+      "start_time": 709.253,
+      "end_time": 709.493
+    },
+    {
+      "text": "es",
+      "start_time": 709.493,
+      "end_time": 709.813
+    },
+    {
+      "text": "Tatsächlich",
+      "start_time": 710.053,
+      "end_time": 710.693
+    },
+    {
+      "text": "eine",
+      "start_time": 710.773,
+      "end_time": 710.933
+    },
+    {
+      "text": "qualitative",
+      "start_time": 711.013,
+      "end_time": 711.813
+    },
+    {
+      "text": "Inspektion",
+      "start_time": 711.813,
+      "end_time": 712.453
+    },
+    {
+      "text": "der",
+      "start_time": 712.453,
+      "end_time": 712.613
+    },
+    {
+      "text": "generierten",
+      "start_time": 712.613,
+      "end_time": 713.253
+    },
+    {
+      "text": "Art",
+      "start_time": 713.253,
+      "end_time": 713.493
+    },
+    {
+      "text": "von",
+      "start_time": 713.493,
+      "end_time": 713.733
+    },
+    {
+      "text": "Kontraktualisierungen",
+      "start_time": 713.733,
+      "end_time": 715.093
+    },
+    {
+      "text": "zeigt",
+      "start_time": 715.413,
+      "end_time": 715.813
+    },
+    {
+      "text": "dass",
+      "start_time": 716.053,
+      "end_time": 716.213
+    },
+    {
+      "text": "die",
+      "start_time": 716.213,
+      "end_time": 716.373
+    },
+    {
+      "text": "generierten",
+      "start_time": 716.373,
+      "end_time": 716.933
+    },
+    {
+      "text": "Fragen",
+      "start_time": 716.933,
+      "end_time": 717.333
+    },
+    {
+      "text": "mehrere",
+      "start_time": 717.333,
+      "end_time": 717.653
+    },
+    {
+      "text": "verschiedene",
+      "start_time": 717.653,
+      "end_time": 718.213
+    },
+    {
+      "text": "Störungen",
+      "start_time": 718.213,
+      "end_time": 718.773
+    },
+    {
+      "text": "enthalten",
+      "start_time": 718.773,
+      "end_time": 719.493
+    },
+    {
+      "text": "zum",
+      "start_time": 719.733,
+      "end_time": 719.973
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 719.973,
+      "end_time": 720.773
+    },
+    {
+      "text": "dazu",
+      "start_time": 720.773,
+      "end_time": 721.093
+    },
+    {
+      "text": "ursprüngliche",
+      "start_time": 721.093,
+      "end_time": 721.813
+    },
+    {
+      "text": "Fragen",
+      "start_time": 721.813,
+      "end_time": 721.813
+    },
+    {
+      "text": "zum",
+      "start_time": 722.213,
+      "end_time": 722.373
+    },
+    {
+      "text": "Befall",
+      "start_time": 722.373,
+      "end_time": 722.693
+    },
+    {
+      "text": "von",
+      "start_time": 722.693,
+      "end_time": 723.093
+    },
+    {
+      "text": "Walnut",
+      "start_time": 723.173,
+      "end_time": 723.653
+    },
+    {
+      "text": "Grove",
+      "start_time": 723.653,
+      "end_time": 723.973
+    },
+    {
+      "text": "Minnesota",
+      "start_time": 724.213,
+      "end_time": 725.013
+    },
+    {
+      "text": "Wird",
+      "start_time": 725.237,
+      "end_time": 725.637
+    },
+    {
+      "text": "entlang",
+      "start_time": 725.637,
+      "end_time": 726.037
+    },
+    {
+      "text": "verschiedener",
+      "start_time": 726.037,
+      "end_time": 726.597
+    },
+    {
+      "text": "Dimensionen",
+      "start_time": 726.597,
+      "end_time": 727.317
+    },
+    {
+      "text": "gestartet",
+      "start_time": 727.317,
+      "end_time": 727.877
+    },
+    {
+      "text": "wie",
+      "start_time": 728.197,
+      "end_time": 728.357
+    },
+    {
+      "text": "Stadt",
+      "start_time": 728.357,
+      "end_time": 728.757
+    },
+    {
+      "text": "Bundesstaat",
+      "start_time": 728.997,
+      "end_time": 729.717
+    },
+    {
+      "text": "Land",
+      "start_time": 729.877,
+      "end_time": 730.277
+    },
+    {
+      "text": "und",
+      "start_time": 730.597,
+      "end_time": 730.757
+    },
+    {
+      "text": "entlang",
+      "start_time": 730.757,
+      "end_time": 731.077
+    },
+    {
+      "text": "verschiedener",
+      "start_time": 731.077,
+      "end_time": 731.637
+    },
+    {
+      "text": "Prädikate",
+      "start_time": 731.637,
+      "end_time": 732.437
+    },
+    {
+      "text": "Lage",
+      "start_time": 732.757,
+      "end_time": 733.397
+    },
+    {
+      "text": "Armut",
+      "start_time": 733.637,
+      "end_time": 734.117
+    },
+    {
+      "text": "Anzahl",
+      "start_time": 734.357,
+      "end_time": 734.757
+    },
+    {
+      "text": "der",
+      "start_time": 734.757,
+      "end_time": 734.837
+    },
+    {
+      "text": "Schulen",
+      "start_time": 734.837,
+      "end_time": 735.397
+    },
+    {
+      "text": "Ladewirrungen",
+      "start_time": 735.637,
+      "end_time": 736.517
+    },
+    {
+      "text": "sind",
+      "start_time": 736.517,
+      "end_time": 736.757
+    },
+    {
+      "text": "kontextspezifisch",
+      "start_time": 736.757,
+      "end_time": 737.957
+    },
+    {
+      "text": "Zum",
+      "start_time": 738.277,
+      "end_time": 738.437
+    },
+    {
+      "text": "Beispiel",
+      "start_time": 738.437,
+      "end_time": 738.837
+    },
+    {
+      "text": "für",
+      "start_time": 738.837,
+      "end_time": 738.997
+    },
+    {
+      "text": "diese",
+      "start_time": 738.997,
+      "end_time": 739.317
+    },
+    {
+      "text": "andere",
+      "start_time": 739.317,
+      "end_time": 739.717
+    },
+    {
+      "text": "Frage",
+      "start_time": 739.717,
+      "end_time": 740.037
+    },
+    {
+      "text": "über",
+      "start_time": 740.037,
+      "end_time": 740.277
+    },
+    {
+      "text": "das",
+      "start_time": 740.277,
+      "end_time": 740.517
+    },
+    {
+      "text": "Schwimmbad",
+      "start_time": 740.517,
+      "end_time": 740.837
+    },
+    {
+      "text": "Einzelturnier",
+      "start_time": 740.917,
+      "end_time": 741.797
+    },
+    {
+      "text": "Die",
+      "start_time": 742.117,
+      "end_time": 742.197
+    },
+    {
+      "text": "Störung",
+      "start_time": 742.197,
+      "end_time": 742.677
+    },
+    {
+      "text": "ist",
+      "start_time": 742.677,
+      "end_time": 742.917
+    },
+    {
+      "text": "nach",
+      "start_time": 742.917,
+      "end_time": 743.077
+    },
+    {
+      "text": "Spielart",
+      "start_time": 743.077,
+      "end_time": 743.797
+    },
+    {
+      "text": "Turnierart",
+      "start_time": 744.037,
+      "end_time": 744.757
+    },
+    {
+      "text": "oder",
+      "start_time": 744.997,
+      "end_time": 745.237
+    },
+    {
+      "text": "Spielausgang",
+      "start_time": 745.237,
+      "end_time": 746.117
+    },
+    {
+      "text": "platziert",
+      "start_time": 746.357,
+      "end_time": 746.917
+    },
+    {
+      "text": "Wir",
+      "start_time": 747.077,
+      "end_time": 747.397
+    },
+    {
+      "text": "gehen",
+      "start_time": 747.397,
+      "end_time": 747.637
+    },
+    {
+      "text": "die",
+      "start_time": 747.637,
+      "end_time": 747.797
+    },
+    {
+      "text": "Aufgabe",
+      "start_time": 747.797,
+      "end_time": 748.277
+    },
+    {
+      "text": "der",
+      "start_time": 748.277,
+      "end_time": 748.437
+    },
+    {
+      "text": "Gegenfaktendatenerweiterung",
+      "start_time": 748.437,
+      "end_time": 749.957
+    },
+    {
+      "text": "an",
+      "start_time": 749.957,
+      "end_time": 750.197
+    },
+    {
+      "text": "und",
+      "start_time": 750.437,
+      "end_time": 750.597
+    },
+    {
+      "text": "Störungen",
+      "start_time": 750.597,
+      "end_time": 751.237
+    },
+    {
+      "text": "für",
+      "start_time": 751.237,
+      "end_time": 751.397
+    },
+    {
+      "text": "Informationsuchendeabfragen",
+      "start_time": 751.397,
+      "end_time": 753.157
+    },
+    {
+      "text": "und",
+      "start_time": 753.477,
+      "end_time": 753.637
+    },
+    {
+      "text": "bewältigen",
+      "start_time": 753.637,
+      "end_time": 754.197
+    },
+    {
+      "text": "seine",
+      "start_time": 754.197,
+      "end_time": 754.517
+    },
+    {
+      "text": "einzigartigen",
+      "start_time": 754.517,
+      "end_time": 755.397
+    },
+    {
+      "text": "Herausforderungen",
+      "start_time": 755.397,
+      "end_time": 756.437
+    },
+    {
+      "text": "Wir",
+      "start_time": 756.677,
+      "end_time": 756.997
+    },
+    {
+      "text": "wenden",
+      "start_time": 756.997,
+      "end_time": 757.317
+    },
+    {
+      "text": "den",
+      "start_time": 757.317,
+      "end_time": 757.477
+    },
+    {
+      "text": "Generationsansatz",
+      "start_time": 757.477,
+      "end_time": 758.677
+    },
+    {
+      "text": "um",
+      "start_time": 758.677,
+      "end_time": 759.077
+    },
+    {
+      "text": "Wir",
+      "start_time": 759.157,
+      "end_time": 759.397
+    },
+    {
+      "text": "übergenerieren",
+      "start_time": 759.397,
+      "end_time": 760.277
+    },
+    {
+      "text": "mit",
+      "start_time": 760.277,
+      "end_time": 760.437
+    },
+    {
+      "text": "nahezu",
+      "start_time": 760.437,
+      "end_time": 760.837
+    },
+    {
+      "text": "verpassten",
+      "start_time": 760.837,
+      "end_time": 761.397
+    },
+    {
+      "text": "Ergebnissen",
+      "start_time": 761.397,
+      "end_time": 762.117
+    },
+    {
+      "text": "des",
+      "start_time": 762.117,
+      "end_time": 762.277
+    },
+    {
+      "text": "Modells",
+      "start_time": 762.277,
+      "end_time": 762.837
+    },
+    {
+      "text": "und",
+      "start_time": 763.157,
+      "end_time": 763.237
+    },
+    {
+      "text": "viertens",
+      "start_time": 763.237,
+      "end_time": 763.637
+    },
+    {
+      "text": "basierend",
+      "start_time": 763.637,
+      "end_time": 764.197
+    },
+    {
+      "text": "auf",
+      "start_time": 764.197,
+      "end_time": 764.277
+    },
+    {
+      "text": "Störungsart",
+      "start_time": 764.277,
+      "end_time": 765.157
+    },
+    {
+      "text": "oder",
+      "start_time": 765.157,
+      "end_time": 765.317
+    },
+    {
+      "text": "Minimalität",
+      "start_time": 765.317,
+      "end_time": 766.277
+    },
+    {
+      "text": "Wir",
+      "start_time": 766.517,
+      "end_time": 766.757
+    },
+    {
+      "text": "stellen",
+      "start_time": 766.757,
+      "end_time": 767.077
+    },
+    {
+      "text": "fest",
+      "start_time": 767.077,
+      "end_time": 767.557
+    },
+    {
+      "text": "dass",
+      "start_time": 767.877,
+      "end_time": 768.037
+    },
+    {
+      "text": "diese",
+      "start_time": 768.037,
+      "end_time": 768.357
+    },
+    {
+      "text": "Technik",
+      "start_time": 768.357,
+      "end_time": 768.757
+    },
+    {
+      "text": "keine",
+      "start_time": 768.757,
+      "end_time": 768.997
+    },
+    {
+      "text": "zusätzliche",
+      "start_time": 768.997,
+      "end_time": 769.717
+    },
+    {
+      "text": "Überwachung",
+      "start_time": 769.717,
+      "end_time": 770.357
+    },
+    {
+      "text": "benötigt",
+      "start_time": 770.357,
+      "end_time": 771.077
+    },
+    {
+      "text": "und",
+      "start_time": 771.317,
+      "end_time": 771.557
+    },
+    {
+      "text": "die",
+      "start_time": 771.557,
+      "end_time": 771.637
+    },
+    {
+      "text": "Beispiele",
+      "start_time": 771.637,
+      "end_time": 772.277
+    },
+    {
+      "text": "für",
+      "start_time": 772.277,
+      "end_time": 772.437
+    },
+    {
+      "text": "die",
+      "start_time": 772.437,
+      "end_time": 772.517
+    },
+    {
+      "text": "Erweiterung",
+      "start_time": 772.517,
+      "end_time": 773.157
+    },
+    {
+      "text": "gekennzeichnet",
+      "start_time": 773.157,
+      "end_time": 773.957
+    },
+    {
+      "text": "sind",
+      "start_time": 773.957,
+      "end_time": 774.277
+    },
+    {
+      "text": "Die",
+      "start_time": 774.517,
+      "end_time": 774.597
+    },
+    {
+      "text": "Erweiterung",
+      "start_time": 774.597,
+      "end_time": 775.237
+    },
+    {
+      "text": "verbessert",
+      "start_time": 775.237,
+      "end_time": 775.717
+    },
+    {
+      "text": "die",
+      "start_time": 775.717,
+      "end_time": 775.797
+    },
+    {
+      "text": "Generalisierung",
+      "start_time": 775.797,
+      "end_time": 776.757
+    },
+    {
+      "text": "außerhalb",
+      "start_time": 776.757,
+      "end_time": 777.317
+    },
+    {
+      "text": "des",
+      "start_time": 777.317,
+      "end_time": 777.477
+    },
+    {
+      "text": "Domänenbereichs",
+      "start_time": 777.477,
+      "end_time": 778.357
+    },
+    {
+      "text": "und",
+      "start_time": 778.357,
+      "end_time": 778.517
+    },
+    {
+      "text": "die",
+      "start_time": 778.517,
+      "end_time": 778.597
+    },
+    {
+      "text": "Nachbarschaftskonsistenz",
+      "start_time": 778.597,
+      "end_time": 780.117
+    },
+    {
+      "text": "Und",
+      "start_time": 780.437,
+      "end_time": 780.597
+    },
+    {
+      "text": "wir",
+      "start_time": 780.597,
+      "end_time": 780.677
+    },
+    {
+      "text": "stellen",
+      "start_time": 780.677,
+      "end_time": 781.077
+    },
+    {
+      "text": "fest",
+      "start_time": 781.077,
+      "end_time": 781.477
+    },
+    {
+      "text": "dass",
+      "start_time": 781.797,
+      "end_time": 781.957
+    },
+    {
+      "text": "eigefkontrafaktensemantisch",
+      "start_time": 781.957,
+      "end_time": 783.557
+    },
+    {
+      "text": "vielfältig",
+      "start_time": 783.557,
+      "end_time": 784.117
+    },
+    {
+      "text": "sind",
+      "start_time": 784.117,
+      "end_time": 784.437
+    },
+    {
+      "text": "ohne",
+      "start_time": 784.757,
+      "end_time": 785.077
+    },
+    {
+      "text": "bei",
+      "start_time": 785.077,
+      "end_time": 785.237
+    },
+    {
+      "text": "der",
+      "start_time": 785.237,
+      "end_time": 785.317
+    },
+    {
+      "text": "Erweiterung",
+      "start_time": 785.317,
+      "end_time": 785.957
+    },
+    {
+      "text": "Vorurteile",
+      "start_time": 785.957,
+      "end_time": 786.597
+    },
+    {
+      "text": "einzuführen",
+      "start_time": 786.597,
+      "end_time": 787.397
+    },
+    {
+      "text": "Vielen",
+      "start_time": 787.637,
+      "end_time": 788.037
+    },
+    {
+      "text": "Dank",
+      "start_time": 788.037,
+      "end_time": 788.517
+    }
+  ]
+}

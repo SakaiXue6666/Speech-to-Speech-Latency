@@ -16,6 +16,7 @@ import yaml
 import json
 import os
 from multiprocessing import Pool
+from pipeline_qwen3_forcealign_tokenizer2 import Qwen3ForceAlignTokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -114,9 +115,15 @@ class YAALScorer:
     (https://arxiv.org/abs/2509.17349)
     """
 
-    def __init__(self, computation_aware: bool = False, is_longform: bool = False):
+    def __init__(
+        self,
+        computation_aware: bool = False,
+        is_longform: bool = False,
+        force_unit_target_len: bool = False,
+    ):
         self.computation_aware = computation_aware
         self.is_longform = is_longform
+        self.force_unit_target_len = force_unit_target_len
 
     def get_delays_lengths(self, ins: Instance):
         """
@@ -133,7 +140,7 @@ class YAALScorer:
         delays = getattr(ins, timestamp_type, None)
         assert delays
 
-        if ins.reference is None:
+        if self.force_unit_target_len or ins.reference is None:
             tgt_len = len(delays)
         else:
             tgt_len = ins.reference_length
@@ -285,7 +292,13 @@ def align_sequences(seq1, seq2, metric, char_level):
     return aligned_seq1, aligned_seq2
 
 
-def load_reference(yaml_file, ref_sentences_file, char_level, offset_delays):
+def load_reference(
+    yaml_file,
+    ref_sentences_file,
+    char_level,
+    offset_delays,
+    ref_unitizer_language=None,
+):
     """
     Prepare the reference sentences for alignment.
     """
@@ -307,6 +320,10 @@ def load_reference(yaml_file, ref_sentences_file, char_level, offset_delays):
         reference_sentences
     ), "Number of segments and reference sentences do not match."
 
+    qwen_tok = (
+        Qwen3ForceAlignTokenizer() if ref_unitizer_language is not None else None
+    )
+
     words = []
     for i, (segment, ref_sentence) in enumerate(zip(segmentation, reference_sentences)):
         if i == 0 or segmentation[i - 1]["wav"] != segment["wav"]:
@@ -316,7 +333,10 @@ def load_reference(yaml_file, ref_sentences_file, char_level, offset_delays):
             segment["offset"] -= first_offset
 
         ref_sentence = ref_sentence.strip().lower()
-        units = list(ref_sentence) if char_level else ref_sentence.split()
+        if qwen_tok is not None:
+            units = qwen_tok.encode_timestamp(ref_sentence, ref_unitizer_language)
+        else:
+            units = list(ref_sentence) if char_level else ref_sentence.split()
 
         # the delay will be used to ensure that hypothesis words emitted during the previous segment
         # are not aligned to the current segment
@@ -364,7 +384,12 @@ def normalize_unicode(text):
     return unicodedata.normalize("NFKC", text)
 
 
-def load_hypothesis(hypothesis_file, char_level, segmentation_order):
+def load_hypothesis(
+    hypothesis_file,
+    char_level,
+    segmentation_order,
+    use_prediction_units=False,
+):
     """
     Load the hypothesis sentences for alignment.
     """
@@ -396,8 +421,11 @@ def load_hypothesis(hypothesis_file, char_level, segmentation_order):
 
     words = []
     for i, (h, l) in enumerate(zip(hypotheses, source_lengths)):
-        prediction = normalize_unicode(h["prediction"])
-        units = list(prediction) if char_level else prediction.split()
+        if use_prediction_units:
+            units = list(h.get("prediction_units") or [])
+        else:
+            prediction = normalize_unicode(h["prediction"])
+            units = list(prediction) if char_level else prediction.split()
         assert len(units) == len(  # "我是，奶龙！" 6    我，是，奶，龙 4
             h["delays"]
         ), f"Number of units and delays do not match for hypothesis {i}: {len(units)} vs {len(h['delays'])}"
@@ -577,10 +605,17 @@ def tokenize_words(words, lang):
 
 
 def evaluate_instances(
-    resegmented_instances: List[Instance], tokenizer: str
+    resegmented_instances: List[Instance], tokenizer: str, force_unit_target_len: bool = False
 ) -> Dict[str, float]:
-    ca_unaware_yaal_scorer = YAALScorer(is_longform=True)
-    ca_aware_yaal_scorer = YAALScorer(computation_aware=True, is_longform=True)
+    ca_unaware_yaal_scorer = YAALScorer(
+        is_longform=True,
+        force_unit_target_len=force_unit_target_len,
+    )
+    ca_aware_yaal_scorer = YAALScorer(
+        computation_aware=True,
+        is_longform=True,
+        force_unit_target_len=force_unit_target_len,
+    )
     bleu_scorer = SacreBLEUScorer(tokenizer)
     resegmented_instances_dict = {i: ins for i, ins in enumerate(resegmented_instances)}
     ca_unaware_yaal_score = ca_unaware_yaal_scorer(resegmented_instances_dict)
@@ -608,20 +643,35 @@ def resegment(
     output_folder,  # segmentation_output
     bleu_tokenizer,
     offset_delays,  # 是否把参考侧每段的 offset 改成“相对当前 wav 起点”
+    use_prediction_units=False,
+    ref_unitizer_language=None,
+    skip_retokenize=False,
+    force_unit_target_len=False,
 ):
     # Load reference and hypothesis sentences
     # 第 1 步：加载ref并转成“按录音分组的词”
     ref_words, segmentation, ref_sentences = load_reference(
-        yaml_file, ref_sentences_file, char_level, offset_delays
+        yaml_file,
+        ref_sentences_file,
+        char_level,
+        offset_delays,
+        ref_unitizer_language=ref_unitizer_language,
     )
     # 第 2 步：ref词做分词（子词化）
-    ref_words = tokenize_words(ref_words, lang)
+    if not skip_retokenize:
+        ref_words = tokenize_words(ref_words, lang)
     # 第 3 步：得到“音频出现顺序”
     segmentation_order = get_segmentation_order(segmentation)
     # 第 4 步：加载hyp并转成“按录音分组的词”
-    hyp_words = load_hypothesis(hypothesis_file, char_level, segmentation_order)
+    hyp_words = load_hypothesis(
+        hypothesis_file,
+        char_level,
+        segmentation_order,
+        use_prediction_units=use_prediction_units,
+    )
     # 第 5 步：hyp词也做分词
-    hyp_words = tokenize_words(hyp_words, lang)
+    if not skip_retokenize:
+        hyp_words = tokenize_words(hyp_words, lang)
 
     # Align words
     # 第 6 步：按录音做“ref–hyp”对齐，并按句归位
@@ -677,7 +727,11 @@ def resegment(
 
     # Calculate metrics
     # 第 10 步：在重分段句子上算 YAAL 和 BLEU
-    scores = evaluate_instances(instances, bleu_tokenizer)
+    scores = evaluate_instances(
+        instances,
+        bleu_tokenizer,
+        force_unit_target_len=force_unit_target_len,
+    )
     with open(
         os.path.join(output_folder, "scores.resegmented.csv"), "w", encoding="utf-8"
     ) as file:
