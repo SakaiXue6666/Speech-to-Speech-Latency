@@ -1,0 +1,8942 @@
+{
+  "src": "data2/input/acl_6060_dev/2022.acl-long.590.wav",
+  "tgt": "data3\\seed\\en_ja\\output_tgt\\2022.acl-long.590.wav",
+  "text": "こんにちは、私はミハイ・ペトルスカです。そしてトレーナーサブル・ヨゲンプリング・サマダルスパラス・タート役をクジシマした。存在またる。これは釘払る。これは釘払る。釘払る。釘払る。キャロス。まずは私たちの作業のターゲットとなる問題から始めましょう。私たちの方法は長い入力を効力した場合入力機能します。大まかに見る、200マージ上の入力があるタスクに適しています。そしてターゲットは与えられた入力よりも短いものです。これはNLPの中で特定の要領があります。例えば長い文書が与えられた場合、それを要約し、分類し、その内容について質問し、情報を抽出する必要があると想像できます。またはキーフレームが消えるしたがれ、ミナラサンスを3度る周りやこの周囲の複雑さに関する問題を思い出させてください。それは入力の長さの2乗に依存しています。ミナラサンスを3度る周りやトランス周りや潜在な周囲接続性を持ち、各トークと他のすべてのトークとの関係を計算しなければなりません。周囲の計算複雑さは総の数えるに依存しています。シーザー演算をやるの別のシーザー演算を置きする。表現の次元数に依存しています。おにょうにテコタールのする変更度クロスアリンで、仮想は右側の図のように唯一の違いはターゲットのサービスの正常を入力トークに注意を向けていることです。この場合、この式でも確認できます。青い四角は計算しなければならない関係を表しています。クロステンションのトークの場合、入力シーザーの正常を計算する必要があります。さてトークの接続性を制限するブロックごとの変更度を使用した場合に何が起きるかを見てみましょう。そうすることが他の視覚のトークしか見えないようです。テキストは参加する外れが特に読み曲がれ、変更度で計算量を大幅に減らすことができます。しかしすべての入力トークがデコーダに渡されるので、デコーダのクロステンションは向上しません。この方法はよくデコーダのフィールドでありと呼ばれています。ここでの改善は変化として解釈できます。Nの依存関係の1つを別の定数Mに変更することでブロックサイズを思わせています。私たちの重要な観察は多くのトークが与えられた計算の重要な15の無関係でありほとんどが向上されるというに。これはマスガイドに示されています。入力の一部だけが所望の出力に関連している場合です。例えば、マルディッシュは一度記事を読んで、最も重要な部分に傾向ペンで印をつけ、そしてこれらの部分のみをもとに中間段階から要約を作成することができます。傾向ペンで入るし、ことし、この原因が要約を作成するために不可欠かどうかを判断するコストはヤンカで統計する対言だけに依存しています。傾向ペンで入ると、国るできるは、国るできるは、国るできるは、国るできるは、国そのコストは無視できるです。断縮される入力から要約を作成するコストはマニールモタラスモデルは、マニールモタラスモデルは、大が、大が、大が、大しかし、ここに一つ疑問があります。重要なトークを選択し、その選択に基づいて逆伝播を行う方法はどうでしょうか。私たちが解決しようとしている根本的な問題は、トレーニング可能な選択メカニズム提案することです。トレーニングの実験する問題、後ろ逆伝播させることができるメカニズムです。そうすることでネットワークは最も重要なトークを選択することが可視することができます。より正確には、単純な線形層から得られたアンダースコア付きのメコンミを与えられた場合、最も高いスコアを持つメコンミを返すタスクです。まずがシーケンスをプラスドスクルをし、そして高いスコアのベクトルと低いスコアのベクトルがペアになるように準備します。次にブーストされたソフトマックスを使って重みを計算します。各トマの重みをすると確実にし、それらのベクトル線形結合として新しいベクトルとスコアを構成し、得られた重みを持ちます。つまり線形に結合し、操作演算に交差する必要し適用することです。そして2つのトークを結合する間にノイズが作成することがあります。発生しますが、それによって後ろがすべての入力メコンミに伝播することができます。つまり私たちが提案するトレーニング可能なトップ系はトークを構する確です。サクマンされます。ソフト生成の各ステップでそして別の視点から現在の表現プーリングはエンターガールの潜在する単独作成を行いまず各表現にスコアが付けられそして最も高いスコアを持つものだけが次の層に当たります。エンコーダはするは彼らはまたするようなトーターグル用の彼らはまたするような彼らはまたするような全長入力に対してしかし固定長のブロック単位でテキストを取りすることも可能です。そしてグローバルダル最高の表現を選択します。こちらは円弧ダーデキストル三段するようで示したです。これはグローバル対数の中で特質性を与えます。これは入力の長さに依存しているわけではなく定数系に依存しています。プルされる連寄を表しています。この定数はどれだけの表現が選択されるかを示します。そして適当に渡されます。短い適性から予約生成するのは従来のソリューションよりもはるかに安価です。シーセンタンドは大幅に短縮できるため、例えば私たちの実験ではHの値よりも16分のジア64分の一の値を成功して使用しました。ブロック正弦等重要にセルフアテンシの値をマスは持続していることをご注意ください。テンションの発外差減が数種定数としています。この場合でください。コンタ減数の正合利用でこの可正数としています。この可正数としています。コンタ減数の正合利用で可能性があります。ピリマデのモデルでこの可正合を小さくします。選択された各レイヤの出力について計算コストをセ数感数的に削減することにつながります。コンタ減数がこの可正合の数種としています。ここらへんにするこの可正合の数種としています。この可正合のコンタがあるをフル外利の総集として2021年化をフル外数種としてこの可正合の製造をこの可正合の製造をすべての紫色の四角の合計は一定の値に制限されます。総の可正数に依存しない値です。しかし定数Cに依存しています。これはネットワーク内のプリング層の配置によって影響を受けます。私たちの改良は発電等の長さの入力にもとついてベンチマスされました。そして図に示されているのはプリング層が生きると熱処理とが等しいとして最高のスケーラビリティが達成されます。ここでは24層のピラミッドを20が等してもこのような長い入力で2層のバニラトランスフォーマをこのようにも安くなることがわかります。バニラトランスフォーマが目に映るがまたりこの問題気づかるのがまたりこれはトランスフォーマでもありません。このような入力で対して私たちのトレーニングした自供キルバニラマナリー高想定性的な比較を示すと他のデモでする問題が高想定性的な製造で実施されまたはアーカイブやプルからの記事の本部も与えられた場合にも行われます。タスクはそれの予約を生成することです。保存時のま通りブロック頭支持軸がある場合ます。高精定性的な製造で最近の最先端モデルのレベルに引きでした。ピラミッド側この競争力のあるベースラインの性能維持または向上させています。同時に私たちのモデルはパーセントビューまで80%高速でトレーニングでき、追論時には450%以上高速です。ブロックブラグの性能をものと比較して両モデルはパラメータの高速で遥かに少なく先代らばれたタスクについてゼロからトレーニングされました。これらの性能に近いものを達成するためのこれまでのアプローチはより多くのパラメータをここにしているアタスクの実構造されたファンディアマの実構造刷新しています。および追加の言語事前トレーニングを行い、お同様の性能達成することを目的としていました。私たちは皆様に当社のフルページを拡大し、蓄能三上級します。そして当社のギタブコードをご利用いただくことをお願いします。ご覧でいるかさいありがとうございます。",
+  "time_stamps": [
+    {
+      "text": "こんにちは",
+      "start_time": 4.8,
+      "end_time": 5.44
+    },
+    {
+      "text": "私",
+      "start_time": 5.76,
+      "end_time": 6.32
+    },
+    {
+      "text": "は",
+      "start_time": 6.32,
+      "end_time": 6.32
+    },
+    {
+      "text": "ミハイ",
+      "start_time": 6.64,
+      "end_time": 7.04
+    },
+    {
+      "text": "ペトルスカ",
+      "start_time": 7.36,
+      "end_time": 8.0
+    },
+    {
+      "text": "です",
+      "start_time": 8.0,
+      "end_time": 8.32
+    },
+    {
+      "text": "そして",
+      "start_time": 12.08,
+      "end_time": 12.48
+    },
+    {
+      "text": "トレーナー",
+      "start_time": 12.72,
+      "end_time": 13.2
+    },
+    {
+      "text": "サブル",
+      "start_time": 13.2,
+      "end_time": 13.6
+    },
+    {
+      "text": "ヨゲンプリング",
+      "start_time": 13.6,
+      "end_time": 14.48
+    },
+    {
+      "text": "サマダルス",
+      "start_time": 14.48,
+      "end_time": 15.2
+    },
+    {
+      "text": "パラス",
+      "start_time": 15.2,
+      "end_time": 15.68
+    },
+    {
+      "text": "タート",
+      "start_time": 15.76,
+      "end_time": 16.16
+    },
+    {
+      "text": "役",
+      "start_time": 16.16,
+      "end_time": 16.48
+    },
+    {
+      "text": "を",
+      "start_time": 16.48,
+      "end_time": 16.56
+    },
+    {
+      "text": "クジシマ",
+      "start_time": 16.56,
+      "end_time": 17.2
+    },
+    {
+      "text": "し",
+      "start_time": 17.2,
+      "end_time": 17.28
+    },
+    {
+      "text": "た",
+      "start_time": 17.28,
+      "end_time": 17.44
+    },
+    {
+      "text": "存在",
+      "start_time": 17.84,
+      "end_time": 18.24
+    },
+    {
+      "text": "またる",
+      "start_time": 18.24,
+      "end_time": 18.72
+    },
+    {
+      "text": "これ",
+      "start_time": 19.04,
+      "end_time": 19.28
+    },
+    {
+      "text": "は",
+      "start_time": 19.28,
+      "end_time": 19.52
+    },
+    {
+      "text": "釘払る",
+      "start_time": 19.84,
+      "end_time": 20.72
+    },
+    {
+      "text": "これ",
+      "start_time": 21.04,
+      "end_time": 21.28
+    },
+    {
+      "text": "は",
+      "start_time": 21.28,
+      "end_time": 21.52
+    },
+    {
+      "text": "釘払る",
+      "start_time": 21.84,
+      "end_time": 22.72
+    },
+    {
+      "text": "釘払る",
+      "start_time": 23.04,
+      "end_time": 23.92
+    },
+    {
+      "text": "釘払る",
+      "start_time": 24.32,
+      "end_time": 25.2
+    },
+    {
+      "text": "キャロス",
+      "start_time": 26.08,
+      "end_time": 26.56
+    },
+    {
+      "text": "まず",
+      "start_time": 28.64,
+      "end_time": 28.88
+    },
+    {
+      "text": "は",
+      "start_time": 28.88,
+      "end_time": 28.88
+    },
+    {
+      "text": "私",
+      "start_time": 29.12,
+      "end_time": 29.44
+    },
+    {
+      "text": "たち",
+      "start_time": 29.44,
+      "end_time": 29.76
+    },
+    {
+      "text": "の",
+      "start_time": 29.76,
+      "end_time": 29.92
+    },
+    {
+      "text": "作業",
+      "start_time": 29.92,
+      "end_time": 30.32
+    },
+    {
+      "text": "の",
+      "start_time": 30.32,
+      "end_time": 30.48
+    },
+    {
+      "text": "ターゲット",
+      "start_time": 30.48,
+      "end_time": 31.12
+    },
+    {
+      "text": "と",
+      "start_time": 31.12,
+      "end_time": 31.2
+    },
+    {
+      "text": "なる",
+      "start_time": 31.2,
+      "end_time": 31.44
+    },
+    {
+      "text": "問題",
+      "start_time": 31.44,
+      "end_time": 31.84
+    },
+    {
+      "text": "から",
+      "start_time": 31.84,
+      "end_time": 32.08
+    },
+    {
+      "text": "始め",
+      "start_time": 32.08,
+      "end_time": 32.48
+    },
+    {
+      "text": "ましょう",
+      "start_time": 32.48,
+      "end_time": 32.88
+    },
+    {
+      "text": "私",
+      "start_time": 33.2,
+      "end_time": 33.52
+    },
+    {
+      "text": "たち",
+      "start_time": 33.52,
+      "end_time": 33.76
+    },
+    {
+      "text": "の",
+      "start_time": 33.76,
+      "end_time": 33.84
+    },
+    {
+      "text": "方法",
+      "start_time": 33.84,
+      "end_time": 34.16
+    },
+    {
+      "text": "は",
+      "start_time": 34.16,
+      "end_time": 34.4
+    },
+    {
+      "text": "長い",
+      "start_time": 34.72,
+      "end_time": 35.04
+    },
+    {
+      "text": "入力",
+      "start_time": 35.04,
+      "end_time": 35.44
+    },
+    {
+      "text": "を",
+      "start_time": 35.52,
+      "end_time": 35.6
+    },
+    {
+      "text": "効力",
+      "start_time": 35.6,
+      "end_time": 36.08
+    },
+    {
+      "text": "し",
+      "start_time": 36.08,
+      "end_time": 36.08
+    },
+    {
+      "text": "た",
+      "start_time": 36.08,
+      "end_time": 36.16
+    },
+    {
+      "text": "場合",
+      "start_time": 36.16,
+      "end_time": 36.48
+    },
+    {
+      "text": "入力",
+      "start_time": 36.48,
+      "end_time": 36.88
+    },
+    {
+      "text": "機能",
+      "start_time": 36.88,
+      "end_time": 37.2
+    },
+    {
+      "text": "し",
+      "start_time": 37.2,
+      "end_time": 37.36
+    },
+    {
+      "text": "ます",
+      "start_time": 37.36,
+      "end_time": 37.76
+    },
+    {
+      "text": "大まか",
+      "start_time": 37.92,
+      "end_time": 38.4
+    },
+    {
+      "text": "に",
+      "start_time": 38.4,
+      "end_time": 38.56
+    },
+    {
+      "text": "見る",
+      "start_time": 38.56,
+      "end_time": 38.88
+    },
+    {
+      "text": "2",
+      "start_time": 39.12,
+      "end_time": 39.2
+    },
+    {
+      "text": "0",
+      "start_time": 39.2,
+      "end_time": 39.36
+    },
+    {
+      "text": "0",
+      "start_time": 39.36,
+      "end_time": 39.44
+    },
+    {
+      "text": "マージ",
+      "start_time": 39.52,
+      "end_time": 39.92
+    },
+    {
+      "text": "上",
+      "start_time": 39.92,
+      "end_time": 40.08
+    },
+    {
+      "text": "の",
+      "start_time": 40.08,
+      "end_time": 40.24
+    },
+    {
+      "text": "入力",
+      "start_time": 40.24,
+      "end_time": 40.72
+    },
+    {
+      "text": "が",
+      "start_time": 40.72,
+      "end_time": 40.8
+    },
+    {
+      "text": "ある",
+      "start_time": 40.8,
+      "end_time": 40.96
+    },
+    {
+      "text": "タスク",
+      "start_time": 40.96,
+      "end_time": 41.36
+    },
+    {
+      "text": "に",
+      "start_time": 41.36,
+      "end_time": 41.52
+    },
+    {
+      "text": "適し",
+      "start_time": 41.52,
+      "end_time": 41.84
+    },
+    {
+      "text": "て",
+      "start_time": 41.84,
+      "end_time": 41.92
+    },
+    {
+      "text": "い",
+      "start_time": 41.92,
+      "end_time": 42.0
+    },
+    {
+      "text": "ます",
+      "start_time": 42.0,
+      "end_time": 42.4
+    },
+    {
+      "text": "そして",
+      "start_time": 42.64,
+      "end_time": 43.12
+    },
+    {
+      "text": "ターゲット",
+      "start_time": 43.52,
+      "end_time": 43.92
+    },
+    {
+      "text": "は",
+      "start_time": 43.92,
+      "end_time": 44.08
+    },
+    {
+      "text": "与え",
+      "start_time": 44.08,
+      "end_time": 44.32
+    },
+    {
+      "text": "られ",
+      "start_time": 44.32,
+      "end_time": 44.56
+    },
+    {
+      "text": "た",
+      "start_time": 44.56,
+      "end_time": 44.72
+    },
+    {
+      "text": "入力",
+      "start_time": 44.72,
+      "end_time": 45.2
+    },
+    {
+      "text": "より",
+      "start_time": 45.2,
+      "end_time": 45.36
+    },
+    {
+      "text": "も",
+      "start_time": 45.36,
+      "end_time": 45.6
+    },
+    {
+      "text": "短い",
+      "start_time": 45.6,
+      "end_time": 46.08
+    },
+    {
+      "text": "もの",
+      "start_time": 46.08,
+      "end_time": 46.32
+    },
+    {
+      "text": "です",
+      "start_time": 46.32,
+      "end_time": 46.72
+    },
+    {
+      "text": "これ",
+      "start_time": 46.96,
+      "end_time": 47.2
+    },
+    {
+      "text": "は",
+      "start_time": 47.2,
+      "end_time": 47.44
+    },
+    {
+      "text": "NLP",
+      "start_time": 47.76,
+      "end_time": 48.16
+    },
+    {
+      "text": "の",
+      "start_time": 48.4,
+      "end_time": 48.48
+    },
+    {
+      "text": "中",
+      "start_time": 48.48,
+      "end_time": 48.8
+    },
+    {
+      "text": "で",
+      "start_time": 48.8,
+      "end_time": 49.04
+    },
+    {
+      "text": "特定",
+      "start_time": 49.44,
+      "end_time": 49.92
+    },
+    {
+      "text": "の",
+      "start_time": 49.92,
+      "end_time": 50.08
+    },
+    {
+      "text": "要領",
+      "start_time": 50.08,
+      "end_time": 50.4
+    },
+    {
+      "text": "が",
+      "start_time": 50.56,
+      "end_time": 50.72
+    },
+    {
+      "text": "あり",
+      "start_time": 50.72,
+      "end_time": 50.88
+    },
+    {
+      "text": "ます",
+      "start_time": 50.88,
+      "end_time": 51.28
+    },
+    {
+      "text": "例えば",
+      "start_time": 51.52,
+      "end_time": 52.08
+    },
+    {
+      "text": "長い",
+      "start_time": 52.4,
+      "end_time": 52.8
+    },
+    {
+      "text": "文書",
+      "start_time": 52.8,
+      "end_time": 53.12
+    },
+    {
+      "text": "が",
+      "start_time": 53.12,
+      "end_time": 53.36
+    },
+    {
+      "text": "与え",
+      "start_time": 53.36,
+      "end_time": 53.6
+    },
+    {
+      "text": "られ",
+      "start_time": 53.6,
+      "end_time": 53.84
+    },
+    {
+      "text": "た",
+      "start_time": 53.84,
+      "end_time": 53.92
+    },
+    {
+      "text": "場合",
+      "start_time": 53.92,
+      "end_time": 54.32
+    },
+    {
+      "text": "それ",
+      "start_time": 54.56,
+      "end_time": 54.8
+    },
+    {
+      "text": "を",
+      "start_time": 54.8,
+      "end_time": 54.96
+    },
+    {
+      "text": "要約",
+      "start_time": 54.96,
+      "end_time": 55.36
+    },
+    {
+      "text": "し",
+      "start_time": 55.36,
+      "end_time": 55.68
+    },
+    {
+      "text": "分類",
+      "start_time": 56.0,
+      "end_time": 56.4
+    },
+    {
+      "text": "し",
+      "start_time": 56.4,
+      "end_time": 56.64
+    },
+    {
+      "text": "その",
+      "start_time": 56.96,
+      "end_time": 57.28
+    },
+    {
+      "text": "内容",
+      "start_time": 57.28,
+      "end_time": 57.68
+    },
+    {
+      "text": "に",
+      "start_time": 57.68,
+      "end_time": 57.76
+    },
+    {
+      "text": "つい",
+      "start_time": 57.76,
+      "end_time": 58.0
+    },
+    {
+      "text": "て",
+      "start_time": 58.0,
+      "end_time": 58.16
+    },
+    {
+      "text": "質問",
+      "start_time": 58.16,
+      "end_time": 58.56
+    },
+    {
+      "text": "し",
+      "start_time": 58.56,
+      "end_time": 58.88
+    },
+    {
+      "text": "情報",
+      "start_time": 59.2,
+      "end_time": 59.52
+    },
+    {
+      "text": "を",
+      "start_time": 59.52,
+      "end_time": 59.6
+    },
+    {
+      "text": "抽出",
+      "start_time": 59.6,
+      "end_time": 60.0
+    },
+    {
+      "text": "する",
+      "start_time": 60.0,
+      "end_time": 60.24
+    },
+    {
+      "text": "必要",
+      "start_time": 60.24,
+      "end_time": 60.56
+    },
+    {
+      "text": "が",
+      "start_time": 60.56,
+      "end_time": 60.72
+    },
+    {
+      "text": "ある",
+      "start_time": 60.72,
+      "end_time": 60.8
+    },
+    {
+      "text": "と",
+      "start_time": 60.8,
+      "end_time": 60.96
+    },
+    {
+      "text": "想像",
+      "start_time": 60.96,
+      "end_time": 61.36
+    },
+    {
+      "text": "でき",
+      "start_time": 61.36,
+      "end_time": 61.6
+    },
+    {
+      "text": "ます",
+      "start_time": 61.6,
+      "end_time": 61.92
+    },
+    {
+      "text": "また",
+      "start_time": 62.16,
+      "end_time": 62.48
+    },
+    {
+      "text": "は",
+      "start_time": 62.48,
+      "end_time": 62.72
+    },
+    {
+      "text": "キーフレーム",
+      "start_time": 63.04,
+      "end_time": 63.68
+    },
+    {
+      "text": "が",
+      "start_time": 63.68,
+      "end_time": 63.84
+    },
+    {
+      "text": "消える",
+      "start_time": 63.84,
+      "end_time": 64.16
+    },
+    {
+      "text": "し",
+      "start_time": 64.16,
+      "end_time": 64.32
+    },
+    {
+      "text": "た",
+      "start_time": 64.32,
+      "end_time": 64.4
+    },
+    {
+      "text": "が",
+      "start_time": 64.4,
+      "end_time": 64.56
+    },
+    {
+      "text": "れ",
+      "start_time": 64.56,
+      "end_time": 64.8
+    },
+    {
+      "text": "ミナラサンス",
+      "start_time": 65.04,
+      "end_time": 65.76
+    },
+    {
+      "text": "を",
+      "start_time": 65.84,
+      "end_time": 65.92
+    },
+    {
+      "text": "3",
+      "start_time": 65.92,
+      "end_time": 66.24
+    },
+    {
+      "text": "度",
+      "start_time": 66.24,
+      "end_time": 66.48
+    },
+    {
+      "text": "る",
+      "start_time": 66.48,
+      "end_time": 66.48
+    },
+    {
+      "text": "周り",
+      "start_time": 66.48,
+      "end_time": 66.8
+    },
+    {
+      "text": "や",
+      "start_time": 66.8,
+      "end_time": 67.04
+    },
+    {
+      "text": "この",
+      "start_time": 67.36,
+      "end_time": 67.68
+    },
+    {
+      "text": "周囲",
+      "start_time": 67.68,
+      "end_time": 68.0
+    },
+    {
+      "text": "の",
+      "start_time": 68.0,
+      "end_time": 68.08
+    },
+    {
+      "text": "複雑",
+      "start_time": 68.08,
+      "end_time": 68.72
+    },
+    {
+      "text": "さ",
+      "start_time": 68.72,
+      "end_time": 68.72
+    },
+    {
+      "text": "に",
+      "start_time": 68.72,
+      "end_time": 68.88
+    },
+    {
+      "text": "関する",
+      "start_time": 68.88,
+      "end_time": 69.36
+    },
+    {
+      "text": "問題",
+      "start_time": 69.36,
+      "end_time": 69.76
+    },
+    {
+      "text": "を",
+      "start_time": 69.76,
+      "end_time": 69.84
+    },
+    {
+      "text": "思い出さ",
+      "start_time": 69.92,
+      "end_time": 70.4
+    },
+    {
+      "text": "せ",
+      "start_time": 70.4,
+      "end_time": 70.48
+    },
+    {
+      "text": "て",
+      "start_time": 70.48,
+      "end_time": 70.64
+    },
+    {
+      "text": "ください",
+      "start_time": 70.64,
+      "end_time": 71.12
+    },
+    {
+      "text": "それ",
+      "start_time": 71.36,
+      "end_time": 71.6
+    },
+    {
+      "text": "は",
+      "start_time": 71.6,
+      "end_time": 71.84
+    },
+    {
+      "text": "入力",
+      "start_time": 72.16,
+      "end_time": 72.56
+    },
+    {
+      "text": "の",
+      "start_time": 72.56,
+      "end_time": 72.64
+    },
+    {
+      "text": "長",
+      "start_time": 72.64,
+      "end_time": 72.88
+    },
+    {
+      "text": "さ",
+      "start_time": 72.88,
+      "end_time": 73.04
+    },
+    {
+      "text": "の",
+      "start_time": 73.04,
+      "end_time": 73.2
+    },
+    {
+      "text": "2",
+      "start_time": 73.2,
+      "end_time": 73.36
+    },
+    {
+      "text": "乗",
+      "start_time": 73.36,
+      "end_time": 73.52
+    },
+    {
+      "text": "に",
+      "start_time": 73.52,
+      "end_time": 73.68
+    },
+    {
+      "text": "依存",
+      "start_time": 73.68,
+      "end_time": 73.92
+    },
+    {
+      "text": "し",
+      "start_time": 73.92,
+      "end_time": 74.0
+    },
+    {
+      "text": "て",
+      "start_time": 74.0,
+      "end_time": 74.16
+    },
+    {
+      "text": "い",
+      "start_time": 74.16,
+      "end_time": 74.16
+    },
+    {
+      "text": "ます",
+      "start_time": 74.16,
+      "end_time": 74.48
+    },
+    {
+      "text": "ミナラサンス",
+      "start_time": 74.8,
+      "end_time": 75.52
+    },
+    {
+      "text": "を",
+      "start_time": 75.6,
+      "end_time": 75.68
+    },
+    {
+      "text": "3",
+      "start_time": 75.68,
+      "end_time": 76.0
+    },
+    {
+      "text": "度",
+      "start_time": 76.0,
+      "end_time": 76.16
+    },
+    {
+      "text": "る",
+      "start_time": 76.16,
+      "end_time": 76.24
+    },
+    {
+      "text": "周り",
+      "start_time": 76.24,
+      "end_time": 76.64
+    },
+    {
+      "text": "や",
+      "start_time": 76.64,
+      "end_time": 76.8
+    },
+    {
+      "text": "トランス",
+      "start_time": 77.12,
+      "end_time": 77.68
+    },
+    {
+      "text": "周り",
+      "start_time": 77.76,
+      "end_time": 78.08
+    },
+    {
+      "text": "や",
+      "start_time": 78.08,
+      "end_time": 78.24
+    },
+    {
+      "text": "潜在",
+      "start_time": 78.56,
+      "end_time": 78.88
+    },
+    {
+      "text": "な",
+      "start_time": 78.88,
+      "end_time": 79.04
+    },
+    {
+      "text": "周囲",
+      "start_time": 79.04,
+      "end_time": 79.36
+    },
+    {
+      "text": "接続",
+      "start_time": 79.36,
+      "end_time": 79.84
+    },
+    {
+      "text": "性",
+      "start_time": 79.84,
+      "end_time": 80.16
+    },
+    {
+      "text": "を",
+      "start_time": 80.16,
+      "end_time": 80.24
+    },
+    {
+      "text": "持ち",
+      "start_time": 80.24,
+      "end_time": 80.72
+    },
+    {
+      "text": "各",
+      "start_time": 80.96,
+      "end_time": 81.28
+    },
+    {
+      "text": "トーク",
+      "start_time": 81.28,
+      "end_time": 81.6
+    },
+    {
+      "text": "と",
+      "start_time": 81.68,
+      "end_time": 81.76
+    },
+    {
+      "text": "他",
+      "start_time": 81.76,
+      "end_time": 82.0
+    },
+    {
+      "text": "の",
+      "start_time": 82.0,
+      "end_time": 82.08
+    },
+    {
+      "text": "すべて",
+      "start_time": 82.16,
+      "end_time": 82.48
+    },
+    {
+      "text": "の",
+      "start_time": 82.56,
+      "end_time": 82.64
+    },
+    {
+      "text": "トーク",
+      "start_time": 82.64,
+      "end_time": 82.96
+    },
+    {
+      "text": "と",
+      "start_time": 83.04,
+      "end_time": 83.2
+    },
+    {
+      "text": "の",
+      "start_time": 83.2,
+      "end_time": 83.28
+    },
+    {
+      "text": "関係",
+      "start_time": 83.28,
+      "end_time": 83.68
+    },
+    {
+      "text": "を",
+      "start_time": 83.68,
+      "end_time": 83.84
+    },
+    {
+      "text": "計算",
+      "start_time": 83.84,
+      "end_time": 84.32
+    },
+    {
+      "text": "し",
+      "start_time": 84.32,
+      "end_time": 84.4
+    },
+    {
+      "text": "なけれ",
+      "start_time": 84.4,
+      "end_time": 84.72
+    },
+    {
+      "text": "ば",
+      "start_time": 84.72,
+      "end_time": 84.88
+    },
+    {
+      "text": "なり",
+      "start_time": 84.88,
+      "end_time": 85.12
+    },
+    {
+      "text": "ませ",
+      "start_time": 85.12,
+      "end_time": 85.44
+    },
+    {
+      "text": "ん",
+      "start_time": 85.44,
+      "end_time": 85.52
+    },
+    {
+      "text": "周囲",
+      "start_time": 85.76,
+      "end_time": 86.08
+    },
+    {
+      "text": "の",
+      "start_time": 86.08,
+      "end_time": 86.16
+    },
+    {
+      "text": "計算",
+      "start_time": 86.16,
+      "end_time": 86.64
+    },
+    {
+      "text": "複雑",
+      "start_time": 86.64,
+      "end_time": 87.2
+    },
+    {
+      "text": "さ",
+      "start_time": 87.2,
+      "end_time": 87.2
+    },
+    {
+      "text": "は",
+      "start_time": 87.2,
+      "end_time": 87.44
+    },
+    {
+      "text": "総",
+      "start_time": 87.76,
+      "end_time": 88.08
+    },
+    {
+      "text": "の",
+      "start_time": 88.08,
+      "end_time": 88.16
+    },
+    {
+      "text": "数える",
+      "start_time": 88.16,
+      "end_time": 88.64
+    },
+    {
+      "text": "に",
+      "start_time": 88.64,
+      "end_time": 88.8
+    },
+    {
+      "text": "依存",
+      "start_time": 88.8,
+      "end_time": 89.04
+    },
+    {
+      "text": "し",
+      "start_time": 89.04,
+      "end_time": 89.12
+    },
+    {
+      "text": "て",
+      "start_time": 89.12,
+      "end_time": 89.28
+    },
+    {
+      "text": "い",
+      "start_time": 89.28,
+      "end_time": 89.28
+    },
+    {
+      "text": "ます",
+      "start_time": 89.28,
+      "end_time": 89.68
+    },
+    {
+      "text": "シーザー",
+      "start_time": 89.92,
+      "end_time": 90.32
+    },
+    {
+      "text": "演算",
+      "start_time": 90.4,
+      "end_time": 90.88
+    },
+    {
+      "text": "を",
+      "start_time": 90.88,
+      "end_time": 91.04
+    },
+    {
+      "text": "やる",
+      "start_time": 91.04,
+      "end_time": 91.28
+    },
+    {
+      "text": "の",
+      "start_time": 91.28,
+      "end_time": 91.6
+    },
+    {
+      "text": "別",
+      "start_time": 91.6,
+      "end_time": 91.92
+    },
+    {
+      "text": "の",
+      "start_time": 91.92,
+      "end_time": 92.08
+    },
+    {
+      "text": "シーザー",
+      "start_time": 92.08,
+      "end_time": 92.48
+    },
+    {
+      "text": "演算",
+      "start_time": 92.48,
+      "end_time": 93.36
+    },
+    {
+      "text": "を",
+      "start_time": 93.36,
+      "end_time": 93.36
+    },
+    {
+      "text": "置き",
+      "start_time": 93.36,
+      "end_time": 93.6
+    },
+    {
+      "text": "する",
+      "start_time": 93.6,
+      "end_time": 94.32
+    },
+    {
+      "text": "表現",
+      "start_time": 94.64,
+      "end_time": 95.12
+    },
+    {
+      "text": "の",
+      "start_time": 95.12,
+      "end_time": 95.28
+    },
+    {
+      "text": "次元",
+      "start_time": 95.28,
+      "end_time": 95.6
+    },
+    {
+      "text": "数",
+      "start_time": 95.6,
+      "end_time": 95.92
+    },
+    {
+      "text": "に",
+      "start_time": 95.92,
+      "end_time": 96.0
+    },
+    {
+      "text": "依存",
+      "start_time": 96.0,
+      "end_time": 96.32
+    },
+    {
+      "text": "し",
+      "start_time": 96.32,
+      "end_time": 96.48
+    },
+    {
+      "text": "て",
+      "start_time": 96.48,
+      "end_time": 96.56
+    },
+    {
+      "text": "い",
+      "start_time": 96.56,
+      "end_time": 96.64
+    },
+    {
+      "text": "ます",
+      "start_time": 96.64,
+      "end_time": 96.96
+    },
+    {
+      "text": "お",
+      "start_time": 97.28,
+      "end_time": 97.36
+    },
+    {
+      "text": "にょう",
+      "start_time": 97.36,
+      "end_time": 97.6
+    },
+    {
+      "text": "に",
+      "start_time": 97.6,
+      "end_time": 97.92
+    },
+    {
+      "text": "テコタール",
+      "start_time": 98.24,
+      "end_time": 98.96
+    },
+    {
+      "text": "の",
+      "start_time": 98.96,
+      "end_time": 99.04
+    },
+    {
+      "text": "する",
+      "start_time": 99.04,
+      "end_time": 99.6
+    },
+    {
+      "text": "変更",
+      "start_time": 99.92,
+      "end_time": 100.32
+    },
+    {
+      "text": "度",
+      "start_time": 100.32,
+      "end_time": 100.48
+    },
+    {
+      "text": "クロス",
+      "start_time": 100.48,
+      "end_time": 100.88
+    },
+    {
+      "text": "アリン",
+      "start_time": 100.88,
+      "end_time": 101.12
+    },
+    {
+      "text": "で",
+      "start_time": 101.12,
+      "end_time": 101.44
+    },
+    {
+      "text": "仮想",
+      "start_time": 101.76,
+      "end_time": 102.16
+    },
+    {
+      "text": "は",
+      "start_time": 102.16,
+      "end_time": 102.4
+    },
+    {
+      "text": "右側",
+      "start_time": 102.64,
+      "end_time": 103.12
+    },
+    {
+      "text": "の",
+      "start_time": 103.12,
+      "end_time": 103.28
+    },
+    {
+      "text": "図",
+      "start_time": 103.28,
+      "end_time": 103.52
+    },
+    {
+      "text": "の",
+      "start_time": 103.52,
+      "end_time": 103.68
+    },
+    {
+      "text": "よう",
+      "start_time": 103.68,
+      "end_time": 104.0
+    },
+    {
+      "text": "に",
+      "start_time": 104.0,
+      "end_time": 104.32
+    },
+    {
+      "text": "唯一",
+      "start_time": 104.56,
+      "end_time": 104.96
+    },
+    {
+      "text": "の",
+      "start_time": 104.96,
+      "end_time": 105.04
+    },
+    {
+      "text": "違い",
+      "start_time": 105.04,
+      "end_time": 105.52
+    },
+    {
+      "text": "は",
+      "start_time": 105.52,
+      "end_time": 105.76
+    },
+    {
+      "text": "ターゲット",
+      "start_time": 106.0,
+      "end_time": 106.56
+    },
+    {
+      "text": "の",
+      "start_time": 106.56,
+      "end_time": 106.72
+    },
+    {
+      "text": "サービス",
+      "start_time": 106.72,
+      "end_time": 107.2
+    },
+    {
+      "text": "の",
+      "start_time": 107.2,
+      "end_time": 107.36
+    },
+    {
+      "text": "正常",
+      "start_time": 107.36,
+      "end_time": 108.0
+    },
+    {
+      "text": "を",
+      "start_time": 108.0,
+      "end_time": 108.08
+    },
+    {
+      "text": "入力",
+      "start_time": 108.4,
+      "end_time": 108.8
+    },
+    {
+      "text": "トーク",
+      "start_time": 108.8,
+      "end_time": 109.12
+    },
+    {
+      "text": "に",
+      "start_time": 109.12,
+      "end_time": 109.28
+    },
+    {
+      "text": "注意",
+      "start_time": 109.28,
+      "end_time": 109.68
+    },
+    {
+      "text": "を",
+      "start_time": 109.68,
+      "end_time": 109.68
+    },
+    {
+      "text": "向け",
+      "start_time": 109.68,
+      "end_time": 109.92
+    },
+    {
+      "text": "て",
+      "start_time": 109.92,
+      "end_time": 110.08
+    },
+    {
+      "text": "いる",
+      "start_time": 110.08,
+      "end_time": 110.24
+    },
+    {
+      "text": "こと",
+      "start_time": 110.24,
+      "end_time": 110.56
+    },
+    {
+      "text": "です",
+      "start_time": 110.56,
+      "end_time": 110.88
+    },
+    {
+      "text": "この",
+      "start_time": 111.2,
+      "end_time": 111.44
+    },
+    {
+      "text": "場合",
+      "start_time": 111.44,
+      "end_time": 112.0
+    },
+    {
+      "text": "この",
+      "start_time": 112.24,
+      "end_time": 112.48
+    },
+    {
+      "text": "式",
+      "start_time": 112.48,
+      "end_time": 112.72
+    },
+    {
+      "text": "で",
+      "start_time": 112.72,
+      "end_time": 112.88
+    },
+    {
+      "text": "も",
+      "start_time": 112.88,
+      "end_time": 112.96
+    },
+    {
+      "text": "確認",
+      "start_time": 112.96,
+      "end_time": 113.44
+    },
+    {
+      "text": "でき",
+      "start_time": 113.44,
+      "end_time": 113.76
+    },
+    {
+      "text": "ます",
+      "start_time": 113.76,
+      "end_time": 114.08
+    },
+    {
+      "text": "青い",
+      "start_time": 114.4,
+      "end_time": 114.64
+    },
+    {
+      "text": "四角",
+      "start_time": 114.64,
+      "end_time": 115.12
+    },
+    {
+      "text": "は",
+      "start_time": 115.12,
+      "end_time": 115.36
+    },
+    {
+      "text": "計算",
+      "start_time": 115.68,
+      "end_time": 116.08
+    },
+    {
+      "text": "し",
+      "start_time": 116.08,
+      "end_time": 116.24
+    },
+    {
+      "text": "なけれ",
+      "start_time": 116.24,
+      "end_time": 116.56
+    },
+    {
+      "text": "ば",
+      "start_time": 116.56,
+      "end_time": 116.72
+    },
+    {
+      "text": "なら",
+      "start_time": 116.72,
+      "end_time": 116.96
+    },
+    {
+      "text": "ない",
+      "start_time": 116.96,
+      "end_time": 117.12
+    },
+    {
+      "text": "関係",
+      "start_time": 117.12,
+      "end_time": 117.6
+    },
+    {
+      "text": "を",
+      "start_time": 117.6,
+      "end_time": 117.76
+    },
+    {
+      "text": "表し",
+      "start_time": 117.76,
+      "end_time": 118.16
+    },
+    {
+      "text": "て",
+      "start_time": 118.16,
+      "end_time": 118.32
+    },
+    {
+      "text": "い",
+      "start_time": 118.32,
+      "end_time": 118.32
+    },
+    {
+      "text": "ます",
+      "start_time": 118.32,
+      "end_time": 118.72
+    },
+    {
+      "text": "クロス",
+      "start_time": 118.96,
+      "end_time": 119.52
+    },
+    {
+      "text": "テンション",
+      "start_time": 119.52,
+      "end_time": 119.92
+    },
+    {
+      "text": "の",
+      "start_time": 119.92,
+      "end_time": 120.08
+    },
+    {
+      "text": "トーク",
+      "start_time": 120.08,
+      "end_time": 120.4
+    },
+    {
+      "text": "の",
+      "start_time": 120.4,
+      "end_time": 120.56
+    },
+    {
+      "text": "場合",
+      "start_time": 120.56,
+      "end_time": 120.96
+    },
+    {
+      "text": "入力",
+      "start_time": 121.28,
+      "end_time": 121.68
+    },
+    {
+      "text": "シーザー",
+      "start_time": 121.68,
+      "end_time": 122.08
+    },
+    {
+      "text": "の",
+      "start_time": 122.08,
+      "end_time": 122.24
+    },
+    {
+      "text": "正常",
+      "start_time": 122.24,
+      "end_time": 122.88
+    },
+    {
+      "text": "を",
+      "start_time": 122.88,
+      "end_time": 123.12
+    },
+    {
+      "text": "計算",
+      "start_time": 123.52,
+      "end_time": 123.92
+    },
+    {
+      "text": "する",
+      "start_time": 123.92,
+      "end_time": 124.16
+    },
+    {
+      "text": "必要",
+      "start_time": 124.16,
+      "end_time": 124.56
+    },
+    {
+      "text": "が",
+      "start_time": 124.56,
+      "end_time": 124.64
+    },
+    {
+      "text": "あり",
+      "start_time": 124.64,
+      "end_time": 124.8
+    },
+    {
+      "text": "ます",
+      "start_time": 124.8,
+      "end_time": 125.2
+    },
+    {
+      "text": "さて",
+      "start_time": 125.44,
+      "end_time": 125.92
+    },
+    {
+      "text": "トーク",
+      "start_time": 126.32,
+      "end_time": 126.64
+    },
+    {
+      "text": "の",
+      "start_time": 126.64,
+      "end_time": 126.8
+    },
+    {
+      "text": "接続",
+      "start_time": 126.8,
+      "end_time": 127.36
+    },
+    {
+      "text": "性",
+      "start_time": 127.36,
+      "end_time": 127.6
+    },
+    {
+      "text": "を",
+      "start_time": 127.6,
+      "end_time": 127.68
+    },
+    {
+      "text": "制限",
+      "start_time": 127.68,
+      "end_time": 128.16
+    },
+    {
+      "text": "する",
+      "start_time": 128.16,
+      "end_time": 128.56
+    },
+    {
+      "text": "ブロック",
+      "start_time": 128.88,
+      "end_time": 129.2
+    },
+    {
+      "text": "ごと",
+      "start_time": 129.2,
+      "end_time": 129.52
+    },
+    {
+      "text": "の",
+      "start_time": 129.52,
+      "end_time": 129.6
+    },
+    {
+      "text": "変更",
+      "start_time": 129.6,
+      "end_time": 130.0
+    },
+    {
+      "text": "度",
+      "start_time": 130.0,
+      "end_time": 130.16
+    },
+    {
+      "text": "を",
+      "start_time": 130.16,
+      "end_time": 130.24
+    },
+    {
+      "text": "使用",
+      "start_time": 130.24,
+      "end_time": 130.56
+    },
+    {
+      "text": "し",
+      "start_time": 130.56,
+      "end_time": 130.64
+    },
+    {
+      "text": "た",
+      "start_time": 130.64,
+      "end_time": 130.72
+    },
+    {
+      "text": "場合",
+      "start_time": 130.72,
+      "end_time": 131.04
+    },
+    {
+      "text": "に",
+      "start_time": 131.04,
+      "end_time": 131.2
+    },
+    {
+      "text": "何",
+      "start_time": 131.6,
+      "end_time": 131.84
+    },
+    {
+      "text": "が",
+      "start_time": 131.84,
+      "end_time": 131.92
+    },
+    {
+      "text": "起きる",
+      "start_time": 131.92,
+      "end_time": 132.24
+    },
+    {
+      "text": "か",
+      "start_time": 132.24,
+      "end_time": 132.4
+    },
+    {
+      "text": "を",
+      "start_time": 132.4,
+      "end_time": 132.48
+    },
+    {
+      "text": "見",
+      "start_time": 132.48,
+      "end_time": 132.64
+    },
+    {
+      "text": "て",
+      "start_time": 132.64,
+      "end_time": 132.72
+    },
+    {
+      "text": "み",
+      "start_time": 132.72,
+      "end_time": 132.8
+    },
+    {
+      "text": "ましょう",
+      "start_time": 132.8,
+      "end_time": 133.2
+    },
+    {
+      "text": "そう",
+      "start_time": 133.44,
+      "end_time": 133.68
+    },
+    {
+      "text": "する",
+      "start_time": 133.68,
+      "end_time": 133.92
+    },
+    {
+      "text": "こと",
+      "start_time": 133.92,
+      "end_time": 134.24
+    },
+    {
+      "text": "が",
+      "start_time": 134.24,
+      "end_time": 134.48
+    },
+    {
+      "text": "他",
+      "start_time": 134.8,
+      "end_time": 135.04
+    },
+    {
+      "text": "の",
+      "start_time": 135.04,
+      "end_time": 135.2
+    },
+    {
+      "text": "視覚",
+      "start_time": 135.2,
+      "end_time": 135.6
+    },
+    {
+      "text": "の",
+      "start_time": 135.6,
+      "end_time": 135.76
+    },
+    {
+      "text": "トーク",
+      "start_time": 135.76,
+      "end_time": 136.16
+    },
+    {
+      "text": "しか",
+      "start_time": 136.24,
+      "end_time": 136.4
+    },
+    {
+      "text": "見え",
+      "start_time": 136.48,
+      "end_time": 136.72
+    },
+    {
+      "text": "ない",
+      "start_time": 136.72,
+      "end_time": 136.88
+    },
+    {
+      "text": "よう",
+      "start_time": 136.96,
+      "end_time": 137.12
+    },
+    {
+      "text": "です",
+      "start_time": 137.12,
+      "end_time": 137.52
+    },
+    {
+      "text": "テキスト",
+      "start_time": 137.76,
+      "end_time": 138.16
+    },
+    {
+      "text": "は",
+      "start_time": 138.16,
+      "end_time": 138.32
+    },
+    {
+      "text": "参加",
+      "start_time": 138.32,
+      "end_time": 138.72
+    },
+    {
+      "text": "する",
+      "start_time": 138.72,
+      "end_time": 138.96
+    },
+    {
+      "text": "外れ",
+      "start_time": 138.96,
+      "end_time": 139.44
+    },
+    {
+      "text": "が",
+      "start_time": 139.52,
+      "end_time": 139.84
+    },
+    {
+      "text": "特に",
+      "start_time": 140.16,
+      "end_time": 140.56
+    },
+    {
+      "text": "読み曲が",
+      "start_time": 140.56,
+      "end_time": 141.2
+    },
+    {
+      "text": "れ",
+      "start_time": 141.2,
+      "end_time": 141.44
+    },
+    {
+      "text": "変更",
+      "start_time": 141.76,
+      "end_time": 142.16
+    },
+    {
+      "text": "度",
+      "start_time": 142.16,
+      "end_time": 142.24
+    },
+    {
+      "text": "で",
+      "start_time": 142.56,
+      "end_time": 142.72
+    },
+    {
+      "text": "計算",
+      "start_time": 142.72,
+      "end_time": 143.12
+    },
+    {
+      "text": "量",
+      "start_time": 143.12,
+      "end_time": 143.36
+    },
+    {
+      "text": "を",
+      "start_time": 143.36,
+      "end_time": 143.44
+    },
+    {
+      "text": "大幅",
+      "start_time": 143.44,
+      "end_time": 143.68
+    },
+    {
+      "text": "に",
+      "start_time": 143.68,
+      "end_time": 143.84
+    },
+    {
+      "text": "減らす",
+      "start_time": 143.84,
+      "end_time": 144.16
+    },
+    {
+      "text": "こと",
+      "start_time": 144.16,
+      "end_time": 144.4
+    },
+    {
+      "text": "が",
+      "start_time": 144.4,
+      "end_time": 144.56
+    },
+    {
+      "text": "でき",
+      "start_time": 144.56,
+      "end_time": 144.8
+    },
+    {
+      "text": "ます",
+      "start_time": 144.8,
+      "end_time": 145.12
+    },
+    {
+      "text": "しかし",
+      "start_time": 145.36,
+      "end_time": 145.92
+    },
+    {
+      "text": "すべて",
+      "start_time": 146.32,
+      "end_time": 146.72
+    },
+    {
+      "text": "の",
+      "start_time": 146.72,
+      "end_time": 146.88
+    },
+    {
+      "text": "入力",
+      "start_time": 146.88,
+      "end_time": 147.28
+    },
+    {
+      "text": "トーク",
+      "start_time": 147.28,
+      "end_time": 147.52
+    },
+    {
+      "text": "が",
+      "start_time": 147.6,
+      "end_time": 147.84
+    },
+    {
+      "text": "デコーダ",
+      "start_time": 148.16,
+      "end_time": 148.64
+    },
+    {
+      "text": "に",
+      "start_time": 148.64,
+      "end_time": 148.72
+    },
+    {
+      "text": "渡さ",
+      "start_time": 148.72,
+      "end_time": 149.2
+    },
+    {
+      "text": "れる",
+      "start_time": 149.2,
+      "end_time": 149.44
+    },
+    {
+      "text": "の",
+      "start_time": 149.44,
+      "end_time": 149.52
+    },
+    {
+      "text": "で",
+      "start_time": 149.52,
+      "end_time": 149.76
+    },
+    {
+      "text": "デコーダ",
+      "start_time": 150.16,
+      "end_time": 150.64
+    },
+    {
+      "text": "の",
+      "start_time": 150.64,
+      "end_time": 150.72
+    },
+    {
+      "text": "クロス",
+      "start_time": 150.72,
+      "end_time": 151.12
+    },
+    {
+      "text": "テンション",
+      "start_time": 151.28,
+      "end_time": 151.68
+    },
+    {
+      "text": "は",
+      "start_time": 151.68,
+      "end_time": 151.84
+    },
+    {
+      "text": "向上",
+      "start_time": 151.84,
+      "end_time": 152.24
+    },
+    {
+      "text": "し",
+      "start_time": 152.24,
+      "end_time": 152.4
+    },
+    {
+      "text": "ませ",
+      "start_time": 152.4,
+      "end_time": 152.72
+    },
+    {
+      "text": "ん",
+      "start_time": 152.72,
+      "end_time": 152.8
+    },
+    {
+      "text": "この",
+      "start_time": 153.04,
+      "end_time": 153.36
+    },
+    {
+      "text": "方法",
+      "start_time": 153.36,
+      "end_time": 153.76
+    },
+    {
+      "text": "は",
+      "start_time": 153.76,
+      "end_time": 154.0
+    },
+    {
+      "text": "よく",
+      "start_time": 154.24,
+      "end_time": 154.56
+    },
+    {
+      "text": "デコーダ",
+      "start_time": 154.56,
+      "end_time": 155.04
+    },
+    {
+      "text": "の",
+      "start_time": 155.04,
+      "end_time": 155.12
+    },
+    {
+      "text": "フィールド",
+      "start_time": 155.12,
+      "end_time": 155.6
+    },
+    {
+      "text": "で",
+      "start_time": 155.6,
+      "end_time": 155.76
+    },
+    {
+      "text": "あり",
+      "start_time": 155.76,
+      "end_time": 156.08
+    },
+    {
+      "text": "と",
+      "start_time": 156.48,
+      "end_time": 156.56
+    },
+    {
+      "text": "呼ば",
+      "start_time": 156.56,
+      "end_time": 156.8
+    },
+    {
+      "text": "れ",
+      "start_time": 156.8,
+      "end_time": 156.88
+    },
+    {
+      "text": "て",
+      "start_time": 156.88,
+      "end_time": 157.12
+    },
+    {
+      "text": "い",
+      "start_time": 157.12,
+      "end_time": 157.12
+    },
+    {
+      "text": "ます",
+      "start_time": 157.12,
+      "end_time": 157.52
+    },
+    {
+      "text": "ここ",
+      "start_time": 157.76,
+      "end_time": 158.08
+    },
+    {
+      "text": "で",
+      "start_time": 158.08,
+      "end_time": 158.16
+    },
+    {
+      "text": "の",
+      "start_time": 158.16,
+      "end_time": 158.32
+    },
+    {
+      "text": "改善",
+      "start_time": 158.32,
+      "end_time": 158.8
+    },
+    {
+      "text": "は",
+      "start_time": 158.8,
+      "end_time": 158.96
+    },
+    {
+      "text": "変化",
+      "start_time": 159.28,
+      "end_time": 159.6
+    },
+    {
+      "text": "と",
+      "start_time": 159.6,
+      "end_time": 159.76
+    },
+    {
+      "text": "し",
+      "start_time": 159.76,
+      "end_time": 159.84
+    },
+    {
+      "text": "て",
+      "start_time": 159.84,
+      "end_time": 160.0
+    },
+    {
+      "text": "解釈",
+      "start_time": 160.0,
+      "end_time": 160.48
+    },
+    {
+      "text": "でき",
+      "start_time": 160.48,
+      "end_time": 160.72
+    },
+    {
+      "text": "ます",
+      "start_time": 160.72,
+      "end_time": 161.12
+    },
+    {
+      "text": "N",
+      "start_time": 161.36,
+      "end_time": 161.52
+    },
+    {
+      "text": "の",
+      "start_time": 161.52,
+      "end_time": 161.68
+    },
+    {
+      "text": "依存",
+      "start_time": 161.68,
+      "end_time": 162.0
+    },
+    {
+      "text": "関係",
+      "start_time": 162.0,
+      "end_time": 162.4
+    },
+    {
+      "text": "の",
+      "start_time": 162.4,
+      "end_time": 162.56
+    },
+    {
+      "text": "1",
+      "start_time": 162.56,
+      "end_time": 162.56
+    },
+    {
+      "text": "つ",
+      "start_time": 162.72,
+      "end_time": 162.88
+    },
+    {
+      "text": "を",
+      "start_time": 162.88,
+      "end_time": 162.96
+    },
+    {
+      "text": "別",
+      "start_time": 162.96,
+      "end_time": 163.2
+    },
+    {
+      "text": "の",
+      "start_time": 163.2,
+      "end_time": 163.36
+    },
+    {
+      "text": "定数",
+      "start_time": 163.36,
+      "end_time": 163.76
+    },
+    {
+      "text": "M",
+      "start_time": 163.76,
+      "end_time": 164.0
+    },
+    {
+      "text": "に",
+      "start_time": 164.0,
+      "end_time": 164.08
+    },
+    {
+      "text": "変更",
+      "start_time": 164.08,
+      "end_time": 164.48
+    },
+    {
+      "text": "する",
+      "start_time": 164.48,
+      "end_time": 164.8
+    },
+    {
+      "text": "こと",
+      "start_time": 164.8,
+      "end_time": 165.04
+    },
+    {
+      "text": "で",
+      "start_time": 165.04,
+      "end_time": 165.28
+    },
+    {
+      "text": "ブロック",
+      "start_time": 165.52,
+      "end_time": 165.84
+    },
+    {
+      "text": "サイズ",
+      "start_time": 165.84,
+      "end_time": 166.32
+    },
+    {
+      "text": "を",
+      "start_time": 166.32,
+      "end_time": 166.88
+    },
+    {
+      "text": "思わ",
+      "start_time": 166.88,
+      "end_time": 167.44
+    },
+    {
+      "text": "せ",
+      "start_time": 167.76,
+      "end_time": 167.92
+    },
+    {
+      "text": "て",
+      "start_time": 167.92,
+      "end_time": 167.92
+    },
+    {
+      "text": "い",
+      "start_time": 167.92,
+      "end_time": 168.0
+    },
+    {
+      "text": "ます",
+      "start_time": 168.0,
+      "end_time": 168.4
+    },
+    {
+      "text": "私",
+      "start_time": 168.96,
+      "end_time": 169.28
+    },
+    {
+      "text": "たち",
+      "start_time": 169.28,
+      "end_time": 169.6
+    },
+    {
+      "text": "の",
+      "start_time": 169.6,
+      "end_time": 169.84
+    },
+    {
+      "text": "重要",
+      "start_time": 169.84,
+      "end_time": 170.24
+    },
+    {
+      "text": "な",
+      "start_time": 170.24,
+      "end_time": 170.4
+    },
+    {
+      "text": "観察",
+      "start_time": 170.4,
+      "end_time": 170.88
+    },
+    {
+      "text": "は",
+      "start_time": 170.88,
+      "end_time": 171.2
+    },
+    {
+      "text": "多く",
+      "start_time": 171.52,
+      "end_time": 171.84
+    },
+    {
+      "text": "の",
+      "start_time": 171.84,
+      "end_time": 172.0
+    },
+    {
+      "text": "トーク",
+      "start_time": 172.0,
+      "end_time": 172.32
+    },
+    {
+      "text": "が",
+      "start_time": 172.32,
+      "end_time": 172.48
+    },
+    {
+      "text": "与え",
+      "start_time": 172.56,
+      "end_time": 172.72
+    },
+    {
+      "text": "られ",
+      "start_time": 172.72,
+      "end_time": 172.88
+    },
+    {
+      "text": "た",
+      "start_time": 172.88,
+      "end_time": 172.96
+    },
+    {
+      "text": "計算",
+      "start_time": 172.96,
+      "end_time": 173.52
+    },
+    {
+      "text": "の",
+      "start_time": 173.52,
+      "end_time": 173.68
+    },
+    {
+      "text": "重要",
+      "start_time": 173.68,
+      "end_time": 174.0
+    },
+    {
+      "text": "な",
+      "start_time": 174.0,
+      "end_time": 174.16
+    },
+    {
+      "text": "1",
+      "start_time": 174.16,
+      "end_time": 174.4
+    },
+    {
+      "text": "5",
+      "start_time": 174.4,
+      "end_time": 174.64
+    },
+    {
+      "text": "の",
+      "start_time": 174.64,
+      "end_time": 175.2
+    },
+    {
+      "text": "無",
+      "start_time": 175.76,
+      "end_time": 175.92
+    },
+    {
+      "text": "関係",
+      "start_time": 175.92,
+      "end_time": 176.4
+    },
+    {
+      "text": "で",
+      "start_time": 176.4,
+      "end_time": 176.56
+    },
+    {
+      "text": "あり",
+      "start_time": 176.56,
+      "end_time": 176.88
+    },
+    {
+      "text": "ほとんど",
+      "start_time": 177.2,
+      "end_time": 177.68
+    },
+    {
+      "text": "が",
+      "start_time": 177.68,
+      "end_time": 177.76
+    },
+    {
+      "text": "向上",
+      "start_time": 177.76,
+      "end_time": 178.16
+    },
+    {
+      "text": "さ",
+      "start_time": 178.24,
+      "end_time": 178.4
+    },
+    {
+      "text": "れる",
+      "start_time": 178.4,
+      "end_time": 178.72
+    },
+    {
+      "text": "と",
+      "start_time": 179.12,
+      "end_time": 179.28
+    },
+    {
+      "text": "いう",
+      "start_time": 179.28,
+      "end_time": 179.44
+    },
+    {
+      "text": "に",
+      "start_time": 179.44,
+      "end_time": 179.68
+    },
+    {
+      "text": "これ",
+      "start_time": 179.958,
+      "end_time": 180.198
+    },
+    {
+      "text": "は",
+      "start_time": 180.198,
+      "end_time": 180.358
+    },
+    {
+      "text": "マス",
+      "start_time": 180.358,
+      "end_time": 180.678
+    },
+    {
+      "text": "ガイド",
+      "start_time": 180.678,
+      "end_time": 181.078
+    },
+    {
+      "text": "に",
+      "start_time": 181.078,
+      "end_time": 181.158
+    },
+    {
+      "text": "示さ",
+      "start_time": 181.158,
+      "end_time": 181.638
+    },
+    {
+      "text": "れ",
+      "start_time": 181.638,
+      "end_time": 181.798
+    },
+    {
+      "text": "て",
+      "start_time": 181.798,
+      "end_time": 181.958
+    },
+    {
+      "text": "い",
+      "start_time": 181.958,
+      "end_time": 182.038
+    },
+    {
+      "text": "ます",
+      "start_time": 182.038,
+      "end_time": 182.438
+    },
+    {
+      "text": "入力",
+      "start_time": 182.678,
+      "end_time": 183.078
+    },
+    {
+      "text": "の",
+      "start_time": 183.078,
+      "end_time": 183.238
+    },
+    {
+      "text": "一部",
+      "start_time": 183.238,
+      "end_time": 183.478
+    },
+    {
+      "text": "だけ",
+      "start_time": 183.478,
+      "end_time": 183.798
+    },
+    {
+      "text": "が",
+      "start_time": 183.798,
+      "end_time": 184.038
+    },
+    {
+      "text": "所望",
+      "start_time": 184.358,
+      "end_time": 184.678
+    },
+    {
+      "text": "の",
+      "start_time": 184.678,
+      "end_time": 184.838
+    },
+    {
+      "text": "出力",
+      "start_time": 184.838,
+      "end_time": 185.238
+    },
+    {
+      "text": "に",
+      "start_time": 185.238,
+      "end_time": 185.398
+    },
+    {
+      "text": "関連",
+      "start_time": 185.398,
+      "end_time": 185.798
+    },
+    {
+      "text": "し",
+      "start_time": 185.798,
+      "end_time": 185.958
+    },
+    {
+      "text": "て",
+      "start_time": 185.958,
+      "end_time": 186.038
+    },
+    {
+      "text": "いる",
+      "start_time": 186.038,
+      "end_time": 186.198
+    },
+    {
+      "text": "場合",
+      "start_time": 186.198,
+      "end_time": 186.518
+    },
+    {
+      "text": "です",
+      "start_time": 186.518,
+      "end_time": 186.838
+    },
+    {
+      "text": "例えば",
+      "start_time": 187.078,
+      "end_time": 187.798
+    },
+    {
+      "text": "マルディッシュ",
+      "start_time": 188.038,
+      "end_time": 188.598
+    },
+    {
+      "text": "は",
+      "start_time": 188.598,
+      "end_time": 188.838
+    },
+    {
+      "text": "一",
+      "start_time": 189.158,
+      "end_time": 189.398
+    },
+    {
+      "text": "度",
+      "start_time": 189.398,
+      "end_time": 189.558
+    },
+    {
+      "text": "記事",
+      "start_time": 189.558,
+      "end_time": 189.878
+    },
+    {
+      "text": "を",
+      "start_time": 189.878,
+      "end_time": 190.038
+    },
+    {
+      "text": "読ん",
+      "start_time": 190.038,
+      "end_time": 190.278
+    },
+    {
+      "text": "で",
+      "start_time": 190.278,
+      "end_time": 190.518
+    },
+    {
+      "text": "最も",
+      "start_time": 190.758,
+      "end_time": 191.238
+    },
+    {
+      "text": "重要",
+      "start_time": 191.238,
+      "end_time": 191.638
+    },
+    {
+      "text": "な",
+      "start_time": 191.638,
+      "end_time": 191.718
+    },
+    {
+      "text": "部分",
+      "start_time": 191.718,
+      "end_time": 192.118
+    },
+    {
+      "text": "に",
+      "start_time": 192.118,
+      "end_time": 192.358
+    },
+    {
+      "text": "傾向",
+      "start_time": 192.678,
+      "end_time": 193.158
+    },
+    {
+      "text": "ペン",
+      "start_time": 193.158,
+      "end_time": 193.318
+    },
+    {
+      "text": "で",
+      "start_time": 193.318,
+      "end_time": 193.478
+    },
+    {
+      "text": "印",
+      "start_time": 193.478,
+      "end_time": 193.878
+    },
+    {
+      "text": "を",
+      "start_time": 193.878,
+      "end_time": 194.038
+    },
+    {
+      "text": "つけ",
+      "start_time": 194.038,
+      "end_time": 194.358
+    },
+    {
+      "text": "そして",
+      "start_time": 194.598,
+      "end_time": 195.158
+    },
+    {
+      "text": "これ",
+      "start_time": 195.558,
+      "end_time": 195.718
+    },
+    {
+      "text": "ら",
+      "start_time": 195.718,
+      "end_time": 195.878
+    },
+    {
+      "text": "の",
+      "start_time": 195.878,
+      "end_time": 196.038
+    },
+    {
+      "text": "部分",
+      "start_time": 196.038,
+      "end_time": 196.358
+    },
+    {
+      "text": "のみ",
+      "start_time": 196.358,
+      "end_time": 196.598
+    },
+    {
+      "text": "を",
+      "start_time": 196.678,
+      "end_time": 196.758
+    },
+    {
+      "text": "もと",
+      "start_time": 196.758,
+      "end_time": 197.078
+    },
+    {
+      "text": "に",
+      "start_time": 197.078,
+      "end_time": 197.318
+    },
+    {
+      "text": "中間",
+      "start_time": 197.638,
+      "end_time": 198.118
+    },
+    {
+      "text": "段階",
+      "start_time": 198.118,
+      "end_time": 198.518
+    },
+    {
+      "text": "から",
+      "start_time": 198.518,
+      "end_time": 198.758
+    },
+    {
+      "text": "要約",
+      "start_time": 198.758,
+      "end_time": 199.238
+    },
+    {
+      "text": "を",
+      "start_time": 199.238,
+      "end_time": 199.318
+    },
+    {
+      "text": "作成",
+      "start_time": 199.318,
+      "end_time": 199.798
+    },
+    {
+      "text": "する",
+      "start_time": 199.798,
+      "end_time": 200.038
+    },
+    {
+      "text": "こと",
+      "start_time": 200.038,
+      "end_time": 200.278
+    },
+    {
+      "text": "が",
+      "start_time": 200.278,
+      "end_time": 200.438
+    },
+    {
+      "text": "でき",
+      "start_time": 200.438,
+      "end_time": 200.678
+    },
+    {
+      "text": "ます",
+      "start_time": 200.678,
+      "end_time": 200.998
+    },
+    {
+      "text": "傾向",
+      "start_time": 201.238,
+      "end_time": 201.718
+    },
+    {
+      "text": "ペン",
+      "start_time": 201.718,
+      "end_time": 201.878
+    },
+    {
+      "text": "で",
+      "start_time": 201.878,
+      "end_time": 202.038
+    },
+    {
+      "text": "入る",
+      "start_time": 202.038,
+      "end_time": 202.358
+    },
+    {
+      "text": "し",
+      "start_time": 202.358,
+      "end_time": 202.598
+    },
+    {
+      "text": "ことし",
+      "start_time": 203.238,
+      "end_time": 203.878
+    },
+    {
+      "text": "この",
+      "start_time": 204.198,
+      "end_time": 204.518
+    },
+    {
+      "text": "原因",
+      "start_time": 204.518,
+      "end_time": 204.838
+    },
+    {
+      "text": "が",
+      "start_time": 204.838,
+      "end_time": 204.998
+    },
+    {
+      "text": "要約",
+      "start_time": 204.998,
+      "end_time": 205.478
+    },
+    {
+      "text": "を",
+      "start_time": 205.478,
+      "end_time": 205.558
+    },
+    {
+      "text": "作成",
+      "start_time": 205.558,
+      "end_time": 206.038
+    },
+    {
+      "text": "する",
+      "start_time": 206.038,
+      "end_time": 206.278
+    },
+    {
+      "text": "ため",
+      "start_time": 206.278,
+      "end_time": 206.598
+    },
+    {
+      "text": "に",
+      "start_time": 206.598,
+      "end_time": 206.758
+    },
+    {
+      "text": "不可欠",
+      "start_time": 206.758,
+      "end_time": 207.158
+    },
+    {
+      "text": "か",
+      "start_time": 207.158,
+      "end_time": 207.318
+    },
+    {
+      "text": "どう",
+      "start_time": 207.318,
+      "end_time": 207.558
+    },
+    {
+      "text": "か",
+      "start_time": 207.558,
+      "end_time": 207.718
+    },
+    {
+      "text": "を",
+      "start_time": 207.718,
+      "end_time": 207.798
+    },
+    {
+      "text": "判断",
+      "start_time": 207.798,
+      "end_time": 208.198
+    },
+    {
+      "text": "する",
+      "start_time": 208.198,
+      "end_time": 208.518
+    },
+    {
+      "text": "コスト",
+      "start_time": 208.518,
+      "end_time": 208.918
+    },
+    {
+      "text": "は",
+      "start_time": 208.918,
+      "end_time": 209.158
+    },
+    {
+      "text": "ヤンカ",
+      "start_time": 209.398,
+      "end_time": 209.798
+    },
+    {
+      "text": "で",
+      "start_time": 209.798,
+      "end_time": 210.118
+    },
+    {
+      "text": "統計",
+      "start_time": 210.438,
+      "end_time": 210.838
+    },
+    {
+      "text": "する",
+      "start_time": 210.838,
+      "end_time": 211.078
+    },
+    {
+      "text": "対言",
+      "start_time": 211.078,
+      "end_time": 211.558
+    },
+    {
+      "text": "だけ",
+      "start_time": 211.558,
+      "end_time": 211.798
+    },
+    {
+      "text": "に",
+      "start_time": 211.798,
+      "end_time": 211.958
+    },
+    {
+      "text": "依存",
+      "start_time": 211.958,
+      "end_time": 212.198
+    },
+    {
+      "text": "し",
+      "start_time": 212.198,
+      "end_time": 212.358
+    },
+    {
+      "text": "て",
+      "start_time": 212.358,
+      "end_time": 212.518
+    },
+    {
+      "text": "い",
+      "start_time": 212.518,
+      "end_time": 212.518
+    },
+    {
+      "text": "ます",
+      "start_time": 212.518,
+      "end_time": 212.918
+    },
+    {
+      "text": "傾向",
+      "start_time": 213.158,
+      "end_time": 213.638
+    },
+    {
+      "text": "ペン",
+      "start_time": 213.638,
+      "end_time": 213.798
+    },
+    {
+      "text": "で",
+      "start_time": 213.798,
+      "end_time": 213.958
+    },
+    {
+      "text": "入る",
+      "start_time": 213.958,
+      "end_time": 214.358
+    },
+    {
+      "text": "と",
+      "start_time": 214.358,
+      "end_time": 214.678
+    },
+    {
+      "text": "国る",
+      "start_time": 215.078,
+      "end_time": 215.558
+    },
+    {
+      "text": "できる",
+      "start_time": 215.558,
+      "end_time": 215.798
+    },
+    {
+      "text": "は",
+      "start_time": 215.798,
+      "end_time": 216.038
+    },
+    {
+      "text": "国る",
+      "start_time": 216.438,
+      "end_time": 216.838
+    },
+    {
+      "text": "できる",
+      "start_time": 216.838,
+      "end_time": 217.238
+    },
+    {
+      "text": "は",
+      "start_time": 217.238,
+      "end_time": 217.478
+    },
+    {
+      "text": "国る",
+      "start_time": 217.798,
+      "end_time": 218.198
+    },
+    {
+      "text": "できる",
+      "start_time": 218.198,
+      "end_time": 218.598
+    },
+    {
+      "text": "は",
+      "start_time": 218.598,
+      "end_time": 218.918
+    },
+    {
+      "text": "国る",
+      "start_time": 219.238,
+      "end_time": 219.638
+    },
+    {
+      "text": "できる",
+      "start_time": 219.638,
+      "end_time": 220.038
+    },
+    {
+      "text": "は",
+      "start_time": 220.038,
+      "end_time": 220.278
+    },
+    {
+      "text": "国",
+      "start_time": 220.598,
+      "end_time": 220.998
+    },
+    {
+      "text": "その",
+      "start_time": 221.318,
+      "end_time": 221.638
+    },
+    {
+      "text": "コスト",
+      "start_time": 221.638,
+      "end_time": 222.038
+    },
+    {
+      "text": "は",
+      "start_time": 222.038,
+      "end_time": 222.118
+    },
+    {
+      "text": "無視",
+      "start_time": 222.118,
+      "end_time": 222.438
+    },
+    {
+      "text": "できる",
+      "start_time": 222.438,
+      "end_time": 222.838
+    },
+    {
+      "text": "です",
+      "start_time": 222.838,
+      "end_time": 223.158
+    },
+    {
+      "text": "断縮",
+      "start_time": 223.558,
+      "end_time": 224.038
+    },
+    {
+      "text": "さ",
+      "start_time": 224.038,
+      "end_time": 224.118
+    },
+    {
+      "text": "れる",
+      "start_time": 224.118,
+      "end_time": 224.358
+    },
+    {
+      "text": "入力",
+      "start_time": 224.358,
+      "end_time": 224.838
+    },
+    {
+      "text": "から",
+      "start_time": 224.838,
+      "end_time": 225.158
+    },
+    {
+      "text": "要約",
+      "start_time": 225.158,
+      "end_time": 225.638
+    },
+    {
+      "text": "を",
+      "start_time": 225.638,
+      "end_time": 225.718
+    },
+    {
+      "text": "作成",
+      "start_time": 225.718,
+      "end_time": 225.958
+    },
+    {
+      "text": "する",
+      "start_time": 225.958,
+      "end_time": 226.518
+    },
+    {
+      "text": "コスト",
+      "start_time": 226.518,
+      "end_time": 226.918
+    },
+    {
+      "text": "は",
+      "start_time": 226.918,
+      "end_time": 227.158
+    },
+    {
+      "text": "マニール",
+      "start_time": 227.398,
+      "end_time": 227.878
+    },
+    {
+      "text": "モタラス",
+      "start_time": 227.878,
+      "end_time": 228.438
+    },
+    {
+      "text": "モデル",
+      "start_time": 228.518,
+      "end_time": 228.838
+    },
+    {
+      "text": "は",
+      "start_time": 228.838,
+      "end_time": 229.078
+    },
+    {
+      "text": "マニール",
+      "start_time": 229.398,
+      "end_time": 229.798
+    },
+    {
+      "text": "モタラス",
+      "start_time": 229.798,
+      "end_time": 230.438
+    },
+    {
+      "text": "モデル",
+      "start_time": 230.438,
+      "end_time": 230.838
+    },
+    {
+      "text": "は",
+      "start_time": 230.838,
+      "end_time": 231.078
+    },
+    {
+      "text": "大",
+      "start_time": 231.398,
+      "end_time": 231.638
+    },
+    {
+      "text": "が",
+      "start_time": 231.638,
+      "end_time": 231.878
+    },
+    {
+      "text": "大",
+      "start_time": 232.278,
+      "end_time": 232.518
+    },
+    {
+      "text": "が",
+      "start_time": 232.518,
+      "end_time": 232.758
+    },
+    {
+      "text": "大",
+      "start_time": 233.078,
+      "end_time": 233.318
+    },
+    {
+      "text": "が",
+      "start_time": 233.318,
+      "end_time": 233.558
+    },
+    {
+      "text": "大しかし",
+      "start_time": 233.958,
+      "end_time": 235.078
+    },
+    {
+      "text": "ここ",
+      "start_time": 235.478,
+      "end_time": 235.798
+    },
+    {
+      "text": "に",
+      "start_time": 235.798,
+      "end_time": 235.958
+    },
+    {
+      "text": "一",
+      "start_time": 235.958,
+      "end_time": 236.198
+    },
+    {
+      "text": "つ",
+      "start_time": 236.198,
+      "end_time": 236.358
+    },
+    {
+      "text": "疑問",
+      "start_time": 236.358,
+      "end_time": 236.758
+    },
+    {
+      "text": "が",
+      "start_time": 236.758,
+      "end_time": 236.918
+    },
+    {
+      "text": "あり",
+      "start_time": 236.918,
+      "end_time": 237.078
+    },
+    {
+      "text": "ます",
+      "start_time": 237.078,
+      "end_time": 237.398
+    },
+    {
+      "text": "重要",
+      "start_time": 237.798,
+      "end_time": 238.118
+    },
+    {
+      "text": "な",
+      "start_time": 238.118,
+      "end_time": 238.198
+    },
+    {
+      "text": "トーク",
+      "start_time": 238.198,
+      "end_time": 238.518
+    },
+    {
+      "text": "を",
+      "start_time": 238.518,
+      "end_time": 238.598
+    },
+    {
+      "text": "選択",
+      "start_time": 238.598,
+      "end_time": 238.998
+    },
+    {
+      "text": "し",
+      "start_time": 238.998,
+      "end_time": 239.318
+    },
+    {
+      "text": "その",
+      "start_time": 239.638,
+      "end_time": 239.878
+    },
+    {
+      "text": "選択",
+      "start_time": 239.878,
+      "end_time": 240.278
+    },
+    {
+      "text": "に",
+      "start_time": 240.278,
+      "end_time": 240.358
+    },
+    {
+      "text": "基づい",
+      "start_time": 240.438,
+      "end_time": 240.838
+    },
+    {
+      "text": "て",
+      "start_time": 240.838,
+      "end_time": 241.078
+    },
+    {
+      "text": "逆",
+      "start_time": 241.398,
+      "end_time": 241.718
+    },
+    {
+      "text": "伝播",
+      "start_time": 241.718,
+      "end_time": 241.958
+    },
+    {
+      "text": "を",
+      "start_time": 241.958,
+      "end_time": 242.358
+    },
+    {
+      "text": "行う",
+      "start_time": 242.358,
+      "end_time": 242.358
+    },
+    {
+      "text": "方法",
+      "start_time": 242.358,
+      "end_time": 242.598
+    },
+    {
+      "text": "は",
+      "start_time": 242.598,
+      "end_time": 242.758
+    },
+    {
+      "text": "どう",
+      "start_time": 242.758,
+      "end_time": 242.918
+    },
+    {
+      "text": "でしょう",
+      "start_time": 242.918,
+      "end_time": 243.158
+    },
+    {
+      "text": "か",
+      "start_time": 243.158,
+      "end_time": 243.398
+    },
+    {
+      "text": "私",
+      "start_time": 243.638,
+      "end_time": 243.958
+    },
+    {
+      "text": "たち",
+      "start_time": 243.958,
+      "end_time": 244.118
+    },
+    {
+      "text": "が",
+      "start_time": 244.118,
+      "end_time": 244.198
+    },
+    {
+      "text": "解決",
+      "start_time": 244.198,
+      "end_time": 244.598
+    },
+    {
+      "text": "しよう",
+      "start_time": 244.598,
+      "end_time": 244.838
+    },
+    {
+      "text": "と",
+      "start_time": 244.838,
+      "end_time": 244.998
+    },
+    {
+      "text": "し",
+      "start_time": 244.998,
+      "end_time": 245.078
+    },
+    {
+      "text": "て",
+      "start_time": 245.078,
+      "end_time": 245.158
+    },
+    {
+      "text": "いる",
+      "start_time": 245.158,
+      "end_time": 245.318
+    },
+    {
+      "text": "根本",
+      "start_time": 245.318,
+      "end_time": 245.718
+    },
+    {
+      "text": "的",
+      "start_time": 245.718,
+      "end_time": 245.878
+    },
+    {
+      "text": "な",
+      "start_time": 245.878,
+      "end_time": 246.038
+    },
+    {
+      "text": "問題",
+      "start_time": 246.038,
+      "end_time": 246.278
+    },
+    {
+      "text": "は",
+      "start_time": 246.278,
+      "end_time": 246.598
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 246.918,
+      "end_time": 247.478
+    },
+    {
+      "text": "可能",
+      "start_time": 247.478,
+      "end_time": 247.798
+    },
+    {
+      "text": "な",
+      "start_time": 247.798,
+      "end_time": 247.878
+    },
+    {
+      "text": "選択",
+      "start_time": 247.878,
+      "end_time": 248.358
+    },
+    {
+      "text": "メカニズム",
+      "start_time": 248.358,
+      "end_time": 248.998
+    },
+    {
+      "text": "提案",
+      "start_time": 248.998,
+      "end_time": 249.398
+    },
+    {
+      "text": "する",
+      "start_time": 249.398,
+      "end_time": 249.638
+    },
+    {
+      "text": "こと",
+      "start_time": 249.638,
+      "end_time": 249.878
+    },
+    {
+      "text": "です",
+      "start_time": 249.878,
+      "end_time": 250.118
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 250.438,
+      "end_time": 250.998
+    },
+    {
+      "text": "の",
+      "start_time": 250.998,
+      "end_time": 251.078
+    },
+    {
+      "text": "実験",
+      "start_time": 251.078,
+      "end_time": 251.398
+    },
+    {
+      "text": "する",
+      "start_time": 251.398,
+      "end_time": 251.638
+    },
+    {
+      "text": "問題",
+      "start_time": 251.638,
+      "end_time": 252.118
+    },
+    {
+      "text": "後ろ",
+      "start_time": 252.438,
+      "end_time": 252.918
+    },
+    {
+      "text": "逆",
+      "start_time": 252.918,
+      "end_time": 253.158
+    },
+    {
+      "text": "伝播",
+      "start_time": 253.158,
+      "end_time": 253.478
+    },
+    {
+      "text": "さ",
+      "start_time": 253.478,
+      "end_time": 253.638
+    },
+    {
+      "text": "せる",
+      "start_time": 253.638,
+      "end_time": 253.878
+    },
+    {
+      "text": "こと",
+      "start_time": 253.878,
+      "end_time": 254.118
+    },
+    {
+      "text": "が",
+      "start_time": 254.118,
+      "end_time": 254.198
+    },
+    {
+      "text": "できる",
+      "start_time": 254.198,
+      "end_time": 254.598
+    },
+    {
+      "text": "メカニズム",
+      "start_time": 254.598,
+      "end_time": 255.158
+    },
+    {
+      "text": "です",
+      "start_time": 255.158,
+      "end_time": 255.558
+    },
+    {
+      "text": "そう",
+      "start_time": 255.718,
+      "end_time": 255.958
+    },
+    {
+      "text": "する",
+      "start_time": 255.958,
+      "end_time": 256.198
+    },
+    {
+      "text": "こと",
+      "start_time": 256.198,
+      "end_time": 256.438
+    },
+    {
+      "text": "で",
+      "start_time": 256.438,
+      "end_time": 256.678
+    },
+    {
+      "text": "ネットワーク",
+      "start_time": 256.998,
+      "end_time": 257.558
+    },
+    {
+      "text": "は",
+      "start_time": 257.558,
+      "end_time": 257.638
+    },
+    {
+      "text": "最も",
+      "start_time": 257.638,
+      "end_time": 258.118
+    },
+    {
+      "text": "重要",
+      "start_time": 258.118,
+      "end_time": 258.438
+    },
+    {
+      "text": "な",
+      "start_time": 258.438,
+      "end_time": 258.518
+    },
+    {
+      "text": "トーク",
+      "start_time": 258.518,
+      "end_time": 258.838
+    },
+    {
+      "text": "を",
+      "start_time": 258.838,
+      "end_time": 258.918
+    },
+    {
+      "text": "選択",
+      "start_time": 258.918,
+      "end_time": 259.398
+    },
+    {
+      "text": "する",
+      "start_time": 259.398,
+      "end_time": 259.558
+    },
+    {
+      "text": "こと",
+      "start_time": 259.558,
+      "end_time": 259.878
+    },
+    {
+      "text": "が",
+      "start_time": 259.878,
+      "end_time": 260.038
+    },
+    {
+      "text": "可視",
+      "start_time": 260.038,
+      "end_time": 260.358
+    },
+    {
+      "text": "する",
+      "start_time": 260.358,
+      "end_time": 260.598
+    },
+    {
+      "text": "こと",
+      "start_time": 260.598,
+      "end_time": 260.758
+    },
+    {
+      "text": "が",
+      "start_time": 260.758,
+      "end_time": 260.838
+    },
+    {
+      "text": "でき",
+      "start_time": 260.838,
+      "end_time": 261.078
+    },
+    {
+      "text": "ます",
+      "start_time": 261.078,
+      "end_time": 261.398
+    },
+    {
+      "text": "より",
+      "start_time": 261.638,
+      "end_time": 261.878
+    },
+    {
+      "text": "正確",
+      "start_time": 261.878,
+      "end_time": 262.358
+    },
+    {
+      "text": "に",
+      "start_time": 262.358,
+      "end_time": 262.518
+    },
+    {
+      "text": "は",
+      "start_time": 262.518,
+      "end_time": 262.758
+    },
+    {
+      "text": "単純",
+      "start_time": 263.078,
+      "end_time": 263.398
+    },
+    {
+      "text": "な",
+      "start_time": 263.398,
+      "end_time": 263.558
+    },
+    {
+      "text": "線形",
+      "start_time": 263.558,
+      "end_time": 263.958
+    },
+    {
+      "text": "層",
+      "start_time": 263.958,
+      "end_time": 264.118
+    },
+    {
+      "text": "から",
+      "start_time": 264.118,
+      "end_time": 264.358
+    },
+    {
+      "text": "得",
+      "start_time": 264.438,
+      "end_time": 264.518
+    },
+    {
+      "text": "られ",
+      "start_time": 264.518,
+      "end_time": 264.678
+    },
+    {
+      "text": "た",
+      "start_time": 264.678,
+      "end_time": 264.918
+    },
+    {
+      "text": "アンダース",
+      "start_time": 265.238,
+      "end_time": 265.638
+    },
+    {
+      "text": "コア",
+      "start_time": 265.638,
+      "end_time": 265.878
+    },
+    {
+      "text": "付き",
+      "start_time": 265.878,
+      "end_time": 266.038
+    },
+    {
+      "text": "の",
+      "start_time": 266.118,
+      "end_time": 266.278
+    },
+    {
+      "text": "メコンミ",
+      "start_time": 266.278,
+      "end_time": 266.758
+    },
+    {
+      "text": "を",
+      "start_time": 266.758,
+      "end_time": 266.918
+    },
+    {
+      "text": "与え",
+      "start_time": 266.918,
+      "end_time": 267.158
+    },
+    {
+      "text": "られ",
+      "start_time": 267.158,
+      "end_time": 267.398
+    },
+    {
+      "text": "た",
+      "start_time": 267.398,
+      "end_time": 267.478
+    },
+    {
+      "text": "場合",
+      "start_time": 267.478,
+      "end_time": 267.878
+    },
+    {
+      "text": "最も",
+      "start_time": 268.118,
+      "end_time": 268.598
+    },
+    {
+      "text": "高い",
+      "start_time": 268.598,
+      "end_time": 268.918
+    },
+    {
+      "text": "スコア",
+      "start_time": 268.918,
+      "end_time": 269.238
+    },
+    {
+      "text": "を",
+      "start_time": 269.238,
+      "end_time": 269.238
+    },
+    {
+      "text": "持つ",
+      "start_time": 269.238,
+      "end_time": 269.558
+    },
+    {
+      "text": "メコンミ",
+      "start_time": 269.558,
+      "end_time": 269.958
+    },
+    {
+      "text": "を",
+      "start_time": 269.958,
+      "end_time": 270.038
+    },
+    {
+      "text": "返す",
+      "start_time": 270.038,
+      "end_time": 270.358
+    },
+    {
+      "text": "タスク",
+      "start_time": 270.358,
+      "end_time": 270.678
+    },
+    {
+      "text": "です",
+      "start_time": 270.678,
+      "end_time": 270.998
+    },
+    {
+      "text": "まず",
+      "start_time": 271.238,
+      "end_time": 271.558
+    },
+    {
+      "text": "が",
+      "start_time": 271.558,
+      "end_time": 271.798
+    },
+    {
+      "text": "シーケンス",
+      "start_time": 272.038,
+      "end_time": 272.678
+    },
+    {
+      "text": "を",
+      "start_time": 272.678,
+      "end_time": 272.838
+    },
+    {
+      "text": "プラスド",
+      "start_time": 272.838,
+      "end_time": 273.318
+    },
+    {
+      "text": "スクル",
+      "start_time": 273.478,
+      "end_time": 273.958
+    },
+    {
+      "text": "を",
+      "start_time": 273.958,
+      "end_time": 274.038
+    },
+    {
+      "text": "し",
+      "start_time": 274.038,
+      "end_time": 274.278
+    },
+    {
+      "text": "そして",
+      "start_time": 274.598,
+      "end_time": 275.078
+    },
+    {
+      "text": "高い",
+      "start_time": 275.478,
+      "end_time": 275.798
+    },
+    {
+      "text": "スコア",
+      "start_time": 275.798,
+      "end_time": 276.118
+    },
+    {
+      "text": "の",
+      "start_time": 276.118,
+      "end_time": 276.278
+    },
+    {
+      "text": "ベクトル",
+      "start_time": 276.278,
+      "end_time": 276.678
+    },
+    {
+      "text": "と",
+      "start_time": 276.678,
+      "end_time": 276.838
+    },
+    {
+      "text": "低い",
+      "start_time": 276.838,
+      "end_time": 277.158
+    },
+    {
+      "text": "スコア",
+      "start_time": 277.158,
+      "end_time": 277.478
+    },
+    {
+      "text": "の",
+      "start_time": 277.478,
+      "end_time": 277.558
+    },
+    {
+      "text": "ベクトル",
+      "start_time": 277.558,
+      "end_time": 278.038
+    },
+    {
+      "text": "が",
+      "start_time": 278.038,
+      "end_time": 278.198
+    },
+    {
+      "text": "ペア",
+      "start_time": 278.598,
+      "end_time": 278.838
+    },
+    {
+      "text": "に",
+      "start_time": 278.838,
+      "end_time": 278.918
+    },
+    {
+      "text": "なる",
+      "start_time": 278.918,
+      "end_time": 279.158
+    },
+    {
+      "text": "よう",
+      "start_time": 279.158,
+      "end_time": 279.238
+    },
+    {
+      "text": "に",
+      "start_time": 279.238,
+      "end_time": 279.398
+    },
+    {
+      "text": "準備",
+      "start_time": 279.398,
+      "end_time": 279.718
+    },
+    {
+      "text": "し",
+      "start_time": 279.718,
+      "end_time": 279.878
+    },
+    {
+      "text": "ます",
+      "start_time": 279.878,
+      "end_time": 280.198
+    },
+    {
+      "text": "次",
+      "start_time": 280.438,
+      "end_time": 280.678
+    },
+    {
+      "text": "に",
+      "start_time": 280.678,
+      "end_time": 280.918
+    },
+    {
+      "text": "ブースト",
+      "start_time": 281.318,
+      "end_time": 281.638
+    },
+    {
+      "text": "さ",
+      "start_time": 281.638,
+      "end_time": 281.798
+    },
+    {
+      "text": "れ",
+      "start_time": 281.798,
+      "end_time": 281.878
+    },
+    {
+      "text": "た",
+      "start_time": 281.878,
+      "end_time": 282.038
+    },
+    {
+      "text": "ソフト",
+      "start_time": 282.038,
+      "end_time": 282.438
+    },
+    {
+      "text": "マックス",
+      "start_time": 282.438,
+      "end_time": 282.838
+    },
+    {
+      "text": "を",
+      "start_time": 282.838,
+      "end_time": 282.998
+    },
+    {
+      "text": "使っ",
+      "start_time": 282.998,
+      "end_time": 283.238
+    },
+    {
+      "text": "て",
+      "start_time": 283.238,
+      "end_time": 283.558
+    },
+    {
+      "text": "重み",
+      "start_time": 283.878,
+      "end_time": 284.278
+    },
+    {
+      "text": "を",
+      "start_time": 284.278,
+      "end_time": 284.358
+    },
+    {
+      "text": "計算",
+      "start_time": 284.358,
+      "end_time": 284.758
+    },
+    {
+      "text": "し",
+      "start_time": 284.758,
+      "end_time": 284.918
+    },
+    {
+      "text": "ます",
+      "start_time": 284.918,
+      "end_time": 285.318
+    },
+    {
+      "text": "各",
+      "start_time": 285.478,
+      "end_time": 285.798
+    },
+    {
+      "text": "トマ",
+      "start_time": 285.798,
+      "end_time": 286.118
+    },
+    {
+      "text": "の",
+      "start_time": 286.118,
+      "end_time": 286.518
+    },
+    {
+      "text": "重み",
+      "start_time": 286.518,
+      "end_time": 286.758
+    },
+    {
+      "text": "を",
+      "start_time": 286.758,
+      "end_time": 286.758
+    },
+    {
+      "text": "する",
+      "start_time": 286.758,
+      "end_time": 286.998
+    },
+    {
+      "text": "と",
+      "start_time": 287.078,
+      "end_time": 287.318
+    },
+    {
+      "text": "確実",
+      "start_time": 287.558,
+      "end_time": 288.198
+    },
+    {
+      "text": "に",
+      "start_time": 288.198,
+      "end_time": 288.278
+    },
+    {
+      "text": "し",
+      "start_time": 288.438,
+      "end_time": 288.678
+    },
+    {
+      "text": "それ",
+      "start_time": 288.998,
+      "end_time": 289.238
+    },
+    {
+      "text": "ら",
+      "start_time": 289.238,
+      "end_time": 289.318
+    },
+    {
+      "text": "の",
+      "start_time": 289.318,
+      "end_time": 289.478
+    },
+    {
+      "text": "ベクトル",
+      "start_time": 289.478,
+      "end_time": 289.958
+    },
+    {
+      "text": "線形",
+      "start_time": 289.958,
+      "end_time": 290.438
+    },
+    {
+      "text": "結合",
+      "start_time": 290.438,
+      "end_time": 290.918
+    },
+    {
+      "text": "と",
+      "start_time": 290.918,
+      "end_time": 291.078
+    },
+    {
+      "text": "し",
+      "start_time": 291.078,
+      "end_time": 291.158
+    },
+    {
+      "text": "て",
+      "start_time": 291.158,
+      "end_time": 291.478
+    },
+    {
+      "text": "新しい",
+      "start_time": 291.798,
+      "end_time": 292.358
+    },
+    {
+      "text": "ベクトル",
+      "start_time": 292.358,
+      "end_time": 292.758
+    },
+    {
+      "text": "と",
+      "start_time": 292.758,
+      "end_time": 292.918
+    },
+    {
+      "text": "スコア",
+      "start_time": 292.918,
+      "end_time": 293.318
+    },
+    {
+      "text": "を",
+      "start_time": 293.318,
+      "end_time": 293.398
+    },
+    {
+      "text": "構成",
+      "start_time": 293.398,
+      "end_time": 293.878
+    },
+    {
+      "text": "し",
+      "start_time": 293.878,
+      "end_time": 294.118
+    },
+    {
+      "text": "得",
+      "start_time": 294.358,
+      "end_time": 294.678
+    },
+    {
+      "text": "られ",
+      "start_time": 294.678,
+      "end_time": 294.838
+    },
+    {
+      "text": "た",
+      "start_time": 294.918,
+      "end_time": 295.078
+    },
+    {
+      "text": "重み",
+      "start_time": 295.078,
+      "end_time": 295.478
+    },
+    {
+      "text": "を",
+      "start_time": 295.478,
+      "end_time": 295.558
+    },
+    {
+      "text": "持ち",
+      "start_time": 295.558,
+      "end_time": 295.878
+    },
+    {
+      "text": "ます",
+      "start_time": 295.878,
+      "end_time": 296.278
+    },
+    {
+      "text": "つまり",
+      "start_time": 296.518,
+      "end_time": 297.318
+    },
+    {
+      "text": "線形",
+      "start_time": 297.398,
+      "end_time": 297.878
+    },
+    {
+      "text": "に",
+      "start_time": 297.878,
+      "end_time": 297.958
+    },
+    {
+      "text": "結合",
+      "start_time": 297.958,
+      "end_time": 298.518
+    },
+    {
+      "text": "し",
+      "start_time": 298.518,
+      "end_time": 298.838
+    },
+    {
+      "text": "操作",
+      "start_time": 299.158,
+      "end_time": 299.638
+    },
+    {
+      "text": "演算",
+      "start_time": 299.718,
+      "end_time": 299.958
+    },
+    {
+      "text": "に",
+      "start_time": 300.198,
+      "end_time": 300.278
+    },
+    {
+      "text": "交差",
+      "start_time": 300.278,
+      "end_time": 300.758
+    },
+    {
+      "text": "する",
+      "start_time": 300.838,
+      "end_time": 300.838
+    },
+    {
+      "text": "必要",
+      "start_time": 300.838,
+      "end_time": 301.318
+    },
+    {
+      "text": "し",
+      "start_time": 301.318,
+      "end_time": 301.638
+    },
+    {
+      "text": "適用",
+      "start_time": 302.038,
+      "end_time": 302.518
+    },
+    {
+      "text": "する",
+      "start_time": 302.518,
+      "end_time": 302.838
+    },
+    {
+      "text": "こと",
+      "start_time": 302.838,
+      "end_time": 303.078
+    },
+    {
+      "text": "です",
+      "start_time": 303.078,
+      "end_time": 303.478
+    },
+    {
+      "text": "そして",
+      "start_time": 303.638,
+      "end_time": 304.358
+    },
+    {
+      "text": "2",
+      "start_time": 304.558,
+      "end_time": 304.758
+    },
+    {
+      "text": "つ",
+      "start_time": 304.958,
+      "end_time": 305.158
+    },
+    {
+      "text": "の",
+      "start_time": 305.158,
+      "end_time": 305.318
+    },
+    {
+      "text": "トーク",
+      "start_time": 305.318,
+      "end_time": 305.798
+    },
+    {
+      "text": "を",
+      "start_time": 305.798,
+      "end_time": 305.798
+    },
+    {
+      "text": "結合",
+      "start_time": 306.038,
+      "end_time": 306.598
+    },
+    {
+      "text": "する",
+      "start_time": 306.598,
+      "end_time": 306.918
+    },
+    {
+      "text": "間",
+      "start_time": 306.998,
+      "end_time": 307.318
+    },
+    {
+      "text": "に",
+      "start_time": 307.318,
+      "end_time": 307.558
+    },
+    {
+      "text": "ノイズ",
+      "start_time": 307.798,
+      "end_time": 308.198
+    },
+    {
+      "text": "が",
+      "start_time": 308.198,
+      "end_time": 308.438
+    },
+    {
+      "text": "作成",
+      "start_time": 308.438,
+      "end_time": 308.918
+    },
+    {
+      "text": "する",
+      "start_time": 308.918,
+      "end_time": 309.318
+    },
+    {
+      "text": "こと",
+      "start_time": 309.318,
+      "end_time": 309.638
+    },
+    {
+      "text": "が",
+      "start_time": 309.638,
+      "end_time": 309.798
+    },
+    {
+      "text": "あり",
+      "start_time": 309.798,
+      "end_time": 310.038
+    },
+    {
+      "text": "ます",
+      "start_time": 310.038,
+      "end_time": 310.438
+    },
+    {
+      "text": "発生",
+      "start_time": 310.598,
+      "end_time": 311.078
+    },
+    {
+      "text": "し",
+      "start_time": 311.078,
+      "end_time": 311.238
+    },
+    {
+      "text": "ます",
+      "start_time": 311.238,
+      "end_time": 311.478
+    },
+    {
+      "text": "が",
+      "start_time": 311.478,
+      "end_time": 311.718
+    },
+    {
+      "text": "それ",
+      "start_time": 312.038,
+      "end_time": 312.358
+    },
+    {
+      "text": "に",
+      "start_time": 312.358,
+      "end_time": 312.518
+    },
+    {
+      "text": "よっ",
+      "start_time": 312.518,
+      "end_time": 312.758
+    },
+    {
+      "text": "て",
+      "start_time": 312.758,
+      "end_time": 312.918
+    },
+    {
+      "text": "後ろ",
+      "start_time": 312.918,
+      "end_time": 313.158
+    },
+    {
+      "text": "が",
+      "start_time": 313.158,
+      "end_time": 313.478
+    },
+    {
+      "text": "すべて",
+      "start_time": 313.478,
+      "end_time": 313.958
+    },
+    {
+      "text": "の",
+      "start_time": 313.958,
+      "end_time": 314.038
+    },
+    {
+      "text": "入力",
+      "start_time": 314.038,
+      "end_time": 314.518
+    },
+    {
+      "text": "メコンミ",
+      "start_time": 314.518,
+      "end_time": 315.078
+    },
+    {
+      "text": "に",
+      "start_time": 315.078,
+      "end_time": 315.158
+    },
+    {
+      "text": "伝播",
+      "start_time": 315.158,
+      "end_time": 315.478
+    },
+    {
+      "text": "する",
+      "start_time": 315.478,
+      "end_time": 315.798
+    },
+    {
+      "text": "こと",
+      "start_time": 315.798,
+      "end_time": 316.038
+    },
+    {
+      "text": "が",
+      "start_time": 316.038,
+      "end_time": 316.118
+    },
+    {
+      "text": "でき",
+      "start_time": 316.118,
+      "end_time": 316.358
+    },
+    {
+      "text": "ます",
+      "start_time": 316.358,
+      "end_time": 316.758
+    },
+    {
+      "text": "つまり",
+      "start_time": 316.998,
+      "end_time": 317.798
+    },
+    {
+      "text": "私",
+      "start_time": 318.038,
+      "end_time": 318.358
+    },
+    {
+      "text": "たち",
+      "start_time": 318.358,
+      "end_time": 318.678
+    },
+    {
+      "text": "が",
+      "start_time": 318.678,
+      "end_time": 318.838
+    },
+    {
+      "text": "提案",
+      "start_time": 318.838,
+      "end_time": 319.238
+    },
+    {
+      "text": "する",
+      "start_time": 319.238,
+      "end_time": 319.718
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 320.038,
+      "end_time": 320.758
+    },
+    {
+      "text": "可能",
+      "start_time": 320.758,
+      "end_time": 321.158
+    },
+    {
+      "text": "な",
+      "start_time": 321.158,
+      "end_time": 321.238
+    },
+    {
+      "text": "トップ",
+      "start_time": 321.238,
+      "end_time": 321.718
+    },
+    {
+      "text": "系",
+      "start_time": 322.118,
+      "end_time": 322.278
+    },
+    {
+      "text": "は",
+      "start_time": 322.278,
+      "end_time": 322.598
+    },
+    {
+      "text": "トーク",
+      "start_time": 322.838,
+      "end_time": 323.238
+    },
+    {
+      "text": "を",
+      "start_time": 323.238,
+      "end_time": 323.398
+    },
+    {
+      "text": "構する",
+      "start_time": 323.478,
+      "end_time": 324.038
+    },
+    {
+      "text": "確",
+      "start_time": 324.438,
+      "end_time": 324.678
+    },
+    {
+      "text": "です",
+      "start_time": 324.678,
+      "end_time": 324.998
+    },
+    {
+      "text": "サクマン",
+      "start_time": 324.998,
+      "end_time": 325.478
+    },
+    {
+      "text": "さ",
+      "start_time": 325.478,
+      "end_time": 325.638
+    },
+    {
+      "text": "れ",
+      "start_time": 325.638,
+      "end_time": 325.798
+    },
+    {
+      "text": "ます",
+      "start_time": 325.798,
+      "end_time": 326.198
+    },
+    {
+      "text": "ソフト",
+      "start_time": 326.518,
+      "end_time": 326.998
+    },
+    {
+      "text": "生成",
+      "start_time": 326.998,
+      "end_time": 327.478
+    },
+    {
+      "text": "の",
+      "start_time": 327.478,
+      "end_time": 327.718
+    },
+    {
+      "text": "各",
+      "start_time": 328.118,
+      "end_time": 328.438
+    },
+    {
+      "text": "ステップ",
+      "start_time": 328.438,
+      "end_time": 328.918
+    },
+    {
+      "text": "で",
+      "start_time": 328.998,
+      "end_time": 329.318
+    },
+    {
+      "text": "そして",
+      "start_time": 329.638,
+      "end_time": 330.278
+    },
+    {
+      "text": "別",
+      "start_time": 330.678,
+      "end_time": 330.998
+    },
+    {
+      "text": "の",
+      "start_time": 330.998,
+      "end_time": 331.158
+    },
+    {
+      "text": "視点",
+      "start_time": 331.158,
+      "end_time": 331.558
+    },
+    {
+      "text": "から",
+      "start_time": 331.558,
+      "end_time": 331.958
+    },
+    {
+      "text": "現在",
+      "start_time": 332.278,
+      "end_time": 332.678
+    },
+    {
+      "text": "の",
+      "start_time": 332.678,
+      "end_time": 332.838
+    },
+    {
+      "text": "表現",
+      "start_time": 332.838,
+      "end_time": 333.238
+    },
+    {
+      "text": "プーリング",
+      "start_time": 333.238,
+      "end_time": 333.798
+    },
+    {
+      "text": "は",
+      "start_time": 333.798,
+      "end_time": 334.038
+    },
+    {
+      "text": "エンターガール",
+      "start_time": 334.358,
+      "end_time": 334.998
+    },
+    {
+      "text": "の",
+      "start_time": 334.998,
+      "end_time": 335.158
+    },
+    {
+      "text": "潜在",
+      "start_time": 335.158,
+      "end_time": 335.638
+    },
+    {
+      "text": "する",
+      "start_time": 335.638,
+      "end_time": 336.038
+    },
+    {
+      "text": "単独",
+      "start_time": 336.358,
+      "end_time": 336.758
+    },
+    {
+      "text": "作成",
+      "start_time": 336.758,
+      "end_time": 337.158
+    },
+    {
+      "text": "を",
+      "start_time": 337.398,
+      "end_time": 337.558
+    },
+    {
+      "text": "行い",
+      "start_time": 337.558,
+      "end_time": 338.038
+    },
+    {
+      "text": "まず",
+      "start_time": 338.358,
+      "end_time": 338.758
+    },
+    {
+      "text": "各",
+      "start_time": 339.078,
+      "end_time": 339.398
+    },
+    {
+      "text": "表現",
+      "start_time": 339.398,
+      "end_time": 339.798
+    },
+    {
+      "text": "に",
+      "start_time": 339.798,
+      "end_time": 339.878
+    },
+    {
+      "text": "スコア",
+      "start_time": 339.878,
+      "end_time": 340.278
+    },
+    {
+      "text": "が",
+      "start_time": 340.278,
+      "end_time": 340.358
+    },
+    {
+      "text": "付け",
+      "start_time": 340.358,
+      "end_time": 340.678
+    },
+    {
+      "text": "られ",
+      "start_time": 340.678,
+      "end_time": 341.078
+    },
+    {
+      "text": "そして",
+      "start_time": 341.318,
+      "end_time": 341.878
+    },
+    {
+      "text": "最も",
+      "start_time": 342.198,
+      "end_time": 342.598
+    },
+    {
+      "text": "高い",
+      "start_time": 342.598,
+      "end_time": 342.998
+    },
+    {
+      "text": "スコア",
+      "start_time": 342.998,
+      "end_time": 343.398
+    },
+    {
+      "text": "を",
+      "start_time": 343.398,
+      "end_time": 343.398
+    },
+    {
+      "text": "持つ",
+      "start_time": 343.398,
+      "end_time": 343.638
+    },
+    {
+      "text": "もの",
+      "start_time": 343.638,
+      "end_time": 343.958
+    },
+    {
+      "text": "だけ",
+      "start_time": 343.958,
+      "end_time": 344.198
+    },
+    {
+      "text": "が",
+      "start_time": 344.198,
+      "end_time": 344.438
+    },
+    {
+      "text": "次",
+      "start_time": 344.758,
+      "end_time": 344.998
+    },
+    {
+      "text": "の",
+      "start_time": 344.998,
+      "end_time": 345.158
+    },
+    {
+      "text": "層",
+      "start_time": 345.158,
+      "end_time": 345.398
+    },
+    {
+      "text": "に",
+      "start_time": 345.398,
+      "end_time": 345.478
+    },
+    {
+      "text": "当たり",
+      "start_time": 345.478,
+      "end_time": 345.798
+    },
+    {
+      "text": "ます",
+      "start_time": 345.798,
+      "end_time": 346.198
+    },
+    {
+      "text": "エンコーダ",
+      "start_time": 346.438,
+      "end_time": 346.998
+    },
+    {
+      "text": "は",
+      "start_time": 346.998,
+      "end_time": 347.078
+    },
+    {
+      "text": "する",
+      "start_time": 347.078,
+      "end_time": 347.318
+    },
+    {
+      "text": "は",
+      "start_time": 347.398,
+      "end_time": 347.638
+    },
+    {
+      "text": "彼",
+      "start_time": 347.878,
+      "end_time": 348.198
+    },
+    {
+      "text": "ら",
+      "start_time": 348.198,
+      "end_time": 348.358
+    },
+    {
+      "text": "は",
+      "start_time": 348.358,
+      "end_time": 348.438
+    },
+    {
+      "text": "また",
+      "start_time": 348.438,
+      "end_time": 348.838
+    },
+    {
+      "text": "する",
+      "start_time": 348.838,
+      "end_time": 349.078
+    },
+    {
+      "text": "よう",
+      "start_time": 349.078,
+      "end_time": 349.238
+    },
+    {
+      "text": "な",
+      "start_time": 349.238,
+      "end_time": 349.398
+    },
+    {
+      "text": "トーターグル",
+      "start_time": 349.798,
+      "end_time": 350.438
+    },
+    {
+      "text": "用",
+      "start_time": 350.438,
+      "end_time": 350.678
+    },
+    {
+      "text": "の",
+      "start_time": 350.678,
+      "end_time": 350.838
+    },
+    {
+      "text": "彼",
+      "start_time": 351.158,
+      "end_time": 351.398
+    },
+    {
+      "text": "ら",
+      "start_time": 351.398,
+      "end_time": 351.558
+    },
+    {
+      "text": "は",
+      "start_time": 351.558,
+      "end_time": 351.718
+    },
+    {
+      "text": "また",
+      "start_time": 351.718,
+      "end_time": 352.118
+    },
+    {
+      "text": "する",
+      "start_time": 352.118,
+      "end_time": 352.358
+    },
+    {
+      "text": "よう",
+      "start_time": 352.358,
+      "end_time": 352.518
+    },
+    {
+      "text": "な",
+      "start_time": 352.518,
+      "end_time": 352.758
+    },
+    {
+      "text": "彼",
+      "start_time": 353.078,
+      "end_time": 353.318
+    },
+    {
+      "text": "ら",
+      "start_time": 353.318,
+      "end_time": 353.478
+    },
+    {
+      "text": "は",
+      "start_time": 353.478,
+      "end_time": 353.558
+    },
+    {
+      "text": "また",
+      "start_time": 353.558,
+      "end_time": 353.958
+    },
+    {
+      "text": "する",
+      "start_time": 353.958,
+      "end_time": 354.358
+    },
+    {
+      "text": "よう",
+      "start_time": 354.358,
+      "end_time": 354.438
+    },
+    {
+      "text": "な",
+      "start_time": 354.438,
+      "end_time": 354.598
+    },
+    {
+      "text": "全長",
+      "start_time": 354.918,
+      "end_time": 355.398
+    },
+    {
+      "text": "入力",
+      "start_time": 355.398,
+      "end_time": 355.798
+    },
+    {
+      "text": "に",
+      "start_time": 355.798,
+      "end_time": 355.958
+    },
+    {
+      "text": "対し",
+      "start_time": 355.958,
+      "end_time": 356.358
+    },
+    {
+      "text": "て",
+      "start_time": 356.358,
+      "end_time": 356.678
+    },
+    {
+      "text": "しかし",
+      "start_time": 356.918,
+      "end_time": 357.478
+    },
+    {
+      "text": "固定",
+      "start_time": 357.878,
+      "end_time": 358.278
+    },
+    {
+      "text": "長",
+      "start_time": 358.278,
+      "end_time": 358.438
+    },
+    {
+      "text": "の",
+      "start_time": 358.438,
+      "end_time": 358.598
+    },
+    {
+      "text": "ブロック",
+      "start_time": 358.598,
+      "end_time": 358.998
+    },
+    {
+      "text": "単位",
+      "start_time": 358.998,
+      "end_time": 359.318
+    },
+    {
+      "text": "で",
+      "start_time": 359.318,
+      "end_time": 359.558
+    },
+    {
+      "text": "テキスト",
+      "start_time": 359.958,
+      "end_time": 360.358
+    },
+    {
+      "text": "を",
+      "start_time": 360.358,
+      "end_time": 360.438
+    },
+    {
+      "text": "取り",
+      "start_time": 360.438,
+      "end_time": 360.758
+    },
+    {
+      "text": "する",
+      "start_time": 360.758,
+      "end_time": 360.998
+    },
+    {
+      "text": "こと",
+      "start_time": 360.998,
+      "end_time": 361.238
+    },
+    {
+      "text": "も",
+      "start_time": 361.238,
+      "end_time": 361.398
+    },
+    {
+      "text": "可能",
+      "start_time": 361.398,
+      "end_time": 361.718
+    },
+    {
+      "text": "です",
+      "start_time": 361.718,
+      "end_time": 362.118
+    },
+    {
+      "text": "そして",
+      "start_time": 362.295,
+      "end_time": 363.015
+    },
+    {
+      "text": "グローバルダル",
+      "start_time": 363.335,
+      "end_time": 364.375
+    },
+    {
+      "text": "最高",
+      "start_time": 364.695,
+      "end_time": 365.255
+    },
+    {
+      "text": "の",
+      "start_time": 365.255,
+      "end_time": 365.415
+    },
+    {
+      "text": "表現",
+      "start_time": 365.415,
+      "end_time": 365.975
+    },
+    {
+      "text": "を",
+      "start_time": 365.975,
+      "end_time": 365.975
+    },
+    {
+      "text": "選択",
+      "start_time": 365.975,
+      "end_time": 366.535
+    },
+    {
+      "text": "し",
+      "start_time": 366.535,
+      "end_time": 366.695
+    },
+    {
+      "text": "ます",
+      "start_time": 366.695,
+      "end_time": 367.095
+    },
+    {
+      "text": "こちら",
+      "start_time": 367.335,
+      "end_time": 367.735
+    },
+    {
+      "text": "は",
+      "start_time": 367.735,
+      "end_time": 367.975
+    },
+    {
+      "text": "円弧",
+      "start_time": 368.295,
+      "end_time": 368.695
+    },
+    {
+      "text": "ダーデキストル",
+      "start_time": 368.695,
+      "end_time": 369.575
+    },
+    {
+      "text": "三",
+      "start_time": 369.575,
+      "end_time": 369.815
+    },
+    {
+      "text": "段",
+      "start_time": 369.815,
+      "end_time": 370.055
+    },
+    {
+      "text": "する",
+      "start_time": 370.055,
+      "end_time": 370.295
+    },
+    {
+      "text": "よう",
+      "start_time": 370.295,
+      "end_time": 370.455
+    },
+    {
+      "text": "で",
+      "start_time": 370.455,
+      "end_time": 370.695
+    },
+    {
+      "text": "示し",
+      "start_time": 371.015,
+      "end_time": 371.495
+    },
+    {
+      "text": "た",
+      "start_time": 371.495,
+      "end_time": 371.575
+    },
+    {
+      "text": "です",
+      "start_time": 371.575,
+      "end_time": 372.135
+    },
+    {
+      "text": "これ",
+      "start_time": 372.375,
+      "end_time": 372.615
+    },
+    {
+      "text": "は",
+      "start_time": 372.615,
+      "end_time": 372.855
+    },
+    {
+      "text": "グローバル",
+      "start_time": 373.175,
+      "end_time": 373.735
+    },
+    {
+      "text": "対数",
+      "start_time": 373.735,
+      "end_time": 374.055
+    },
+    {
+      "text": "の",
+      "start_time": 374.055,
+      "end_time": 374.215
+    },
+    {
+      "text": "中",
+      "start_time": 374.215,
+      "end_time": 374.535
+    },
+    {
+      "text": "で",
+      "start_time": 374.535,
+      "end_time": 374.775
+    },
+    {
+      "text": "特質",
+      "start_time": 375.095,
+      "end_time": 375.655
+    },
+    {
+      "text": "性",
+      "start_time": 375.655,
+      "end_time": 375.815
+    },
+    {
+      "text": "を",
+      "start_time": 375.815,
+      "end_time": 375.815
+    },
+    {
+      "text": "与え",
+      "start_time": 376.135,
+      "end_time": 376.455
+    },
+    {
+      "text": "ます",
+      "start_time": 376.455,
+      "end_time": 376.775
+    },
+    {
+      "text": "これ",
+      "start_time": 377.015,
+      "end_time": 377.255
+    },
+    {
+      "text": "は",
+      "start_time": 377.255,
+      "end_time": 377.575
+    },
+    {
+      "text": "入力",
+      "start_time": 377.895,
+      "end_time": 378.295
+    },
+    {
+      "text": "の",
+      "start_time": 378.295,
+      "end_time": 378.375
+    },
+    {
+      "text": "長",
+      "start_time": 378.375,
+      "end_time": 378.615
+    },
+    {
+      "text": "さ",
+      "start_time": 378.615,
+      "end_time": 378.775
+    },
+    {
+      "text": "に",
+      "start_time": 378.775,
+      "end_time": 378.935
+    },
+    {
+      "text": "依存",
+      "start_time": 378.935,
+      "end_time": 379.255
+    },
+    {
+      "text": "し",
+      "start_time": 379.255,
+      "end_time": 379.335
+    },
+    {
+      "text": "て",
+      "start_time": 379.335,
+      "end_time": 379.495
+    },
+    {
+      "text": "いる",
+      "start_time": 379.495,
+      "end_time": 379.655
+    },
+    {
+      "text": "わけ",
+      "start_time": 379.655,
+      "end_time": 379.895
+    },
+    {
+      "text": "で",
+      "start_time": 379.895,
+      "end_time": 380.055
+    },
+    {
+      "text": "は",
+      "start_time": 380.055,
+      "end_time": 380.135
+    },
+    {
+      "text": "なく",
+      "start_time": 380.135,
+      "end_time": 380.535
+    },
+    {
+      "text": "定数",
+      "start_time": 380.855,
+      "end_time": 381.255
+    },
+    {
+      "text": "系",
+      "start_time": 381.255,
+      "end_time": 381.495
+    },
+    {
+      "text": "に",
+      "start_time": 381.495,
+      "end_time": 381.655
+    },
+    {
+      "text": "依存",
+      "start_time": 381.655,
+      "end_time": 381.895
+    },
+    {
+      "text": "し",
+      "start_time": 381.895,
+      "end_time": 382.055
+    },
+    {
+      "text": "て",
+      "start_time": 382.055,
+      "end_time": 382.135
+    },
+    {
+      "text": "い",
+      "start_time": 382.135,
+      "end_time": 382.215
+    },
+    {
+      "text": "ます",
+      "start_time": 382.215,
+      "end_time": 382.615
+    },
+    {
+      "text": "プル",
+      "start_time": 382.855,
+      "end_time": 383.095
+    },
+    {
+      "text": "さ",
+      "start_time": 383.095,
+      "end_time": 383.255
+    },
+    {
+      "text": "れる",
+      "start_time": 383.255,
+      "end_time": 383.495
+    },
+    {
+      "text": "連寄",
+      "start_time": 383.495,
+      "end_time": 383.895
+    },
+    {
+      "text": "を",
+      "start_time": 383.975,
+      "end_time": 384.455
+    },
+    {
+      "text": "表し",
+      "start_time": 384.775,
+      "end_time": 385.255
+    },
+    {
+      "text": "て",
+      "start_time": 385.255,
+      "end_time": 385.415
+    },
+    {
+      "text": "い",
+      "start_time": 385.415,
+      "end_time": 385.495
+    },
+    {
+      "text": "ます",
+      "start_time": 385.495,
+      "end_time": 385.815
+    },
+    {
+      "text": "この",
+      "start_time": 386.055,
+      "end_time": 386.375
+    },
+    {
+      "text": "定数",
+      "start_time": 386.375,
+      "end_time": 386.855
+    },
+    {
+      "text": "は",
+      "start_time": 386.855,
+      "end_time": 387.015
+    },
+    {
+      "text": "どれ",
+      "start_time": 387.415,
+      "end_time": 387.655
+    },
+    {
+      "text": "だけ",
+      "start_time": 387.655,
+      "end_time": 387.975
+    },
+    {
+      "text": "の",
+      "start_time": 387.975,
+      "end_time": 388.055
+    },
+    {
+      "text": "表現",
+      "start_time": 388.055,
+      "end_time": 388.535
+    },
+    {
+      "text": "が",
+      "start_time": 388.535,
+      "end_time": 388.615
+    },
+    {
+      "text": "選択",
+      "start_time": 388.695,
+      "end_time": 389.095
+    },
+    {
+      "text": "さ",
+      "start_time": 389.095,
+      "end_time": 389.255
+    },
+    {
+      "text": "れる",
+      "start_time": 389.255,
+      "end_time": 389.495
+    },
+    {
+      "text": "か",
+      "start_time": 389.495,
+      "end_time": 389.655
+    },
+    {
+      "text": "を",
+      "start_time": 389.655,
+      "end_time": 389.735
+    },
+    {
+      "text": "示し",
+      "start_time": 389.735,
+      "end_time": 390.215
+    },
+    {
+      "text": "ます",
+      "start_time": 390.215,
+      "end_time": 390.535
+    },
+    {
+      "text": "そして",
+      "start_time": 390.775,
+      "end_time": 391.415
+    },
+    {
+      "text": "適当",
+      "start_time": 391.735,
+      "end_time": 392.135
+    },
+    {
+      "text": "に",
+      "start_time": 392.135,
+      "end_time": 392.455
+    },
+    {
+      "text": "渡さ",
+      "start_time": 392.455,
+      "end_time": 392.855
+    },
+    {
+      "text": "れ",
+      "start_time": 392.855,
+      "end_time": 392.935
+    },
+    {
+      "text": "ます",
+      "start_time": 392.935,
+      "end_time": 393.335
+    },
+    {
+      "text": "短い",
+      "start_time": 393.655,
+      "end_time": 394.135
+    },
+    {
+      "text": "適性",
+      "start_time": 394.135,
+      "end_time": 394.535
+    },
+    {
+      "text": "から",
+      "start_time": 394.615,
+      "end_time": 394.855
+    },
+    {
+      "text": "予約",
+      "start_time": 394.855,
+      "end_time": 395.175
+    },
+    {
+      "text": "生成",
+      "start_time": 395.335,
+      "end_time": 395.735
+    },
+    {
+      "text": "する",
+      "start_time": 395.735,
+      "end_time": 395.975
+    },
+    {
+      "text": "の",
+      "start_time": 395.975,
+      "end_time": 396.135
+    },
+    {
+      "text": "は",
+      "start_time": 396.135,
+      "end_time": 396.295
+    },
+    {
+      "text": "従来",
+      "start_time": 396.695,
+      "end_time": 397.095
+    },
+    {
+      "text": "の",
+      "start_time": 397.095,
+      "end_time": 397.255
+    },
+    {
+      "text": "ソリューション",
+      "start_time": 397.255,
+      "end_time": 397.815
+    },
+    {
+      "text": "より",
+      "start_time": 397.815,
+      "end_time": 397.975
+    },
+    {
+      "text": "も",
+      "start_time": 397.975,
+      "end_time": 398.135
+    },
+    {
+      "text": "はるか",
+      "start_time": 398.135,
+      "end_time": 398.535
+    },
+    {
+      "text": "に",
+      "start_time": 398.535,
+      "end_time": 398.615
+    },
+    {
+      "text": "安価",
+      "start_time": 398.615,
+      "end_time": 399.015
+    },
+    {
+      "text": "です",
+      "start_time": 399.015,
+      "end_time": 399.335
+    },
+    {
+      "text": "シーセンタンド",
+      "start_time": 399.575,
+      "end_time": 400.455
+    },
+    {
+      "text": "は",
+      "start_time": 400.455,
+      "end_time": 400.615
+    },
+    {
+      "text": "大幅",
+      "start_time": 400.935,
+      "end_time": 401.335
+    },
+    {
+      "text": "に",
+      "start_time": 401.335,
+      "end_time": 401.495
+    },
+    {
+      "text": "短縮",
+      "start_time": 401.495,
+      "end_time": 401.975
+    },
+    {
+      "text": "できる",
+      "start_time": 401.975,
+      "end_time": 402.455
+    },
+    {
+      "text": "ため",
+      "start_time": 402.455,
+      "end_time": 402.855
+    },
+    {
+      "text": "例えば",
+      "start_time": 403.095,
+      "end_time": 403.655
+    },
+    {
+      "text": "私",
+      "start_time": 403.975,
+      "end_time": 404.295
+    },
+    {
+      "text": "たち",
+      "start_time": 404.295,
+      "end_time": 404.535
+    },
+    {
+      "text": "の",
+      "start_time": 404.535,
+      "end_time": 404.695
+    },
+    {
+      "text": "実験",
+      "start_time": 404.695,
+      "end_time": 405.095
+    },
+    {
+      "text": "で",
+      "start_time": 405.095,
+      "end_time": 405.255
+    },
+    {
+      "text": "は",
+      "start_time": 405.255,
+      "end_time": 405.495
+    },
+    {
+      "text": "H",
+      "start_time": 405.815,
+      "end_time": 405.895
+    },
+    {
+      "text": "の",
+      "start_time": 405.895,
+      "end_time": 406.135
+    },
+    {
+      "text": "値",
+      "start_time": 406.135,
+      "end_time": 406.295
+    },
+    {
+      "text": "より",
+      "start_time": 406.295,
+      "end_time": 406.535
+    },
+    {
+      "text": "も",
+      "start_time": 406.535,
+      "end_time": 406.775
+    },
+    {
+      "text": "1",
+      "start_time": 407.175,
+      "end_time": 407.495
+    },
+    {
+      "text": "6",
+      "start_time": 407.495,
+      "end_time": 407.735
+    },
+    {
+      "text": "分",
+      "start_time": 407.735,
+      "end_time": 407.815
+    },
+    {
+      "text": "の",
+      "start_time": 407.815,
+      "end_time": 407.975
+    },
+    {
+      "text": "ジア",
+      "start_time": 407.975,
+      "end_time": 408.295
+    },
+    {
+      "text": "6",
+      "start_time": 408.695,
+      "end_time": 408.695
+    },
+    {
+      "text": "4",
+      "start_time": 408.695,
+      "end_time": 409.335
+    },
+    {
+      "text": "分",
+      "start_time": 409.335,
+      "end_time": 409.495
+    },
+    {
+      "text": "の",
+      "start_time": 409.495,
+      "end_time": 409.655
+    },
+    {
+      "text": "一",
+      "start_time": 409.655,
+      "end_time": 409.895
+    },
+    {
+      "text": "の",
+      "start_time": 409.895,
+      "end_time": 409.975
+    },
+    {
+      "text": "値",
+      "start_time": 410.055,
+      "end_time": 410.055
+    },
+    {
+      "text": "を",
+      "start_time": 410.135,
+      "end_time": 410.375
+    },
+    {
+      "text": "成功",
+      "start_time": 410.695,
+      "end_time": 411.175
+    },
+    {
+      "text": "し",
+      "start_time": 411.175,
+      "end_time": 411.255
+    },
+    {
+      "text": "て",
+      "start_time": 411.255,
+      "end_time": 411.335
+    },
+    {
+      "text": "使用",
+      "start_time": 411.335,
+      "end_time": 411.735
+    },
+    {
+      "text": "し",
+      "start_time": 411.735,
+      "end_time": 411.815
+    },
+    {
+      "text": "まし",
+      "start_time": 411.815,
+      "end_time": 412.135
+    },
+    {
+      "text": "た",
+      "start_time": 412.135,
+      "end_time": 412.295
+    },
+    {
+      "text": "ブロック",
+      "start_time": 412.535,
+      "end_time": 412.935
+    },
+    {
+      "text": "正弦",
+      "start_time": 412.935,
+      "end_time": 413.415
+    },
+    {
+      "text": "等",
+      "start_time": 413.415,
+      "end_time": 413.575
+    },
+    {
+      "text": "重要",
+      "start_time": 413.575,
+      "end_time": 413.975
+    },
+    {
+      "text": "に",
+      "start_time": 413.975,
+      "end_time": 414.215
+    },
+    {
+      "text": "セルフ",
+      "start_time": 414.535,
+      "end_time": 415.015
+    },
+    {
+      "text": "アテンシ",
+      "start_time": 415.015,
+      "end_time": 415.495
+    },
+    {
+      "text": "の",
+      "start_time": 415.495,
+      "end_time": 415.655
+    },
+    {
+      "text": "値",
+      "start_time": 415.655,
+      "end_time": 415.815
+    },
+    {
+      "text": "を",
+      "start_time": 415.975,
+      "end_time": 416.055
+    },
+    {
+      "text": "マス",
+      "start_time": 416.055,
+      "end_time": 416.455
+    },
+    {
+      "text": "は",
+      "start_time": 416.455,
+      "end_time": 416.695
+    },
+    {
+      "text": "持続",
+      "start_time": 417.015,
+      "end_time": 417.495
+    },
+    {
+      "text": "し",
+      "start_time": 417.495,
+      "end_time": 417.575
+    },
+    {
+      "text": "て",
+      "start_time": 417.575,
+      "end_time": 417.735
+    },
+    {
+      "text": "いる",
+      "start_time": 417.735,
+      "end_time": 417.895
+    },
+    {
+      "text": "こと",
+      "start_time": 417.895,
+      "end_time": 418.215
+    },
+    {
+      "text": "を",
+      "start_time": 418.215,
+      "end_time": 418.295
+    },
+    {
+      "text": "ご",
+      "start_time": 418.295,
+      "end_time": 418.455
+    },
+    {
+      "text": "注意",
+      "start_time": 418.455,
+      "end_time": 418.775
+    },
+    {
+      "text": "ください",
+      "start_time": 418.775,
+      "end_time": 419.335
+    },
+    {
+      "text": "テンション",
+      "start_time": 419.655,
+      "end_time": 420.055
+    },
+    {
+      "text": "の",
+      "start_time": 420.055,
+      "end_time": 420.135
+    },
+    {
+      "text": "発外",
+      "start_time": 420.135,
+      "end_time": 420.695
+    },
+    {
+      "text": "差",
+      "start_time": 420.695,
+      "end_time": 420.935
+    },
+    {
+      "text": "減",
+      "start_time": 420.935,
+      "end_time": 421.095
+    },
+    {
+      "text": "が",
+      "start_time": 421.095,
+      "end_time": 421.255
+    },
+    {
+      "text": "数",
+      "start_time": 421.255,
+      "end_time": 421.495
+    },
+    {
+      "text": "種",
+      "start_time": 421.495,
+      "end_time": 421.735
+    },
+    {
+      "text": "定数",
+      "start_time": 421.735,
+      "end_time": 422.215
+    },
+    {
+      "text": "と",
+      "start_time": 422.215,
+      "end_time": 422.295
+    },
+    {
+      "text": "し",
+      "start_time": 422.375,
+      "end_time": 422.455
+    },
+    {
+      "text": "て",
+      "start_time": 422.455,
+      "end_time": 422.615
+    },
+    {
+      "text": "い",
+      "start_time": 422.615,
+      "end_time": 422.615
+    },
+    {
+      "text": "ます",
+      "start_time": 422.615,
+      "end_time": 423.015
+    },
+    {
+      "text": "この",
+      "start_time": 423.335,
+      "end_time": 423.575
+    },
+    {
+      "text": "場合",
+      "start_time": 423.575,
+      "end_time": 423.815
+    },
+    {
+      "text": "で",
+      "start_time": 423.815,
+      "end_time": 423.895
+    },
+    {
+      "text": "ください",
+      "start_time": 423.895,
+      "end_time": 424.455
+    },
+    {
+      "text": "コンタ",
+      "start_time": 424.775,
+      "end_time": 425.095
+    },
+    {
+      "text": "減数",
+      "start_time": 425.175,
+      "end_time": 425.575
+    },
+    {
+      "text": "の",
+      "start_time": 425.575,
+      "end_time": 425.655
+    },
+    {
+      "text": "正合",
+      "start_time": 425.655,
+      "end_time": 426.135
+    },
+    {
+      "text": "利用",
+      "start_time": 426.135,
+      "end_time": 426.375
+    },
+    {
+      "text": "で",
+      "start_time": 426.375,
+      "end_time": 426.615
+    },
+    {
+      "text": "この",
+      "start_time": 427.015,
+      "end_time": 427.255
+    },
+    {
+      "text": "可",
+      "start_time": 427.255,
+      "end_time": 427.415
+    },
+    {
+      "text": "正数",
+      "start_time": 427.415,
+      "end_time": 427.895
+    },
+    {
+      "text": "と",
+      "start_time": 427.895,
+      "end_time": 428.055
+    },
+    {
+      "text": "し",
+      "start_time": 428.055,
+      "end_time": 428.215
+    },
+    {
+      "text": "て",
+      "start_time": 428.215,
+      "end_time": 428.295
+    },
+    {
+      "text": "い",
+      "start_time": 428.295,
+      "end_time": 428.375
+    },
+    {
+      "text": "ます",
+      "start_time": 428.375,
+      "end_time": 428.775
+    },
+    {
+      "text": "この",
+      "start_time": 429.095,
+      "end_time": 429.335
+    },
+    {
+      "text": "可",
+      "start_time": 429.335,
+      "end_time": 429.495
+    },
+    {
+      "text": "正数",
+      "start_time": 429.495,
+      "end_time": 429.495
+    },
+    {
+      "text": "と",
+      "start_time": 429.975,
+      "end_time": 430.135
+    },
+    {
+      "text": "し",
+      "start_time": 430.135,
+      "end_time": 430.215
+    },
+    {
+      "text": "て",
+      "start_time": 430.215,
+      "end_time": 430.375
+    },
+    {
+      "text": "い",
+      "start_time": 430.375,
+      "end_time": 430.375
+    },
+    {
+      "text": "ます",
+      "start_time": 430.375,
+      "end_time": 430.775
+    },
+    {
+      "text": "コンタ",
+      "start_time": 431.015,
+      "end_time": 431.495
+    },
+    {
+      "text": "減数",
+      "start_time": 431.495,
+      "end_time": 431.815
+    },
+    {
+      "text": "の",
+      "start_time": 431.815,
+      "end_time": 431.975
+    },
+    {
+      "text": "正合",
+      "start_time": 431.975,
+      "end_time": 432.455
+    },
+    {
+      "text": "利用",
+      "start_time": 432.455,
+      "end_time": 432.695
+    },
+    {
+      "text": "で",
+      "start_time": 432.695,
+      "end_time": 432.935
+    },
+    {
+      "text": "可能",
+      "start_time": 433.255,
+      "end_time": 433.575
+    },
+    {
+      "text": "性",
+      "start_time": 433.575,
+      "end_time": 433.815
+    },
+    {
+      "text": "が",
+      "start_time": 433.815,
+      "end_time": 433.975
+    },
+    {
+      "text": "あり",
+      "start_time": 433.975,
+      "end_time": 434.135
+    },
+    {
+      "text": "ます",
+      "start_time": 434.135,
+      "end_time": 434.535
+    },
+    {
+      "text": "ピリマデ",
+      "start_time": 434.775,
+      "end_time": 435.255
+    },
+    {
+      "text": "の",
+      "start_time": 435.255,
+      "end_time": 435.415
+    },
+    {
+      "text": "モデル",
+      "start_time": 435.415,
+      "end_time": 435.815
+    },
+    {
+      "text": "で",
+      "start_time": 435.815,
+      "end_time": 436.055
+    },
+    {
+      "text": "この",
+      "start_time": 436.455,
+      "end_time": 436.695
+    },
+    {
+      "text": "可",
+      "start_time": 436.695,
+      "end_time": 436.855
+    },
+    {
+      "text": "正合",
+      "start_time": 436.855,
+      "end_time": 437.335
+    },
+    {
+      "text": "を",
+      "start_time": 437.335,
+      "end_time": 437.495
+    },
+    {
+      "text": "小さく",
+      "start_time": 437.575,
+      "end_time": 438.055
+    },
+    {
+      "text": "し",
+      "start_time": 438.055,
+      "end_time": 438.215
+    },
+    {
+      "text": "ます",
+      "start_time": 438.215,
+      "end_time": 438.535
+    },
+    {
+      "text": "選択",
+      "start_time": 438.855,
+      "end_time": 439.255
+    },
+    {
+      "text": "さ",
+      "start_time": 439.255,
+      "end_time": 439.415
+    },
+    {
+      "text": "れ",
+      "start_time": 439.415,
+      "end_time": 439.575
+    },
+    {
+      "text": "た",
+      "start_time": 439.575,
+      "end_time": 439.735
+    },
+    {
+      "text": "各",
+      "start_time": 439.735,
+      "end_time": 440.055
+    },
+    {
+      "text": "レイヤ",
+      "start_time": 440.055,
+      "end_time": 440.455
+    },
+    {
+      "text": "の",
+      "start_time": 440.455,
+      "end_time": 440.615
+    },
+    {
+      "text": "出力",
+      "start_time": 440.615,
+      "end_time": 441.095
+    },
+    {
+      "text": "に",
+      "start_time": 441.095,
+      "end_time": 441.255
+    },
+    {
+      "text": "つい",
+      "start_time": 441.255,
+      "end_time": 441.495
+    },
+    {
+      "text": "て",
+      "start_time": 441.495,
+      "end_time": 441.735
+    },
+    {
+      "text": "計算",
+      "start_time": 441.975,
+      "end_time": 442.455
+    },
+    {
+      "text": "コスト",
+      "start_time": 442.455,
+      "end_time": 442.855
+    },
+    {
+      "text": "を",
+      "start_time": 442.855,
+      "end_time": 442.935
+    },
+    {
+      "text": "セ数",
+      "start_time": 442.935,
+      "end_time": 443.415
+    },
+    {
+      "text": "感",
+      "start_time": 443.415,
+      "end_time": 443.655
+    },
+    {
+      "text": "数",
+      "start_time": 443.655,
+      "end_time": 443.815
+    },
+    {
+      "text": "的",
+      "start_time": 443.815,
+      "end_time": 444.135
+    },
+    {
+      "text": "に",
+      "start_time": 444.135,
+      "end_time": 444.215
+    },
+    {
+      "text": "削減",
+      "start_time": 444.215,
+      "end_time": 444.775
+    },
+    {
+      "text": "する",
+      "start_time": 444.775,
+      "end_time": 445.095
+    },
+    {
+      "text": "こと",
+      "start_time": 445.095,
+      "end_time": 445.335
+    },
+    {
+      "text": "に",
+      "start_time": 445.335,
+      "end_time": 445.495
+    },
+    {
+      "text": "つながり",
+      "start_time": 445.495,
+      "end_time": 446.055
+    },
+    {
+      "text": "ます",
+      "start_time": 446.055,
+      "end_time": 446.455
+    },
+    {
+      "text": "コンタ",
+      "start_time": 446.695,
+      "end_time": 447.095
+    },
+    {
+      "text": "減数",
+      "start_time": 447.095,
+      "end_time": 447.495
+    },
+    {
+      "text": "が",
+      "start_time": 447.495,
+      "end_time": 447.735
+    },
+    {
+      "text": "この",
+      "start_time": 448.055,
+      "end_time": 448.295
+    },
+    {
+      "text": "可",
+      "start_time": 448.295,
+      "end_time": 448.455
+    },
+    {
+      "text": "正合",
+      "start_time": 448.455,
+      "end_time": 448.935
+    },
+    {
+      "text": "の",
+      "start_time": 448.935,
+      "end_time": 449.015
+    },
+    {
+      "text": "数",
+      "start_time": 449.015,
+      "end_time": 449.255
+    },
+    {
+      "text": "種",
+      "start_time": 449.255,
+      "end_time": 449.495
+    },
+    {
+      "text": "と",
+      "start_time": 449.495,
+      "end_time": 449.735
+    },
+    {
+      "text": "し",
+      "start_time": 449.735,
+      "end_time": 449.815
+    },
+    {
+      "text": "て",
+      "start_time": 449.815,
+      "end_time": 449.895
+    },
+    {
+      "text": "い",
+      "start_time": 449.895,
+      "end_time": 449.975
+    },
+    {
+      "text": "ます",
+      "start_time": 449.975,
+      "end_time": 450.375
+    },
+    {
+      "text": "ここ",
+      "start_time": 450.535,
+      "end_time": 450.855
+    },
+    {
+      "text": "ら",
+      "start_time": 450.855,
+      "end_time": 451.015
+    },
+    {
+      "text": "へん",
+      "start_time": 451.015,
+      "end_time": 451.175
+    },
+    {
+      "text": "に",
+      "start_time": 451.175,
+      "end_time": 451.175
+    },
+    {
+      "text": "する",
+      "start_time": 451.415,
+      "end_time": 451.815
+    },
+    {
+      "text": "この",
+      "start_time": 452.135,
+      "end_time": 452.455
+    },
+    {
+      "text": "可",
+      "start_time": 452.455,
+      "end_time": 452.615
+    },
+    {
+      "text": "正合",
+      "start_time": 452.615,
+      "end_time": 453.015
+    },
+    {
+      "text": "の",
+      "start_time": 453.015,
+      "end_time": 453.175
+    },
+    {
+      "text": "数",
+      "start_time": 453.175,
+      "end_time": 453.415
+    },
+    {
+      "text": "種",
+      "start_time": 453.415,
+      "end_time": 453.655
+    },
+    {
+      "text": "と",
+      "start_time": 453.655,
+      "end_time": 453.815
+    },
+    {
+      "text": "し",
+      "start_time": 453.815,
+      "end_time": 453.895
+    },
+    {
+      "text": "て",
+      "start_time": 453.895,
+      "end_time": 453.975
+    },
+    {
+      "text": "い",
+      "start_time": 453.975,
+      "end_time": 454.055
+    },
+    {
+      "text": "ます",
+      "start_time": 454.055,
+      "end_time": 454.455
+    },
+    {
+      "text": "この",
+      "start_time": 454.775,
+      "end_time": 455.015
+    },
+    {
+      "text": "可",
+      "start_time": 455.015,
+      "end_time": 455.175
+    },
+    {
+      "text": "正合",
+      "start_time": 455.175,
+      "end_time": 455.655
+    },
+    {
+      "text": "の",
+      "start_time": 455.655,
+      "end_time": 455.815
+    },
+    {
+      "text": "コンタ",
+      "start_time": 455.815,
+      "end_time": 456.295
+    },
+    {
+      "text": "が",
+      "start_time": 456.295,
+      "end_time": 456.455
+    },
+    {
+      "text": "ある",
+      "start_time": 456.455,
+      "end_time": 456.615
+    },
+    {
+      "text": "を",
+      "start_time": 456.615,
+      "end_time": 456.855
+    },
+    {
+      "text": "フル",
+      "start_time": 457.095,
+      "end_time": 457.335
+    },
+    {
+      "text": "外利",
+      "start_time": 457.335,
+      "end_time": 457.655
+    },
+    {
+      "text": "の",
+      "start_time": 457.655,
+      "end_time": 457.815
+    },
+    {
+      "text": "総集",
+      "start_time": 457.815,
+      "end_time": 458.375
+    },
+    {
+      "text": "と",
+      "start_time": 458.375,
+      "end_time": 458.535
+    },
+    {
+      "text": "し",
+      "start_time": 458.535,
+      "end_time": 458.695
+    },
+    {
+      "text": "て",
+      "start_time": 458.695,
+      "end_time": 459.015
+    },
+    {
+      "text": "2",
+      "start_time": 459.335,
+      "end_time": 459.495
+    },
+    {
+      "text": "0",
+      "start_time": 459.975,
+      "end_time": 460.135
+    },
+    {
+      "text": "2",
+      "start_time": 460.135,
+      "end_time": 460.135
+    },
+    {
+      "text": "1",
+      "start_time": 460.135,
+      "end_time": 460.135
+    },
+    {
+      "text": "年",
+      "start_time": 460.375,
+      "end_time": 460.535
+    },
+    {
+      "text": "化",
+      "start_time": 460.535,
+      "end_time": 460.775
+    },
+    {
+      "text": "を",
+      "start_time": 460.775,
+      "end_time": 460.935
+    },
+    {
+      "text": "フル",
+      "start_time": 461.175,
+      "end_time": 461.495
+    },
+    {
+      "text": "外",
+      "start_time": 461.495,
+      "end_time": 461.815
+    },
+    {
+      "text": "数",
+      "start_time": 461.815,
+      "end_time": 462.055
+    },
+    {
+      "text": "種",
+      "start_time": 462.055,
+      "end_time": 462.295
+    },
+    {
+      "text": "と",
+      "start_time": 462.295,
+      "end_time": 462.455
+    },
+    {
+      "text": "し",
+      "start_time": 462.455,
+      "end_time": 462.615
+    },
+    {
+      "text": "て",
+      "start_time": 462.615,
+      "end_time": 462.855
+    },
+    {
+      "text": "この",
+      "start_time": 463.175,
+      "end_time": 463.495
+    },
+    {
+      "text": "可",
+      "start_time": 463.495,
+      "end_time": 463.655
+    },
+    {
+      "text": "正合",
+      "start_time": 463.655,
+      "end_time": 464.055
+    },
+    {
+      "text": "の",
+      "start_time": 464.055,
+      "end_time": 464.215
+    },
+    {
+      "text": "製造",
+      "start_time": 464.215,
+      "end_time": 464.935
+    },
+    {
+      "text": "を",
+      "start_time": 464.935,
+      "end_time": 464.935
+    },
+    {
+      "text": "この",
+      "start_time": 465.255,
+      "end_time": 465.575
+    },
+    {
+      "text": "可",
+      "start_time": 465.575,
+      "end_time": 465.735
+    },
+    {
+      "text": "正合",
+      "start_time": 465.735,
+      "end_time": 466.135
+    },
+    {
+      "text": "の",
+      "start_time": 466.135,
+      "end_time": 466.295
+    },
+    {
+      "text": "製造",
+      "start_time": 466.295,
+      "end_time": 466.935
+    },
+    {
+      "text": "を",
+      "start_time": 466.935,
+      "end_time": 466.935
+    },
+    {
+      "text": "すべて",
+      "start_time": 467.335,
+      "end_time": 467.815
+    },
+    {
+      "text": "の",
+      "start_time": 467.815,
+      "end_time": 467.895
+    },
+    {
+      "text": "紫色",
+      "start_time": 467.895,
+      "end_time": 468.615
+    },
+    {
+      "text": "の",
+      "start_time": 468.615,
+      "end_time": 468.775
+    },
+    {
+      "text": "四角",
+      "start_time": 468.775,
+      "end_time": 469.175
+    },
+    {
+      "text": "の",
+      "start_time": 469.175,
+      "end_time": 469.335
+    },
+    {
+      "text": "合計",
+      "start_time": 469.335,
+      "end_time": 469.815
+    },
+    {
+      "text": "は",
+      "start_time": 469.815,
+      "end_time": 470.055
+    },
+    {
+      "text": "一定",
+      "start_time": 470.295,
+      "end_time": 470.695
+    },
+    {
+      "text": "の",
+      "start_time": 470.695,
+      "end_time": 470.855
+    },
+    {
+      "text": "値",
+      "start_time": 470.855,
+      "end_time": 471.015
+    },
+    {
+      "text": "に",
+      "start_time": 471.015,
+      "end_time": 471.095
+    },
+    {
+      "text": "制限",
+      "start_time": 471.095,
+      "end_time": 471.575
+    },
+    {
+      "text": "さ",
+      "start_time": 471.575,
+      "end_time": 471.735
+    },
+    {
+      "text": "れ",
+      "start_time": 471.735,
+      "end_time": 471.815
+    },
+    {
+      "text": "ます",
+      "start_time": 471.815,
+      "end_time": 472.215
+    },
+    {
+      "text": "総",
+      "start_time": 472.455,
+      "end_time": 472.775
+    },
+    {
+      "text": "の",
+      "start_time": 472.775,
+      "end_time": 472.935
+    },
+    {
+      "text": "可正",
+      "start_time": 472.935,
+      "end_time": 473.415
+    },
+    {
+      "text": "数",
+      "start_time": 473.415,
+      "end_time": 473.415
+    },
+    {
+      "text": "に",
+      "start_time": 473.415,
+      "end_time": 473.575
+    },
+    {
+      "text": "依存",
+      "start_time": 473.575,
+      "end_time": 473.895
+    },
+    {
+      "text": "し",
+      "start_time": 473.895,
+      "end_time": 474.055
+    },
+    {
+      "text": "ない",
+      "start_time": 474.055,
+      "end_time": 474.295
+    },
+    {
+      "text": "値",
+      "start_time": 474.295,
+      "end_time": 474.375
+    },
+    {
+      "text": "です",
+      "start_time": 474.375,
+      "end_time": 474.775
+    },
+    {
+      "text": "しかし",
+      "start_time": 475.015,
+      "end_time": 475.655
+    },
+    {
+      "text": "定数",
+      "start_time": 475.975,
+      "end_time": 476.375
+    },
+    {
+      "text": "C",
+      "start_time": 476.375,
+      "end_time": 476.695
+    },
+    {
+      "text": "に",
+      "start_time": 476.695,
+      "end_time": 476.855
+    },
+    {
+      "text": "依存",
+      "start_time": 476.855,
+      "end_time": 477.095
+    },
+    {
+      "text": "し",
+      "start_time": 477.095,
+      "end_time": 477.255
+    },
+    {
+      "text": "て",
+      "start_time": 477.255,
+      "end_time": 477.415
+    },
+    {
+      "text": "い",
+      "start_time": 477.415,
+      "end_time": 477.415
+    },
+    {
+      "text": "ます",
+      "start_time": 477.415,
+      "end_time": 477.895
+    },
+    {
+      "text": "これ",
+      "start_time": 478.135,
+      "end_time": 478.295
+    },
+    {
+      "text": "は",
+      "start_time": 478.295,
+      "end_time": 478.615
+    },
+    {
+      "text": "ネットワーク",
+      "start_time": 478.935,
+      "end_time": 479.495
+    },
+    {
+      "text": "内",
+      "start_time": 479.495,
+      "end_time": 479.735
+    },
+    {
+      "text": "の",
+      "start_time": 479.735,
+      "end_time": 479.815
+    },
+    {
+      "text": "プリング",
+      "start_time": 479.815,
+      "end_time": 480.375
+    },
+    {
+      "text": "層",
+      "start_time": 480.375,
+      "end_time": 480.615
+    },
+    {
+      "text": "の",
+      "start_time": 480.615,
+      "end_time": 480.775
+    },
+    {
+      "text": "配置",
+      "start_time": 480.775,
+      "end_time": 481.175
+    },
+    {
+      "text": "に",
+      "start_time": 481.175,
+      "end_time": 481.255
+    },
+    {
+      "text": "よっ",
+      "start_time": 481.255,
+      "end_time": 481.415
+    },
+    {
+      "text": "て",
+      "start_time": 481.495,
+      "end_time": 481.735
+    },
+    {
+      "text": "影響",
+      "start_time": 482.135,
+      "end_time": 482.535
+    },
+    {
+      "text": "を",
+      "start_time": 482.535,
+      "end_time": 482.615
+    },
+    {
+      "text": "受け",
+      "start_time": 482.615,
+      "end_time": 482.775
+    },
+    {
+      "text": "ます",
+      "start_time": 482.775,
+      "end_time": 483.175
+    },
+    {
+      "text": "私",
+      "start_time": 483.415,
+      "end_time": 483.735
+    },
+    {
+      "text": "たち",
+      "start_time": 483.735,
+      "end_time": 483.975
+    },
+    {
+      "text": "の",
+      "start_time": 483.975,
+      "end_time": 484.135
+    },
+    {
+      "text": "改良",
+      "start_time": 484.135,
+      "end_time": 484.535
+    },
+    {
+      "text": "は",
+      "start_time": 484.615,
+      "end_time": 484.855
+    },
+    {
+      "text": "発電",
+      "start_time": 485.015,
+      "end_time": 485.575
+    },
+    {
+      "text": "等",
+      "start_time": 485.575,
+      "end_time": 485.735
+    },
+    {
+      "text": "の",
+      "start_time": 485.895,
+      "end_time": 486.055
+    },
+    {
+      "text": "長",
+      "start_time": 486.055,
+      "end_time": 486.215
+    },
+    {
+      "text": "さ",
+      "start_time": 486.375,
+      "end_time": 486.455
+    },
+    {
+      "text": "の",
+      "start_time": 486.455,
+      "end_time": 486.615
+    },
+    {
+      "text": "入力",
+      "start_time": 486.615,
+      "end_time": 487.015
+    },
+    {
+      "text": "に",
+      "start_time": 487.015,
+      "end_time": 487.095
+    },
+    {
+      "text": "もと",
+      "start_time": 487.095,
+      "end_time": 487.415
+    },
+    {
+      "text": "つい",
+      "start_time": 487.415,
+      "end_time": 487.655
+    },
+    {
+      "text": "て",
+      "start_time": 487.655,
+      "end_time": 487.975
+    },
+    {
+      "text": "ベンチマス",
+      "start_time": 488.295,
+      "end_time": 489.015
+    },
+    {
+      "text": "さ",
+      "start_time": 489.015,
+      "end_time": 489.015
+    },
+    {
+      "text": "れ",
+      "start_time": 489.015,
+      "end_time": 489.095
+    },
+    {
+      "text": "まし",
+      "start_time": 489.095,
+      "end_time": 489.335
+    },
+    {
+      "text": "た",
+      "start_time": 489.335,
+      "end_time": 489.495
+    },
+    {
+      "text": "そして",
+      "start_time": 489.735,
+      "end_time": 490.375
+    },
+    {
+      "text": "図",
+      "start_time": 490.695,
+      "end_time": 490.855
+    },
+    {
+      "text": "に",
+      "start_time": 490.855,
+      "end_time": 491.015
+    },
+    {
+      "text": "示さ",
+      "start_time": 491.015,
+      "end_time": 491.415
+    },
+    {
+      "text": "れ",
+      "start_time": 491.415,
+      "end_time": 491.575
+    },
+    {
+      "text": "て",
+      "start_time": 491.575,
+      "end_time": 491.735
+    },
+    {
+      "text": "いる",
+      "start_time": 491.735,
+      "end_time": 491.895
+    },
+    {
+      "text": "の",
+      "start_time": 491.895,
+      "end_time": 491.975
+    },
+    {
+      "text": "は",
+      "start_time": 492.055,
+      "end_time": 492.215
+    },
+    {
+      "text": "プリング",
+      "start_time": 492.455,
+      "end_time": 493.015
+    },
+    {
+      "text": "層",
+      "start_time": 493.015,
+      "end_time": 493.255
+    },
+    {
+      "text": "が",
+      "start_time": 493.255,
+      "end_time": 493.415
+    },
+    {
+      "text": "生きる",
+      "start_time": 493.415,
+      "end_time": 493.975
+    },
+    {
+      "text": "と",
+      "start_time": 494.295,
+      "end_time": 494.615
+    },
+    {
+      "text": "熱",
+      "start_time": 494.935,
+      "end_time": 495.175
+    },
+    {
+      "text": "処理",
+      "start_time": 495.175,
+      "end_time": 495.495
+    },
+    {
+      "text": "と",
+      "start_time": 495.495,
+      "end_time": 495.575
+    },
+    {
+      "text": "が",
+      "start_time": 495.575,
+      "end_time": 495.735
+    },
+    {
+      "text": "等しい",
+      "start_time": 495.735,
+      "end_time": 496.055
+    },
+    {
+      "text": "と",
+      "start_time": 496.055,
+      "end_time": 496.215
+    },
+    {
+      "text": "し",
+      "start_time": 496.215,
+      "end_time": 496.295
+    },
+    {
+      "text": "て",
+      "start_time": 496.295,
+      "end_time": 496.455
+    },
+    {
+      "text": "最高",
+      "start_time": 496.455,
+      "end_time": 496.935
+    },
+    {
+      "text": "の",
+      "start_time": 496.935,
+      "end_time": 497.015
+    },
+    {
+      "text": "スケーラビリティ",
+      "start_time": 497.095,
+      "end_time": 497.815
+    },
+    {
+      "text": "が",
+      "start_time": 497.815,
+      "end_time": 497.975
+    },
+    {
+      "text": "達成",
+      "start_time": 497.975,
+      "end_time": 498.455
+    },
+    {
+      "text": "さ",
+      "start_time": 498.455,
+      "end_time": 498.615
+    },
+    {
+      "text": "れ",
+      "start_time": 498.615,
+      "end_time": 498.775
+    },
+    {
+      "text": "ます",
+      "start_time": 498.775,
+      "end_time": 499.095
+    },
+    {
+      "text": "ここ",
+      "start_time": 499.335,
+      "end_time": 499.575
+    },
+    {
+      "text": "で",
+      "start_time": 499.575,
+      "end_time": 499.735
+    },
+    {
+      "text": "は",
+      "start_time": 499.735,
+      "end_time": 499.975
+    },
+    {
+      "text": "2",
+      "start_time": 500.375,
+      "end_time": 500.695
+    },
+    {
+      "text": "4",
+      "start_time": 500.695,
+      "end_time": 500.855
+    },
+    {
+      "text": "層",
+      "start_time": 500.855,
+      "end_time": 501.095
+    },
+    {
+      "text": "の",
+      "start_time": 501.095,
+      "end_time": 501.175
+    },
+    {
+      "text": "ピラミッド",
+      "start_time": 501.175,
+      "end_time": 501.815
+    },
+    {
+      "text": "を",
+      "start_time": 501.815,
+      "end_time": 501.815
+    },
+    {
+      "text": "20",
+      "start_time": 501.815,
+      "end_time": 502.215
+    },
+    {
+      "text": "が",
+      "start_time": 502.535,
+      "end_time": 502.695
+    },
+    {
+      "text": "等し",
+      "start_time": 502.695,
+      "end_time": 503.015
+    },
+    {
+      "text": "て",
+      "start_time": 503.015,
+      "end_time": 503.095
+    },
+    {
+      "text": "も",
+      "start_time": 503.095,
+      "end_time": 503.415
+    },
+    {
+      "text": "この",
+      "start_time": 503.655,
+      "end_time": 503.895
+    },
+    {
+      "text": "よう",
+      "start_time": 503.895,
+      "end_time": 504.055
+    },
+    {
+      "text": "な",
+      "start_time": 504.055,
+      "end_time": 504.215
+    },
+    {
+      "text": "長い",
+      "start_time": 504.215,
+      "end_time": 504.535
+    },
+    {
+      "text": "入力",
+      "start_time": 504.535,
+      "end_time": 505.015
+    },
+    {
+      "text": "で",
+      "start_time": 505.015,
+      "end_time": 505.255
+    },
+    {
+      "text": "2",
+      "start_time": 505.575,
+      "end_time": 505.655
+    },
+    {
+      "text": "層",
+      "start_time": 505.655,
+      "end_time": 505.895
+    },
+    {
+      "text": "の",
+      "start_time": 505.895,
+      "end_time": 506.055
+    },
+    {
+      "text": "バニラ",
+      "start_time": 506.055,
+      "end_time": 506.455
+    },
+    {
+      "text": "トランス",
+      "start_time": 506.455,
+      "end_time": 506.855
+    },
+    {
+      "text": "フォーマ",
+      "start_time": 506.935,
+      "end_time": 507.175
+    },
+    {
+      "text": "を",
+      "start_time": 507.175,
+      "end_time": 507.335
+    },
+    {
+      "text": "この",
+      "start_time": 507.415,
+      "end_time": 507.655
+    },
+    {
+      "text": "よう",
+      "start_time": 507.655,
+      "end_time": 507.735
+    },
+    {
+      "text": "に",
+      "start_time": 507.815,
+      "end_time": 507.815
+    },
+    {
+      "text": "も",
+      "start_time": 507.975,
+      "end_time": 508.135
+    },
+    {
+      "text": "安く",
+      "start_time": 508.455,
+      "end_time": 508.855
+    },
+    {
+      "text": "なる",
+      "start_time": 508.855,
+      "end_time": 509.095
+    },
+    {
+      "text": "こと",
+      "start_time": 509.095,
+      "end_time": 509.335
+    },
+    {
+      "text": "が",
+      "start_time": 509.335,
+      "end_time": 509.495
+    },
+    {
+      "text": "わかり",
+      "start_time": 509.495,
+      "end_time": 509.815
+    },
+    {
+      "text": "ます",
+      "start_time": 509.815,
+      "end_time": 510.135
+    },
+    {
+      "text": "バニラ",
+      "start_time": 510.375,
+      "end_time": 510.855
+    },
+    {
+      "text": "トランス",
+      "start_time": 510.855,
+      "end_time": 511.255
+    },
+    {
+      "text": "フォーマ",
+      "start_time": 511.255,
+      "end_time": 511.735
+    },
+    {
+      "text": "が",
+      "start_time": 511.735,
+      "end_time": 511.815
+    },
+    {
+      "text": "目",
+      "start_time": 511.815,
+      "end_time": 511.975
+    },
+    {
+      "text": "に",
+      "start_time": 511.975,
+      "end_time": 512.135
+    },
+    {
+      "text": "映る",
+      "start_time": 512.135,
+      "end_time": 512.295
+    },
+    {
+      "text": "が",
+      "start_time": 512.295,
+      "end_time": 512.375
+    },
+    {
+      "text": "またり",
+      "start_time": 512.375,
+      "end_time": 513.095
+    },
+    {
+      "text": "この",
+      "start_time": 513.415,
+      "end_time": 513.655
+    },
+    {
+      "text": "問題",
+      "start_time": 513.655,
+      "end_time": 514.055
+    },
+    {
+      "text": "気づかる",
+      "start_time": 514.055,
+      "end_time": 514.615
+    },
+    {
+      "text": "の",
+      "start_time": 514.615,
+      "end_time": 514.775
+    },
+    {
+      "text": "が",
+      "start_time": 514.775,
+      "end_time": 514.935
+    },
+    {
+      "text": "またり",
+      "start_time": 514.935,
+      "end_time": 515.495
+    },
+    {
+      "text": "これ",
+      "start_time": 515.895,
+      "end_time": 516.135
+    },
+    {
+      "text": "は",
+      "start_time": 516.135,
+      "end_time": 516.375
+    },
+    {
+      "text": "トランス",
+      "start_time": 516.695,
+      "end_time": 517.175
+    },
+    {
+      "text": "フォーマ",
+      "start_time": 517.175,
+      "end_time": 517.575
+    },
+    {
+      "text": "で",
+      "start_time": 517.575,
+      "end_time": 517.735
+    },
+    {
+      "text": "も",
+      "start_time": 517.735,
+      "end_time": 517.895
+    },
+    {
+      "text": "あり",
+      "start_time": 517.895,
+      "end_time": 518.055
+    },
+    {
+      "text": "ませ",
+      "start_time": 518.055,
+      "end_time": 518.375
+    },
+    {
+      "text": "ん",
+      "start_time": 518.375,
+      "end_time": 518.455
+    },
+    {
+      "text": "この",
+      "start_time": 518.775,
+      "end_time": 519.015
+    },
+    {
+      "text": "よう",
+      "start_time": 519.015,
+      "end_time": 519.255
+    },
+    {
+      "text": "な",
+      "start_time": 519.255,
+      "end_time": 519.415
+    },
+    {
+      "text": "入力",
+      "start_time": 519.415,
+      "end_time": 519.815
+    },
+    {
+      "text": "で",
+      "start_time": 519.815,
+      "end_time": 520.055
+    },
+    {
+      "text": "対し",
+      "start_time": 520.455,
+      "end_time": 520.775
+    },
+    {
+      "text": "て",
+      "start_time": 520.775,
+      "end_time": 521.015
+    },
+    {
+      "text": "私",
+      "start_time": 521.255,
+      "end_time": 521.575
+    },
+    {
+      "text": "たち",
+      "start_time": 521.575,
+      "end_time": 521.815
+    },
+    {
+      "text": "の",
+      "start_time": 521.815,
+      "end_time": 521.975
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 521.975,
+      "end_time": 522.615
+    },
+    {
+      "text": "し",
+      "start_time": 522.615,
+      "end_time": 522.695
+    },
+    {
+      "text": "た",
+      "start_time": 522.695,
+      "end_time": 522.855
+    },
+    {
+      "text": "自供",
+      "start_time": 522.855,
+      "end_time": 523.335
+    },
+    {
+      "text": "キルバニラマナリー",
+      "start_time": 523.735,
+      "end_time": 524.695
+    },
+    {
+      "text": "高",
+      "start_time": 525.015,
+      "end_time": 525.255
+    },
+    {
+      "text": "想定",
+      "start_time": 525.255,
+      "end_time": 525.735
+    },
+    {
+      "text": "性",
+      "start_time": 525.735,
+      "end_time": 525.975
+    },
+    {
+      "text": "的",
+      "start_time": 525.975,
+      "end_time": 526.055
+    },
+    {
+      "text": "な",
+      "start_time": 526.215,
+      "end_time": 526.375
+    },
+    {
+      "text": "比較",
+      "start_time": 526.375,
+      "end_time": 526.775
+    },
+    {
+      "text": "を",
+      "start_time": 526.775,
+      "end_time": 526.855
+    },
+    {
+      "text": "示す",
+      "start_time": 526.855,
+      "end_time": 527.335
+    },
+    {
+      "text": "と",
+      "start_time": 527.335,
+      "end_time": 527.575
+    },
+    {
+      "text": "他",
+      "start_time": 527.815,
+      "end_time": 528.055
+    },
+    {
+      "text": "の",
+      "start_time": 528.055,
+      "end_time": 528.215
+    },
+    {
+      "text": "デモ",
+      "start_time": 528.215,
+      "end_time": 528.455
+    },
+    {
+      "text": "で",
+      "start_time": 528.455,
+      "end_time": 528.615
+    },
+    {
+      "text": "する",
+      "start_time": 528.615,
+      "end_time": 528.935
+    },
+    {
+      "text": "問題",
+      "start_time": 528.935,
+      "end_time": 529.335
+    },
+    {
+      "text": "が",
+      "start_time": 529.335,
+      "end_time": 529.575
+    },
+    {
+      "text": "高",
+      "start_time": 529.895,
+      "end_time": 530.135
+    },
+    {
+      "text": "想定",
+      "start_time": 530.135,
+      "end_time": 530.615
+    },
+    {
+      "text": "性",
+      "start_time": 530.615,
+      "end_time": 530.855
+    },
+    {
+      "text": "的",
+      "start_time": 530.855,
+      "end_time": 530.935
+    },
+    {
+      "text": "な",
+      "start_time": 531.015,
+      "end_time": 531.175
+    },
+    {
+      "text": "製造",
+      "start_time": 531.175,
+      "end_time": 531.575
+    },
+    {
+      "text": "で",
+      "start_time": 531.575,
+      "end_time": 531.735
+    },
+    {
+      "text": "実施",
+      "start_time": 531.735,
+      "end_time": 532.135
+    },
+    {
+      "text": "さ",
+      "start_time": 532.135,
+      "end_time": 532.295
+    },
+    {
+      "text": "れ",
+      "start_time": 532.295,
+      "end_time": 532.455
+    },
+    {
+      "text": "また",
+      "start_time": 532.775,
+      "end_time": 532.935
+    },
+    {
+      "text": "は",
+      "start_time": 533.015,
+      "end_time": 533.255
+    },
+    {
+      "text": "アーカイブ",
+      "start_time": 533.495,
+      "end_time": 533.975
+    },
+    {
+      "text": "や",
+      "start_time": 533.975,
+      "end_time": 534.135
+    },
+    {
+      "text": "プル",
+      "start_time": 534.135,
+      "end_time": 534.455
+    },
+    {
+      "text": "から",
+      "start_time": 534.455,
+      "end_time": 534.695
+    },
+    {
+      "text": "の",
+      "start_time": 534.695,
+      "end_time": 534.855
+    },
+    {
+      "text": "記事",
+      "start_time": 534.855,
+      "end_time": 535.175
+    },
+    {
+      "text": "の",
+      "start_time": 535.175,
+      "end_time": 535.335
+    },
+    {
+      "text": "本部",
+      "start_time": 535.335,
+      "end_time": 535.735
+    },
+    {
+      "text": "も",
+      "start_time": 535.735,
+      "end_time": 535.895
+    },
+    {
+      "text": "与え",
+      "start_time": 535.895,
+      "end_time": 536.215
+    },
+    {
+      "text": "られ",
+      "start_time": 536.215,
+      "end_time": 536.375
+    },
+    {
+      "text": "た",
+      "start_time": 536.375,
+      "end_time": 536.535
+    },
+    {
+      "text": "場合",
+      "start_time": 536.535,
+      "end_time": 536.855
+    },
+    {
+      "text": "に",
+      "start_time": 536.855,
+      "end_time": 536.935
+    },
+    {
+      "text": "も",
+      "start_time": 536.935,
+      "end_time": 537.095
+    },
+    {
+      "text": "行わ",
+      "start_time": 537.095,
+      "end_time": 537.415
+    },
+    {
+      "text": "れ",
+      "start_time": 537.415,
+      "end_time": 537.575
+    },
+    {
+      "text": "ます",
+      "start_time": 537.575,
+      "end_time": 537.895
+    },
+    {
+      "text": "タスク",
+      "start_time": 538.135,
+      "end_time": 538.535
+    },
+    {
+      "text": "は",
+      "start_time": 538.535,
+      "end_time": 538.695
+    },
+    {
+      "text": "それ",
+      "start_time": 538.695,
+      "end_time": 539.015
+    },
+    {
+      "text": "の",
+      "start_time": 539.015,
+      "end_time": 539.175
+    },
+    {
+      "text": "予約",
+      "start_time": 539.175,
+      "end_time": 539.735
+    },
+    {
+      "text": "を",
+      "start_time": 539.735,
+      "end_time": 539.815
+    },
+    {
+      "text": "生成",
+      "start_time": 539.815,
+      "end_time": 540.215
+    },
+    {
+      "text": "する",
+      "start_time": 540.215,
+      "end_time": 540.535
+    },
+    {
+      "text": "こと",
+      "start_time": 540.535,
+      "end_time": 540.775
+    },
+    {
+      "text": "です",
+      "start_time": 540.775,
+      "end_time": 541.095
+    },
+    {
+      "text": "保存",
+      "start_time": 541.332,
+      "end_time": 541.732
+    },
+    {
+      "text": "時",
+      "start_time": 541.732,
+      "end_time": 541.892
+    },
+    {
+      "text": "の",
+      "start_time": 541.892,
+      "end_time": 542.052
+    },
+    {
+      "text": "ま通り",
+      "start_time": 542.052,
+      "end_time": 542.692
+    },
+    {
+      "text": "ブロック",
+      "start_time": 543.012,
+      "end_time": 543.412
+    },
+    {
+      "text": "頭",
+      "start_time": 543.412,
+      "end_time": 543.572
+    },
+    {
+      "text": "支持",
+      "start_time": 543.652,
+      "end_time": 543.812
+    },
+    {
+      "text": "軸",
+      "start_time": 543.972,
+      "end_time": 544.132
+    },
+    {
+      "text": "が",
+      "start_time": 544.132,
+      "end_time": 544.292
+    },
+    {
+      "text": "ある",
+      "start_time": 544.292,
+      "end_time": 544.452
+    },
+    {
+      "text": "場合",
+      "start_time": 544.452,
+      "end_time": 544.692
+    },
+    {
+      "text": "ます",
+      "start_time": 544.692,
+      "end_time": 545.092
+    },
+    {
+      "text": "高精",
+      "start_time": 545.492,
+      "end_time": 545.892
+    },
+    {
+      "text": "定性",
+      "start_time": 545.892,
+      "end_time": 546.292
+    },
+    {
+      "text": "的",
+      "start_time": 546.292,
+      "end_time": 546.532
+    },
+    {
+      "text": "な",
+      "start_time": 546.532,
+      "end_time": 546.692
+    },
+    {
+      "text": "製造",
+      "start_time": 546.692,
+      "end_time": 547.172
+    },
+    {
+      "text": "で",
+      "start_time": 547.172,
+      "end_time": 547.412
+    },
+    {
+      "text": "最近",
+      "start_time": 547.812,
+      "end_time": 548.292
+    },
+    {
+      "text": "の",
+      "start_time": 548.292,
+      "end_time": 548.452
+    },
+    {
+      "text": "最",
+      "start_time": 548.452,
+      "end_time": 548.692
+    },
+    {
+      "text": "先端",
+      "start_time": 548.692,
+      "end_time": 549.092
+    },
+    {
+      "text": "モデル",
+      "start_time": 549.092,
+      "end_time": 549.492
+    },
+    {
+      "text": "の",
+      "start_time": 549.492,
+      "end_time": 549.652
+    },
+    {
+      "text": "レベル",
+      "start_time": 549.652,
+      "end_time": 550.052
+    },
+    {
+      "text": "に",
+      "start_time": 550.052,
+      "end_time": 550.212
+    },
+    {
+      "text": "引き",
+      "start_time": 550.212,
+      "end_time": 550.372
+    },
+    {
+      "text": "でし",
+      "start_time": 550.692,
+      "end_time": 551.012
+    },
+    {
+      "text": "た",
+      "start_time": 551.012,
+      "end_time": 551.172
+    },
+    {
+      "text": "ピラミッド",
+      "start_time": 551.252,
+      "end_time": 551.892
+    },
+    {
+      "text": "側",
+      "start_time": 551.892,
+      "end_time": 552.212
+    },
+    {
+      "text": "この",
+      "start_time": 552.452,
+      "end_time": 552.692
+    },
+    {
+      "text": "競争",
+      "start_time": 552.692,
+      "end_time": 553.092
+    },
+    {
+      "text": "力",
+      "start_time": 553.092,
+      "end_time": 553.332
+    },
+    {
+      "text": "の",
+      "start_time": 553.332,
+      "end_time": 553.412
+    },
+    {
+      "text": "ある",
+      "start_time": 553.412,
+      "end_time": 553.652
+    },
+    {
+      "text": "ベースライン",
+      "start_time": 553.652,
+      "end_time": 554.292
+    },
+    {
+      "text": "の",
+      "start_time": 554.292,
+      "end_time": 554.372
+    },
+    {
+      "text": "性能",
+      "start_time": 554.372,
+      "end_time": 554.852
+    },
+    {
+      "text": "維持",
+      "start_time": 554.852,
+      "end_time": 555.092
+    },
+    {
+      "text": "また",
+      "start_time": 555.092,
+      "end_time": 555.412
+    },
+    {
+      "text": "は",
+      "start_time": 555.412,
+      "end_time": 555.652
+    },
+    {
+      "text": "向上",
+      "start_time": 555.972,
+      "end_time": 556.372
+    },
+    {
+      "text": "さ",
+      "start_time": 556.372,
+      "end_time": 556.532
+    },
+    {
+      "text": "せ",
+      "start_time": 556.532,
+      "end_time": 556.692
+    },
+    {
+      "text": "て",
+      "start_time": 556.692,
+      "end_time": 556.852
+    },
+    {
+      "text": "い",
+      "start_time": 556.852,
+      "end_time": 556.852
+    },
+    {
+      "text": "ます",
+      "start_time": 556.852,
+      "end_time": 557.252
+    },
+    {
+      "text": "同時",
+      "start_time": 557.492,
+      "end_time": 557.892
+    },
+    {
+      "text": "に",
+      "start_time": 557.892,
+      "end_time": 558.132
+    },
+    {
+      "text": "私",
+      "start_time": 558.372,
+      "end_time": 558.692
+    },
+    {
+      "text": "たち",
+      "start_time": 558.692,
+      "end_time": 558.932
+    },
+    {
+      "text": "の",
+      "start_time": 558.932,
+      "end_time": 559.092
+    },
+    {
+      "text": "モデル",
+      "start_time": 559.092,
+      "end_time": 559.412
+    },
+    {
+      "text": "は",
+      "start_time": 559.412,
+      "end_time": 559.652
+    },
+    {
+      "text": "パーセント",
+      "start_time": 559.972,
+      "end_time": 560.452
+    },
+    {
+      "text": "ビュー",
+      "start_time": 560.452,
+      "end_time": 560.612
+    },
+    {
+      "text": "まで",
+      "start_time": 560.692,
+      "end_time": 561.172
+    },
+    {
+      "text": "8",
+      "start_time": 561.492,
+      "end_time": 562.532
+    },
+    {
+      "text": "0",
+      "start_time": 562.532,
+      "end_time": 562.612
+    },
+    {
+      "text": "高速",
+      "start_time": 562.612,
+      "end_time": 563.092
+    },
+    {
+      "text": "で",
+      "start_time": 563.092,
+      "end_time": 563.252
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 563.252,
+      "end_time": 563.972
+    },
+    {
+      "text": "でき",
+      "start_time": 563.972,
+      "end_time": 564.372
+    },
+    {
+      "text": "追論",
+      "start_time": 564.612,
+      "end_time": 565.012
+    },
+    {
+      "text": "時",
+      "start_time": 565.012,
+      "end_time": 565.172
+    },
+    {
+      "text": "に",
+      "start_time": 565.172,
+      "end_time": 565.252
+    },
+    {
+      "text": "は",
+      "start_time": 565.252,
+      "end_time": 565.492
+    },
+    {
+      "text": "4",
+      "start_time": 565.732,
+      "end_time": 565.892
+    },
+    {
+      "text": "5",
+      "start_time": 566.132,
+      "end_time": 566.292
+    },
+    {
+      "text": "0",
+      "start_time": 566.452,
+      "end_time": 566.612
+    },
+    {
+      "text": "以上",
+      "start_time": 567.252,
+      "end_time": 567.572
+    },
+    {
+      "text": "高速",
+      "start_time": 567.572,
+      "end_time": 568.052
+    },
+    {
+      "text": "です",
+      "start_time": 568.052,
+      "end_time": 568.372
+    },
+    {
+      "text": "ブロック",
+      "start_time": 568.612,
+      "end_time": 568.932
+    },
+    {
+      "text": "ブラグ",
+      "start_time": 568.932,
+      "end_time": 569.332
+    },
+    {
+      "text": "の",
+      "start_time": 569.332,
+      "end_time": 569.492
+    },
+    {
+      "text": "性能",
+      "start_time": 569.492,
+      "end_time": 570.132
+    },
+    {
+      "text": "を",
+      "start_time": 570.132,
+      "end_time": 570.132
+    },
+    {
+      "text": "もの",
+      "start_time": 570.372,
+      "end_time": 570.612
+    },
+    {
+      "text": "と",
+      "start_time": 570.612,
+      "end_time": 570.772
+    },
+    {
+      "text": "比較",
+      "start_time": 570.772,
+      "end_time": 571.172
+    },
+    {
+      "text": "し",
+      "start_time": 571.172,
+      "end_time": 571.332
+    },
+    {
+      "text": "て",
+      "start_time": 571.332,
+      "end_time": 571.572
+    },
+    {
+      "text": "両",
+      "start_time": 571.812,
+      "end_time": 572.052
+    },
+    {
+      "text": "モデル",
+      "start_time": 572.052,
+      "end_time": 572.452
+    },
+    {
+      "text": "は",
+      "start_time": 572.452,
+      "end_time": 572.692
+    },
+    {
+      "text": "パラメータ",
+      "start_time": 573.012,
+      "end_time": 573.652
+    },
+    {
+      "text": "の",
+      "start_time": 573.652,
+      "end_time": 573.812
+    },
+    {
+      "text": "高速",
+      "start_time": 573.812,
+      "end_time": 574.292
+    },
+    {
+      "text": "で",
+      "start_time": 574.292,
+      "end_time": 574.532
+    },
+    {
+      "text": "遥か",
+      "start_time": 574.852,
+      "end_time": 575.332
+    },
+    {
+      "text": "に",
+      "start_time": 575.332,
+      "end_time": 575.492
+    },
+    {
+      "text": "少なく",
+      "start_time": 575.492,
+      "end_time": 576.132
+    },
+    {
+      "text": "先代らば",
+      "start_time": 576.452,
+      "end_time": 577.172
+    },
+    {
+      "text": "れ",
+      "start_time": 577.172,
+      "end_time": 577.252
+    },
+    {
+      "text": "た",
+      "start_time": 577.252,
+      "end_time": 577.412
+    },
+    {
+      "text": "タスク",
+      "start_time": 577.412,
+      "end_time": 577.812
+    },
+    {
+      "text": "に",
+      "start_time": 577.812,
+      "end_time": 577.972
+    },
+    {
+      "text": "つい",
+      "start_time": 577.972,
+      "end_time": 578.212
+    },
+    {
+      "text": "て",
+      "start_time": 578.212,
+      "end_time": 578.532
+    },
+    {
+      "text": "ゼロ",
+      "start_time": 578.852,
+      "end_time": 579.092
+    },
+    {
+      "text": "から",
+      "start_time": 579.092,
+      "end_time": 579.412
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 579.412,
+      "end_time": 580.052
+    },
+    {
+      "text": "さ",
+      "start_time": 580.052,
+      "end_time": 580.212
+    },
+    {
+      "text": "れ",
+      "start_time": 580.212,
+      "end_time": 580.292
+    },
+    {
+      "text": "まし",
+      "start_time": 580.292,
+      "end_time": 580.532
+    },
+    {
+      "text": "た",
+      "start_time": 580.532,
+      "end_time": 580.692
+    },
+    {
+      "text": "これ",
+      "start_time": 580.932,
+      "end_time": 581.252
+    },
+    {
+      "text": "ら",
+      "start_time": 581.252,
+      "end_time": 581.332
+    },
+    {
+      "text": "の",
+      "start_time": 581.332,
+      "end_time": 581.492
+    },
+    {
+      "text": "性能",
+      "start_time": 581.492,
+      "end_time": 581.972
+    },
+    {
+      "text": "に",
+      "start_time": 581.972,
+      "end_time": 582.132
+    },
+    {
+      "text": "近い",
+      "start_time": 582.132,
+      "end_time": 582.452
+    },
+    {
+      "text": "もの",
+      "start_time": 582.452,
+      "end_time": 582.692
+    },
+    {
+      "text": "を",
+      "start_time": 582.692,
+      "end_time": 582.852
+    },
+    {
+      "text": "達成",
+      "start_time": 582.852,
+      "end_time": 583.252
+    },
+    {
+      "text": "する",
+      "start_time": 583.252,
+      "end_time": 583.572
+    },
+    {
+      "text": "ため",
+      "start_time": 583.572,
+      "end_time": 583.812
+    },
+    {
+      "text": "の",
+      "start_time": 583.812,
+      "end_time": 584.052
+    },
+    {
+      "text": "これ",
+      "start_time": 584.452,
+      "end_time": 584.692
+    },
+    {
+      "text": "まで",
+      "start_time": 584.692,
+      "end_time": 584.932
+    },
+    {
+      "text": "の",
+      "start_time": 584.932,
+      "end_time": 585.172
+    },
+    {
+      "text": "アプローチ",
+      "start_time": 585.172,
+      "end_time": 585.652
+    },
+    {
+      "text": "は",
+      "start_time": 585.652,
+      "end_time": 585.892
+    },
+    {
+      "text": "より",
+      "start_time": 586.132,
+      "end_time": 586.372
+    },
+    {
+      "text": "多く",
+      "start_time": 586.452,
+      "end_time": 586.772
+    },
+    {
+      "text": "の",
+      "start_time": 586.772,
+      "end_time": 586.932
+    },
+    {
+      "text": "パラメータ",
+      "start_time": 586.932,
+      "end_time": 587.652
+    },
+    {
+      "text": "を",
+      "start_time": 587.652,
+      "end_time": 588.052
+    },
+    {
+      "text": "ここ",
+      "start_time": 588.052,
+      "end_time": 588.372
+    },
+    {
+      "text": "に",
+      "start_time": 588.372,
+      "end_time": 588.452
+    },
+    {
+      "text": "し",
+      "start_time": 588.452,
+      "end_time": 588.612
+    },
+    {
+      "text": "て",
+      "start_time": 588.612,
+      "end_time": 588.772
+    },
+    {
+      "text": "いる",
+      "start_time": 588.772,
+      "end_time": 588.852
+    },
+    {
+      "text": "アタスク",
+      "start_time": 588.932,
+      "end_time": 589.492
+    },
+    {
+      "text": "の",
+      "start_time": 589.492,
+      "end_time": 589.652
+    },
+    {
+      "text": "実",
+      "start_time": 589.652,
+      "end_time": 589.892
+    },
+    {
+      "text": "構造",
+      "start_time": 589.892,
+      "end_time": 590.372
+    },
+    {
+      "text": "さ",
+      "start_time": 590.372,
+      "end_time": 590.532
+    },
+    {
+      "text": "れ",
+      "start_time": 590.532,
+      "end_time": 590.612
+    },
+    {
+      "text": "た",
+      "start_time": 590.612,
+      "end_time": 590.932
+    },
+    {
+      "text": "ファンディアマ",
+      "start_time": 591.252,
+      "end_time": 591.972
+    },
+    {
+      "text": "の",
+      "start_time": 591.972,
+      "end_time": 592.132
+    },
+    {
+      "text": "実",
+      "start_time": 592.132,
+      "end_time": 592.372
+    },
+    {
+      "text": "構造",
+      "start_time": 592.372,
+      "end_time": 592.852
+    },
+    {
+      "text": "刷新",
+      "start_time": 592.852,
+      "end_time": 593.492
+    },
+    {
+      "text": "し",
+      "start_time": 593.492,
+      "end_time": 593.572
+    },
+    {
+      "text": "て",
+      "start_time": 593.572,
+      "end_time": 593.732
+    },
+    {
+      "text": "い",
+      "start_time": 593.732,
+      "end_time": 593.812
+    },
+    {
+      "text": "ます",
+      "start_time": 593.812,
+      "end_time": 594.212
+    },
+    {
+      "text": "および",
+      "start_time": 594.452,
+      "end_time": 594.852
+    },
+    {
+      "text": "追加",
+      "start_time": 595.252,
+      "end_time": 595.652
+    },
+    {
+      "text": "の",
+      "start_time": 595.652,
+      "end_time": 595.812
+    },
+    {
+      "text": "言語",
+      "start_time": 595.812,
+      "end_time": 596.212
+    },
+    {
+      "text": "事前",
+      "start_time": 596.212,
+      "end_time": 596.612
+    },
+    {
+      "text": "トレーニング",
+      "start_time": 596.612,
+      "end_time": 597.332
+    },
+    {
+      "text": "を",
+      "start_time": 597.332,
+      "end_time": 597.412
+    },
+    {
+      "text": "行い",
+      "start_time": 597.412,
+      "end_time": 597.892
+    },
+    {
+      "text": "お",
+      "start_time": 598.212,
+      "end_time": 598.292
+    },
+    {
+      "text": "同様",
+      "start_time": 598.292,
+      "end_time": 598.612
+    },
+    {
+      "text": "の",
+      "start_time": 598.612,
+      "end_time": 598.772
+    },
+    {
+      "text": "性能",
+      "start_time": 598.772,
+      "end_time": 599.252
+    },
+    {
+      "text": "達成",
+      "start_time": 599.252,
+      "end_time": 599.732
+    },
+    {
+      "text": "する",
+      "start_time": 599.732,
+      "end_time": 599.972
+    },
+    {
+      "text": "こと",
+      "start_time": 599.972,
+      "end_time": 600.292
+    },
+    {
+      "text": "を",
+      "start_time": 600.372,
+      "end_time": 600.372
+    },
+    {
+      "text": "目的",
+      "start_time": 600.372,
+      "end_time": 600.852
+    },
+    {
+      "text": "と",
+      "start_time": 600.852,
+      "end_time": 601.012
+    },
+    {
+      "text": "し",
+      "start_time": 601.012,
+      "end_time": 601.172
+    },
+    {
+      "text": "て",
+      "start_time": 601.172,
+      "end_time": 601.252
+    },
+    {
+      "text": "い",
+      "start_time": 601.252,
+      "end_time": 601.332
+    },
+    {
+      "text": "まし",
+      "start_time": 601.332,
+      "end_time": 601.572
+    },
+    {
+      "text": "た",
+      "start_time": 601.572,
+      "end_time": 601.732
+    },
+    {
+      "text": "私",
+      "start_time": 602.052,
+      "end_time": 602.372
+    },
+    {
+      "text": "たち",
+      "start_time": 602.372,
+      "end_time": 602.612
+    },
+    {
+      "text": "は",
+      "start_time": 602.612,
+      "end_time": 602.852
+    },
+    {
+      "text": "皆",
+      "start_time": 603.092,
+      "end_time": 603.332
+    },
+    {
+      "text": "様",
+      "start_time": 603.332,
+      "end_time": 603.572
+    },
+    {
+      "text": "に",
+      "start_time": 603.572,
+      "end_time": 603.732
+    },
+    {
+      "text": "当社",
+      "start_time": 603.732,
+      "end_time": 604.052
+    },
+    {
+      "text": "の",
+      "start_time": 604.052,
+      "end_time": 604.212
+    },
+    {
+      "text": "フル",
+      "start_time": 604.212,
+      "end_time": 604.532
+    },
+    {
+      "text": "ページ",
+      "start_time": 604.532,
+      "end_time": 604.852
+    },
+    {
+      "text": "を",
+      "start_time": 604.852,
+      "end_time": 605.092
+    },
+    {
+      "text": "拡大",
+      "start_time": 605.092,
+      "end_time": 605.492
+    },
+    {
+      "text": "し",
+      "start_time": 605.492,
+      "end_time": 605.812
+    },
+    {
+      "text": "蓄能",
+      "start_time": 606.212,
+      "end_time": 606.692
+    },
+    {
+      "text": "三",
+      "start_time": 606.692,
+      "end_time": 607.012
+    },
+    {
+      "text": "上級",
+      "start_time": 607.012,
+      "end_time": 607.492
+    },
+    {
+      "text": "し",
+      "start_time": 607.572,
+      "end_time": 607.732
+    },
+    {
+      "text": "ます",
+      "start_time": 607.732,
+      "end_time": 608.132
+    },
+    {
+      "text": "そして",
+      "start_time": 608.372,
+      "end_time": 608.932
+    },
+    {
+      "text": "当社",
+      "start_time": 609.332,
+      "end_time": 609.732
+    },
+    {
+      "text": "の",
+      "start_time": 609.732,
+      "end_time": 609.892
+    },
+    {
+      "text": "ギタブ",
+      "start_time": 609.892,
+      "end_time": 610.292
+    },
+    {
+      "text": "コード",
+      "start_time": 610.292,
+      "end_time": 610.692
+    },
+    {
+      "text": "を",
+      "start_time": 610.692,
+      "end_time": 610.772
+    },
+    {
+      "text": "ご",
+      "start_time": 610.772,
+      "end_time": 610.932
+    },
+    {
+      "text": "利用",
+      "start_time": 610.932,
+      "end_time": 611.252
+    },
+    {
+      "text": "いただく",
+      "start_time": 611.252,
+      "end_time": 611.652
+    },
+    {
+      "text": "こと",
+      "start_time": 611.652,
+      "end_time": 611.892
+    },
+    {
+      "text": "を",
+      "start_time": 611.892,
+      "end_time": 612.052
+    },
+    {
+      "text": "お",
+      "start_time": 612.052,
+      "end_time": 612.052
+    },
+    {
+      "text": "願い",
+      "start_time": 612.052,
+      "end_time": 612.372
+    },
+    {
+      "text": "し",
+      "start_time": 612.372,
+      "end_time": 612.532
+    },
+    {
+      "text": "ます",
+      "start_time": 612.532,
+      "end_time": 612.852
+    },
+    {
+      "text": "ご覧",
+      "start_time": 613.092,
+      "end_time": 613.492
+    },
+    {
+      "text": "で",
+      "start_time": 613.492,
+      "end_time": 613.652
+    },
+    {
+      "text": "いる",
+      "start_time": 613.652,
+      "end_time": 613.812
+    },
+    {
+      "text": "か",
+      "start_time": 613.812,
+      "end_time": 613.972
+    },
+    {
+      "text": "さい",
+      "start_time": 613.972,
+      "end_time": 614.372
+    },
+    {
+      "text": "ありがとう",
+      "start_time": 614.692,
+      "end_time": 615.252
+    },
+    {
+      "text": "ござい",
+      "start_time": 615.252,
+      "end_time": 615.652
+    },
+    {
+      "text": "ます",
+      "start_time": 615.652,
+      "end_time": 616.052
+    }
+  ]
+}
