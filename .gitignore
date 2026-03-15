@@ -10,3 +10,4 @@ data/
 *.pyd
 *.so
 build/
+whisperX/

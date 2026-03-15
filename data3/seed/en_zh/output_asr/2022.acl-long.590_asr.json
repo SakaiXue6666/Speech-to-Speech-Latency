@@ -1,0 +1,9012 @@
+{
+  "src": "data2/input/acl_6060_dev/2022.acl-long.590.wav",
+  "tgt": "data3\\seed\\en_zh\\output_tgt\\2022.acl-long.590.wav",
+  "text": "大家好，我叫米哈伊尔·彼得鲁什卡，我很荣幸向大家介绍这篇题为“SparseAI：具有可训练表示池化的Transformer模型”的论文。该研究由OpenAI与Lucas Groenink和Lucas Van de Ssein合作完成。让我从我们工作的目标问题开始。我们的方法在考虑长输入的情况下效果很好。大致来说，它适用于输入超过两千个token的任务，且目标短于提供的输入。这在NLP有一些特定的应用，例如人们可以想象给定一个长文档，需要对其进行总结、分类、回答关于它的问题、提取信息或一些关键短语。让我回顾一下原始Transformer及其注意力复杂性问题。该问题取决于输入长度的平方。在原始Transformer中，具有完全注意力连接，必须计算每个标记与其他每个标记的关系。注意力的计算复杂性仅取决于层数L和序列长度。在序列长度下，以及表示的维度，同样在解码器的交叉注意力中，右图中的唯一区别是目标标记正在关注输入标记。在这种情况下，这也可以在这个公式中看到。蓝色方块代表需要计算的关系。在全注意力的情况下，我们需要计算输入序列中的每一个关系。现在我们来看看，当我们有一个分块编码器时会发生什么。它通过限制标记的连接性来工作，这样它们只能看到其他附近的标记。文本是分块读取的，这可以大大减少计算量。在编码器端，在并没有提高解码器的交叉注意力，因为每个输入标记都会传递给解码器。这种方法通常被称为编码器融合。这里的改进可以解释为将n的一个依赖项更改为另一个常数m，代表块大小。我们的关键观察是，大多数token与各种任务无关，几乎可以完全忽略。就在幻灯片上有示例。只有部分输入与所需输出相关。例如，人们可以读一篇文章一次，用荧光笔标记最重要的部分，然后仅从中间阶段开始基于这些部分生成摘要。标记和决定当前标记是否对生成摘要是必要的成本，因此很便宜，并且只取决于标记的表示。得益于我们的 top k 簇子，突出显示的 token 可以汇集，其成本可以忽略不计。从缩短的输入中生成摘要的成本也远低于原始模型。但有一个问题：如何选择重要的标记，并通过该选择反向传播梯度？我们要解决的根本问题是提出可训练的选择机制，允许在训练期间反向传播梯度，以便网络能够学习选择最重要的标记。更准确地说，给定一些嵌入和它们的分数，这些嵌入来自一个简单的线性层，任务是返回得分最高的嵌入。首先对序列进行排列，并准备好配对，以便将得分较高的向量与得分较低的向量进行组合。接下来使用增强的 softmax 过渡得分来计算权重。在每一轮训练之后，新的向量和分数是由稀疏权重线性组合而成的。这些权重是通过训练得到的。简而言之，我们通过对分数进行 softmax 操作来线性组合它们。在组合两个 token 时，可能会产生一些噪声。但这也允许梯度传播到所有输入嵌入中。简而言之，我们提出了一个可训练的 top k 机制，该机制基于执行类似锦标赛的软选择，在每一步进行。从另一个角度来看，所提出的表示是遵循编码器层。首先对每个表示进行评分，然后具有得分最高的表示会传递到下一层。编码器按照标准 Transformer 架构进行，对完整长度的输入进行。然而，可以以固定长度的文本块进行处理，并全局选择最佳表示。这里是编码器后引入的表示池的一个例子。这直接影响了交叉注意力的过程。它不依赖于输入长度，而是依赖于常数表示池长度。这个常数表示选择了多少个表示，并传递给编码器。从短文本中生成摘要，比以前的解决方案便宜得多，因为序列长度可以大幅缩短。例如，我们成功的使用了16甚至60个比N值级比列的数字项，在我们的实验中。请注意，分块编码的有益影响和自注意力是持续的。记住，注意力的计算成本取决于输入长度的平方。提前减少输入，在编码过程中可以显著降低成本。对于Pyramid模型，我们缩小了表示的大小，在每个选定层的输出上，这导致计算成本呈指数级下降。随着编码的进行，如你所见，这里完整编码器的总计算成本不到全尺寸计算成本的两倍。当更早引入池化时，所有子块方块的总和被限定在一个常数内，不依赖于层数量，而是依赖于常数C。这可以通过放置池化层来影响。在网络中，我们的改进进行了基准测试，针对八千个文本的输入长度，数据显示，当启用池化时，网络深度的最佳可扩展性得以实现。这里可以注意到，训练二四层的金字塔比训练两层的香草Transformer在如此长的输入上成本更低，更不用说香草Transformer很容易就会内存溢出。对于这么长的输入，我们训练的深度金字塔模型的定性比较是在长文档总结任务上进行的。给定X或PubMed上的一篇文章的主体部分，任务是生成其摘要。可以看到，逐块处理是我们的极限，其性能与最新技术水平相当。而深度金字塔模型则保持或提高了这一有竞争力的基线的性能，同时，我们的模型训练速度快了80%，推理速度快了450%以上，与逐块基线模型相比，两个模型的参数数量都要低得多，并且都是在选定的任务上从零开始训练。之前为了达到类似的性能，不得不使用更多的参数，并利用预训练的基础模型和额外的语言预训练，旨在达到类似的性能。欢迎大家阅读我们的全文，并使用我们的 GitHub 代码。感谢您的观看。",
+  "time_stamps": [
+    {
+      "text": "大",
+      "start_time": 4.4,
+      "end_time": 4.48
+    },
+    {
+      "text": "家",
+      "start_time": 4.48,
+      "end_time": 4.64
+    },
+    {
+      "text": "好",
+      "start_time": 4.64,
+      "end_time": 5.04
+    },
+    {
+      "text": "我",
+      "start_time": 5.44,
+      "end_time": 5.52
+    },
+    {
+      "text": "叫",
+      "start_time": 5.52,
+      "end_time": 5.68
+    },
+    {
+      "text": "米",
+      "start_time": 5.68,
+      "end_time": 5.84
+    },
+    {
+      "text": "哈",
+      "start_time": 5.84,
+      "end_time": 6.0
+    },
+    {
+      "text": "伊",
+      "start_time": 6.0,
+      "end_time": 6.16
+    },
+    {
+      "text": "尔",
+      "start_time": 6.16,
+      "end_time": 6.64
+    },
+    {
+      "text": "彼",
+      "start_time": 6.64,
+      "end_time": 6.8
+    },
+    {
+      "text": "得",
+      "start_time": 6.8,
+      "end_time": 6.88
+    },
+    {
+      "text": "鲁",
+      "start_time": 6.88,
+      "end_time": 6.96
+    },
+    {
+      "text": "什",
+      "start_time": 6.96,
+      "end_time": 7.12
+    },
+    {
+      "text": "卡",
+      "start_time": 7.12,
+      "end_time": 7.36
+    },
+    {
+      "text": "我",
+      "start_time": 7.44,
+      "end_time": 7.52
+    },
+    {
+      "text": "很",
+      "start_time": 7.52,
+      "end_time": 7.6
+    },
+    {
+      "text": "荣",
+      "start_time": 7.6,
+      "end_time": 7.76
+    },
+    {
+      "text": "幸",
+      "start_time": 7.76,
+      "end_time": 7.92
+    },
+    {
+      "text": "向",
+      "start_time": 7.92,
+      "end_time": 8.08
+    },
+    {
+      "text": "大",
+      "start_time": 8.08,
+      "end_time": 8.24
+    },
+    {
+      "text": "家",
+      "start_time": 8.24,
+      "end_time": 8.32
+    },
+    {
+      "text": "介",
+      "start_time": 8.32,
+      "end_time": 8.48
+    },
+    {
+      "text": "绍",
+      "start_time": 8.48,
+      "end_time": 8.96
+    },
+    {
+      "text": "这",
+      "start_time": 11.92,
+      "end_time": 12.0
+    },
+    {
+      "text": "篇",
+      "start_time": 12.08,
+      "end_time": 12.24
+    },
+    {
+      "text": "题",
+      "start_time": 12.24,
+      "end_time": 12.4
+    },
+    {
+      "text": "为",
+      "start_time": 12.4,
+      "end_time": 12.64
+    },
+    {
+      "text": "SparseAI",
+      "start_time": 12.64,
+      "end_time": 13.44
+    },
+    {
+      "text": "具",
+      "start_time": 13.52,
+      "end_time": 13.68
+    },
+    {
+      "text": "有",
+      "start_time": 13.68,
+      "end_time": 13.76
+    },
+    {
+      "text": "可",
+      "start_time": 13.76,
+      "end_time": 13.92
+    },
+    {
+      "text": "训",
+      "start_time": 13.92,
+      "end_time": 14.08
+    },
+    {
+      "text": "练",
+      "start_time": 14.08,
+      "end_time": 14.24
+    },
+    {
+      "text": "表",
+      "start_time": 14.24,
+      "end_time": 14.4
+    },
+    {
+      "text": "示",
+      "start_time": 14.4,
+      "end_time": 14.56
+    },
+    {
+      "text": "池",
+      "start_time": 14.56,
+      "end_time": 14.72
+    },
+    {
+      "text": "化",
+      "start_time": 14.72,
+      "end_time": 14.88
+    },
+    {
+      "text": "的",
+      "start_time": 14.88,
+      "end_time": 15.04
+    },
+    {
+      "text": "Transformer",
+      "start_time": 15.04,
+      "end_time": 15.52
+    },
+    {
+      "text": "模",
+      "start_time": 15.6,
+      "end_time": 15.84
+    },
+    {
+      "text": "型",
+      "start_time": 15.84,
+      "end_time": 16.0
+    },
+    {
+      "text": "的",
+      "start_time": 16.0,
+      "end_time": 16.08
+    },
+    {
+      "text": "论",
+      "start_time": 16.08,
+      "end_time": 16.24
+    },
+    {
+      "text": "文",
+      "start_time": 16.24,
+      "end_time": 16.48
+    },
+    {
+      "text": "该",
+      "start_time": 17.84,
+      "end_time": 17.92
+    },
+    {
+      "text": "研",
+      "start_time": 17.92,
+      "end_time": 18.08
+    },
+    {
+      "text": "究",
+      "start_time": 18.08,
+      "end_time": 18.24
+    },
+    {
+      "text": "由",
+      "start_time": 18.24,
+      "end_time": 18.48
+    },
+    {
+      "text": "OpenAI",
+      "start_time": 18.56,
+      "end_time": 19.04
+    },
+    {
+      "text": "与",
+      "start_time": 19.12,
+      "end_time": 19.2
+    },
+    {
+      "text": "Lucas",
+      "start_time": 19.2,
+      "end_time": 19.52
+    },
+    {
+      "text": "Groenink",
+      "start_time": 19.6,
+      "end_time": 20.08
+    },
+    {
+      "text": "和",
+      "start_time": 20.08,
+      "end_time": 20.16
+    },
+    {
+      "text": "Lucas",
+      "start_time": 20.16,
+      "end_time": 20.48
+    },
+    {
+      "text": "Van",
+      "start_time": 20.48,
+      "end_time": 20.64
+    },
+    {
+      "text": "de",
+      "start_time": 20.64,
+      "end_time": 20.72
+    },
+    {
+      "text": "Ssein",
+      "start_time": 20.72,
+      "end_time": 20.96
+    },
+    {
+      "text": "合",
+      "start_time": 20.96,
+      "end_time": 21.2
+    },
+    {
+      "text": "作",
+      "start_time": 21.2,
+      "end_time": 21.28
+    },
+    {
+      "text": "完",
+      "start_time": 21.28,
+      "end_time": 21.44
+    },
+    {
+      "text": "成",
+      "start_time": 21.44,
+      "end_time": 21.68
+    },
+    {
+      "text": "让",
+      "start_time": 22.4,
+      "end_time": 22.56
+    },
+    {
+      "text": "我",
+      "start_time": 22.56,
+      "end_time": 22.64
+    },
+    {
+      "text": "从",
+      "start_time": 22.64,
+      "end_time": 22.8
+    },
+    {
+      "text": "我",
+      "start_time": 22.8,
+      "end_time": 22.8
+    },
+    {
+      "text": "们",
+      "start_time": 22.8,
+      "end_time": 22.96
+    },
+    {
+      "text": "工",
+      "start_time": 22.96,
+      "end_time": 23.12
+    },
+    {
+      "text": "作",
+      "start_time": 23.12,
+      "end_time": 23.2
+    },
+    {
+      "text": "的",
+      "start_time": 23.2,
+      "end_time": 23.28
+    },
+    {
+      "text": "目",
+      "start_time": 23.28,
+      "end_time": 23.44
+    },
+    {
+      "text": "标",
+      "start_time": 23.44,
+      "end_time": 23.6
+    },
+    {
+      "text": "问",
+      "start_time": 23.6,
+      "end_time": 23.76
+    },
+    {
+      "text": "题",
+      "start_time": 23.76,
+      "end_time": 23.84
+    },
+    {
+      "text": "开",
+      "start_time": 23.84,
+      "end_time": 24.0
+    },
+    {
+      "text": "始",
+      "start_time": 24.0,
+      "end_time": 24.16
+    },
+    {
+      "text": "我",
+      "start_time": 26.88,
+      "end_time": 26.96
+    },
+    {
+      "text": "们",
+      "start_time": 26.96,
+      "end_time": 27.04
+    },
+    {
+      "text": "的",
+      "start_time": 27.04,
+      "end_time": 27.12
+    },
+    {
+      "text": "方",
+      "start_time": 27.12,
+      "end_time": 27.36
+    },
+    {
+      "text": "法",
+      "start_time": 27.36,
+      "end_time": 27.52
+    },
+    {
+      "text": "在",
+      "start_time": 27.52,
+      "end_time": 27.68
+    },
+    {
+      "text": "考",
+      "start_time": 27.68,
+      "end_time": 27.84
+    },
+    {
+      "text": "虑",
+      "start_time": 27.84,
+      "end_time": 28.0
+    },
+    {
+      "text": "长",
+      "start_time": 28.0,
+      "end_time": 28.24
+    },
+    {
+      "text": "输",
+      "start_time": 28.24,
+      "end_time": 28.4
+    },
+    {
+      "text": "入",
+      "start_time": 28.4,
+      "end_time": 28.48
+    },
+    {
+      "text": "的",
+      "start_time": 28.48,
+      "end_time": 28.48
+    },
+    {
+      "text": "情",
+      "start_time": 28.48,
+      "end_time": 28.64
+    },
+    {
+      "text": "况",
+      "start_time": 28.64,
+      "end_time": 28.72
+    },
+    {
+      "text": "下",
+      "start_time": 28.72,
+      "end_time": 28.8
+    },
+    {
+      "text": "效",
+      "start_time": 28.8,
+      "end_time": 28.96
+    },
+    {
+      "text": "果",
+      "start_time": 28.96,
+      "end_time": 29.04
+    },
+    {
+      "text": "很",
+      "start_time": 29.04,
+      "end_time": 29.2
+    },
+    {
+      "text": "好",
+      "start_time": 29.28,
+      "end_time": 29.44
+    },
+    {
+      "text": "大",
+      "start_time": 32.0,
+      "end_time": 32.16
+    },
+    {
+      "text": "致",
+      "start_time": 32.16,
+      "end_time": 32.32
+    },
+    {
+      "text": "来",
+      "start_time": 32.32,
+      "end_time": 32.4
+    },
+    {
+      "text": "说",
+      "start_time": 32.4,
+      "end_time": 32.72
+    },
+    {
+      "text": "它",
+      "start_time": 33.04,
+      "end_time": 33.2
+    },
+    {
+      "text": "适",
+      "start_time": 33.2,
+      "end_time": 33.36
+    },
+    {
+      "text": "用",
+      "start_time": 33.36,
+      "end_time": 33.52
+    },
+    {
+      "text": "于",
+      "start_time": 33.52,
+      "end_time": 33.52
+    },
+    {
+      "text": "输",
+      "start_time": 33.52,
+      "end_time": 33.68
+    },
+    {
+      "text": "入",
+      "start_time": 33.68,
+      "end_time": 33.84
+    },
+    {
+      "text": "超",
+      "start_time": 33.84,
+      "end_time": 34.0
+    },
+    {
+      "text": "过",
+      "start_time": 34.0,
+      "end_time": 34.08
+    },
+    {
+      "text": "两",
+      "start_time": 34.08,
+      "end_time": 34.24
+    },
+    {
+      "text": "千",
+      "start_time": 34.24,
+      "end_time": 34.4
+    },
+    {
+      "text": "个",
+      "start_time": 34.4,
+      "end_time": 34.48
+    },
+    {
+      "text": "token",
+      "start_time": 34.48,
+      "end_time": 34.48
+    },
+    {
+      "text": "的",
+      "start_time": 34.72,
+      "end_time": 34.8
+    },
+    {
+      "text": "任",
+      "start_time": 34.8,
+      "end_time": 34.96
+    },
+    {
+      "text": "务",
+      "start_time": 34.96,
+      "end_time": 35.04
+    },
+    {
+      "text": "且",
+      "start_time": 35.36,
+      "end_time": 35.52
+    },
+    {
+      "text": "目",
+      "start_time": 35.52,
+      "end_time": 35.68
+    },
+    {
+      "text": "标",
+      "start_time": 35.68,
+      "end_time": 35.76
+    },
+    {
+      "text": "短",
+      "start_time": 35.84,
+      "end_time": 36.0
+    },
+    {
+      "text": "于",
+      "start_time": 36.0,
+      "end_time": 36.0
+    },
+    {
+      "text": "提",
+      "start_time": 36.0,
+      "end_time": 36.16
+    },
+    {
+      "text": "供",
+      "start_time": 36.16,
+      "end_time": 36.32
+    },
+    {
+      "text": "的",
+      "start_time": 36.32,
+      "end_time": 36.4
+    },
+    {
+      "text": "输",
+      "start_time": 36.4,
+      "end_time": 36.56
+    },
+    {
+      "text": "入",
+      "start_time": 36.56,
+      "end_time": 36.64
+    },
+    {
+      "text": "这",
+      "start_time": 39.92,
+      "end_time": 40.0
+    },
+    {
+      "text": "在",
+      "start_time": 40.0,
+      "end_time": 40.16
+    },
+    {
+      "text": "NLP",
+      "start_time": 40.16,
+      "end_time": 40.48
+    },
+    {
+      "text": "有",
+      "start_time": 40.48,
+      "end_time": 40.64
+    },
+    {
+      "text": "一",
+      "start_time": 40.64,
+      "end_time": 40.64
+    },
+    {
+      "text": "些",
+      "start_time": 40.64,
+      "end_time": 40.88
+    },
+    {
+      "text": "特",
+      "start_time": 40.88,
+      "end_time": 41.04
+    },
+    {
+      "text": "定",
+      "start_time": 41.04,
+      "end_time": 41.12
+    },
+    {
+      "text": "的",
+      "start_time": 41.12,
+      "end_time": 41.28
+    },
+    {
+      "text": "应",
+      "start_time": 41.28,
+      "end_time": 41.44
+    },
+    {
+      "text": "用",
+      "start_time": 41.44,
+      "end_time": 41.6
+    },
+    {
+      "text": "例",
+      "start_time": 42.16,
+      "end_time": 42.32
+    },
+    {
+      "text": "如",
+      "start_time": 42.4,
+      "end_time": 42.64
+    },
+    {
+      "text": "人",
+      "start_time": 42.96,
+      "end_time": 43.04
+    },
+    {
+      "text": "们",
+      "start_time": 43.04,
+      "end_time": 43.2
+    },
+    {
+      "text": "可",
+      "start_time": 43.2,
+      "end_time": 43.28
+    },
+    {
+      "text": "以",
+      "start_time": 43.28,
+      "end_time": 43.36
+    },
+    {
+      "text": "想",
+      "start_time": 43.36,
+      "end_time": 43.6
+    },
+    {
+      "text": "象",
+      "start_time": 43.6,
+      "end_time": 43.84
+    },
+    {
+      "text": "给",
+      "start_time": 44.24,
+      "end_time": 44.32
+    },
+    {
+      "text": "定",
+      "start_time": 44.32,
+      "end_time": 44.56
+    },
+    {
+      "text": "一",
+      "start_time": 44.56,
+      "end_time": 44.56
+    },
+    {
+      "text": "个",
+      "start_time": 44.56,
+      "end_time": 44.64
+    },
+    {
+      "text": "长",
+      "start_time": 44.64,
+      "end_time": 44.88
+    },
+    {
+      "text": "文",
+      "start_time": 44.88,
+      "end_time": 45.04
+    },
+    {
+      "text": "档",
+      "start_time": 45.04,
+      "end_time": 45.2
+    },
+    {
+      "text": "需",
+      "start_time": 45.52,
+      "end_time": 45.68
+    },
+    {
+      "text": "要",
+      "start_time": 45.68,
+      "end_time": 45.76
+    },
+    {
+      "text": "对",
+      "start_time": 45.76,
+      "end_time": 45.92
+    },
+    {
+      "text": "其",
+      "start_time": 45.92,
+      "end_time": 46.08
+    },
+    {
+      "text": "进",
+      "start_time": 46.08,
+      "end_time": 46.24
+    },
+    {
+      "text": "行",
+      "start_time": 46.24,
+      "end_time": 46.32
+    },
+    {
+      "text": "总",
+      "start_time": 46.32,
+      "end_time": 46.56
+    },
+    {
+      "text": "结",
+      "start_time": 46.56,
+      "end_time": 46.72
+    },
+    {
+      "text": "分",
+      "start_time": 47.12,
+      "end_time": 47.36
+    },
+    {
+      "text": "类",
+      "start_time": 47.36,
+      "end_time": 47.52
+    },
+    {
+      "text": "回",
+      "start_time": 47.84,
+      "end_time": 48.0
+    },
+    {
+      "text": "答",
+      "start_time": 48.0,
+      "end_time": 48.08
+    },
+    {
+      "text": "关",
+      "start_time": 48.08,
+      "end_time": 48.24
+    },
+    {
+      "text": "于",
+      "start_time": 48.24,
+      "end_time": 48.32
+    },
+    {
+      "text": "它",
+      "start_time": 48.32,
+      "end_time": 48.48
+    },
+    {
+      "text": "的",
+      "start_time": 48.48,
+      "end_time": 48.48
+    },
+    {
+      "text": "问",
+      "start_time": 48.56,
+      "end_time": 48.72
+    },
+    {
+      "text": "题",
+      "start_time": 48.72,
+      "end_time": 48.96
+    },
+    {
+      "text": "提",
+      "start_time": 50.64,
+      "end_time": 50.8
+    },
+    {
+      "text": "取",
+      "start_time": 50.8,
+      "end_time": 50.96
+    },
+    {
+      "text": "信",
+      "start_time": 50.96,
+      "end_time": 51.2
+    },
+    {
+      "text": "息",
+      "start_time": 51.2,
+      "end_time": 51.44
+    },
+    {
+      "text": "或",
+      "start_time": 51.44,
+      "end_time": 51.6
+    },
+    {
+      "text": "一",
+      "start_time": 51.6,
+      "end_time": 51.68
+    },
+    {
+      "text": "些",
+      "start_time": 51.68,
+      "end_time": 51.84
+    },
+    {
+      "text": "关",
+      "start_time": 51.84,
+      "end_time": 52.0
+    },
+    {
+      "text": "键",
+      "start_time": 52.0,
+      "end_time": 52.08
+    },
+    {
+      "text": "短",
+      "start_time": 52.08,
+      "end_time": 52.32
+    },
+    {
+      "text": "语",
+      "start_time": 52.32,
+      "end_time": 52.4
+    },
+    {
+      "text": "让",
+      "start_time": 55.28,
+      "end_time": 55.44
+    },
+    {
+      "text": "我",
+      "start_time": 55.44,
+      "end_time": 55.52
+    },
+    {
+      "text": "回",
+      "start_time": 55.52,
+      "end_time": 55.68
+    },
+    {
+      "text": "顾",
+      "start_time": 55.68,
+      "end_time": 55.84
+    },
+    {
+      "text": "一",
+      "start_time": 55.84,
+      "end_time": 55.84
+    },
+    {
+      "text": "下",
+      "start_time": 55.84,
+      "end_time": 56.0
+    },
+    {
+      "text": "原",
+      "start_time": 56.0,
+      "end_time": 56.16
+    },
+    {
+      "text": "始",
+      "start_time": 56.16,
+      "end_time": 56.32
+    },
+    {
+      "text": "Transformer",
+      "start_time": 56.32,
+      "end_time": 56.96
+    },
+    {
+      "text": "及",
+      "start_time": 58.24,
+      "end_time": 58.4
+    },
+    {
+      "text": "其",
+      "start_time": 58.4,
+      "end_time": 58.56
+    },
+    {
+      "text": "注",
+      "start_time": 58.56,
+      "end_time": 58.72
+    },
+    {
+      "text": "意",
+      "start_time": 58.72,
+      "end_time": 58.8
+    },
+    {
+      "text": "力",
+      "start_time": 58.8,
+      "end_time": 58.88
+    },
+    {
+      "text": "复",
+      "start_time": 58.88,
+      "end_time": 59.04
+    },
+    {
+      "text": "杂",
+      "start_time": 59.04,
+      "end_time": 59.2
+    },
+    {
+      "text": "性",
+      "start_time": 59.2,
+      "end_time": 59.36
+    },
+    {
+      "text": "问",
+      "start_time": 59.36,
+      "end_time": 59.52
+    },
+    {
+      "text": "题",
+      "start_time": 59.52,
+      "end_time": 59.76
+    },
+    {
+      "text": "该",
+      "start_time": 60.32,
+      "end_time": 60.48
+    },
+    {
+      "text": "问",
+      "start_time": 60.48,
+      "end_time": 60.64
+    },
+    {
+      "text": "题",
+      "start_time": 60.64,
+      "end_time": 60.72
+    },
+    {
+      "text": "取",
+      "start_time": 60.72,
+      "end_time": 60.96
+    },
+    {
+      "text": "决",
+      "start_time": 60.96,
+      "end_time": 61.12
+    },
+    {
+      "text": "于",
+      "start_time": 61.12,
+      "end_time": 61.12
+    },
+    {
+      "text": "输",
+      "start_time": 61.12,
+      "end_time": 61.36
+    },
+    {
+      "text": "入",
+      "start_time": 61.36,
+      "end_time": 61.44
+    },
+    {
+      "text": "长",
+      "start_time": 61.44,
+      "end_time": 61.6
+    },
+    {
+      "text": "度",
+      "start_time": 61.6,
+      "end_time": 61.76
+    },
+    {
+      "text": "的",
+      "start_time": 61.76,
+      "end_time": 61.76
+    },
+    {
+      "text": "平",
+      "start_time": 61.76,
+      "end_time": 62.0
+    },
+    {
+      "text": "方",
+      "start_time": 62.0,
+      "end_time": 62.16
+    },
+    {
+      "text": "在",
+      "start_time": 64.32,
+      "end_time": 64.48
+    },
+    {
+      "text": "原",
+      "start_time": 64.48,
+      "end_time": 64.64
+    },
+    {
+      "text": "始",
+      "start_time": 64.64,
+      "end_time": 64.8
+    },
+    {
+      "text": "Transformer",
+      "start_time": 64.8,
+      "end_time": 65.36
+    },
+    {
+      "text": "中",
+      "start_time": 65.36,
+      "end_time": 65.68
+    },
+    {
+      "text": "具",
+      "start_time": 66.16,
+      "end_time": 66.32
+    },
+    {
+      "text": "有",
+      "start_time": 66.32,
+      "end_time": 66.4
+    },
+    {
+      "text": "完",
+      "start_time": 66.4,
+      "end_time": 66.56
+    },
+    {
+      "text": "全",
+      "start_time": 66.56,
+      "end_time": 66.8
+    },
+    {
+      "text": "注",
+      "start_time": 66.8,
+      "end_time": 66.96
+    },
+    {
+      "text": "意",
+      "start_time": 66.96,
+      "end_time": 67.12
+    },
+    {
+      "text": "力",
+      "start_time": 67.12,
+      "end_time": 67.12
+    },
+    {
+      "text": "连",
+      "start_time": 67.12,
+      "end_time": 67.36
+    },
+    {
+      "text": "接",
+      "start_time": 67.36,
+      "end_time": 67.6
+    },
+    {
+      "text": "必",
+      "start_time": 71.28,
+      "end_time": 71.36
+    },
+    {
+      "text": "须",
+      "start_time": 71.36,
+      "end_time": 71.52
+    },
+    {
+      "text": "计",
+      "start_time": 71.52,
+      "end_time": 71.68
+    },
+    {
+      "text": "算",
+      "start_time": 71.68,
+      "end_time": 71.92
+    },
+    {
+      "text": "每",
+      "start_time": 71.92,
+      "end_time": 72.08
+    },
+    {
+      "text": "个",
+      "start_time": 72.08,
+      "end_time": 72.16
+    },
+    {
+      "text": "标",
+      "start_time": 72.16,
+      "end_time": 72.4
+    },
+    {
+      "text": "记",
+      "start_time": 72.4,
+      "end_time": 72.56
+    },
+    {
+      "text": "与",
+      "start_time": 72.56,
+      "end_time": 72.64
+    },
+    {
+      "text": "其",
+      "start_time": 72.64,
+      "end_time": 72.8
+    },
+    {
+      "text": "他",
+      "start_time": 72.8,
+      "end_time": 72.96
+    },
+    {
+      "text": "每",
+      "start_time": 72.96,
+      "end_time": 73.12
+    },
+    {
+      "text": "个",
+      "start_time": 73.12,
+      "end_time": 73.2
+    },
+    {
+      "text": "标",
+      "start_time": 73.2,
+      "end_time": 73.36
+    },
+    {
+      "text": "记",
+      "start_time": 73.36,
+      "end_time": 73.52
+    },
+    {
+      "text": "的",
+      "start_time": 73.52,
+      "end_time": 73.6
+    },
+    {
+      "text": "关",
+      "start_time": 73.6,
+      "end_time": 73.76
+    },
+    {
+      "text": "系",
+      "start_time": 73.76,
+      "end_time": 73.92
+    },
+    {
+      "text": "注",
+      "start_time": 77.6,
+      "end_time": 77.76
+    },
+    {
+      "text": "意",
+      "start_time": 77.76,
+      "end_time": 77.84
+    },
+    {
+      "text": "力",
+      "start_time": 77.84,
+      "end_time": 78.0
+    },
+    {
+      "text": "的",
+      "start_time": 78.0,
+      "end_time": 78.08
+    },
+    {
+      "text": "计",
+      "start_time": 78.08,
+      "end_time": 78.24
+    },
+    {
+      "text": "算",
+      "start_time": 78.24,
+      "end_time": 78.4
+    },
+    {
+      "text": "复",
+      "start_time": 78.4,
+      "end_time": 78.64
+    },
+    {
+      "text": "杂",
+      "start_time": 78.64,
+      "end_time": 78.8
+    },
+    {
+      "text": "性",
+      "start_time": 78.8,
+      "end_time": 79.04
+    },
+    {
+      "text": "仅",
+      "start_time": 79.12,
+      "end_time": 79.28
+    },
+    {
+      "text": "取",
+      "start_time": 79.28,
+      "end_time": 79.44
+    },
+    {
+      "text": "决",
+      "start_time": 79.44,
+      "end_time": 79.68
+    },
+    {
+      "text": "于",
+      "start_time": 79.68,
+      "end_time": 79.76
+    },
+    {
+      "text": "层",
+      "start_time": 79.76,
+      "end_time": 79.92
+    },
+    {
+      "text": "数",
+      "start_time": 79.92,
+      "end_time": 80.08
+    },
+    {
+      "text": "L",
+      "start_time": 80.08,
+      "end_time": 80.32
+    },
+    {
+      "text": "和",
+      "start_time": 80.72,
+      "end_time": 80.8
+    },
+    {
+      "text": "序",
+      "start_time": 80.8,
+      "end_time": 80.96
+    },
+    {
+      "text": "列",
+      "start_time": 80.96,
+      "end_time": 81.12
+    },
+    {
+      "text": "长",
+      "start_time": 81.12,
+      "end_time": 81.36
+    },
+    {
+      "text": "度",
+      "start_time": 81.36,
+      "end_time": 81.44
+    },
+    {
+      "text": "在",
+      "start_time": 83.52,
+      "end_time": 83.68
+    },
+    {
+      "text": "序",
+      "start_time": 83.68,
+      "end_time": 83.92
+    },
+    {
+      "text": "列",
+      "start_time": 83.92,
+      "end_time": 84.08
+    },
+    {
+      "text": "长",
+      "start_time": 84.08,
+      "end_time": 84.32
+    },
+    {
+      "text": "度",
+      "start_time": 84.32,
+      "end_time": 84.4
+    },
+    {
+      "text": "下",
+      "start_time": 84.4,
+      "end_time": 84.72
+    },
+    {
+      "text": "以",
+      "start_time": 86.24,
+      "end_time": 86.32
+    },
+    {
+      "text": "及",
+      "start_time": 86.32,
+      "end_time": 86.48
+    },
+    {
+      "text": "表",
+      "start_time": 86.48,
+      "end_time": 86.64
+    },
+    {
+      "text": "示",
+      "start_time": 86.64,
+      "end_time": 86.8
+    },
+    {
+      "text": "的",
+      "start_time": 86.8,
+      "end_time": 86.88
+    },
+    {
+      "text": "维",
+      "start_time": 86.88,
+      "end_time": 87.04
+    },
+    {
+      "text": "度",
+      "start_time": 87.04,
+      "end_time": 87.28
+    },
+    {
+      "text": "同",
+      "start_time": 89.12,
+      "end_time": 89.28
+    },
+    {
+      "text": "样",
+      "start_time": 89.36,
+      "end_time": 89.44
+    },
+    {
+      "text": "在",
+      "start_time": 89.44,
+      "end_time": 89.6
+    },
+    {
+      "text": "解",
+      "start_time": 89.6,
+      "end_time": 89.76
+    },
+    {
+      "text": "码",
+      "start_time": 89.76,
+      "end_time": 89.92
+    },
+    {
+      "text": "器",
+      "start_time": 89.92,
+      "end_time": 90.08
+    },
+    {
+      "text": "的",
+      "start_time": 90.08,
+      "end_time": 90.16
+    },
+    {
+      "text": "交",
+      "start_time": 90.16,
+      "end_time": 90.32
+    },
+    {
+      "text": "叉",
+      "start_time": 90.32,
+      "end_time": 90.48
+    },
+    {
+      "text": "注",
+      "start_time": 90.48,
+      "end_time": 90.64
+    },
+    {
+      "text": "意",
+      "start_time": 90.64,
+      "end_time": 90.72
+    },
+    {
+      "text": "力",
+      "start_time": 90.72,
+      "end_time": 90.8
+    },
+    {
+      "text": "中",
+      "start_time": 90.8,
+      "end_time": 91.12
+    },
+    {
+      "text": "右",
+      "start_time": 94.24,
+      "end_time": 94.4
+    },
+    {
+      "text": "图",
+      "start_time": 94.4,
+      "end_time": 94.56
+    },
+    {
+      "text": "中",
+      "start_time": 94.56,
+      "end_time": 94.72
+    },
+    {
+      "text": "的",
+      "start_time": 94.72,
+      "end_time": 94.8
+    },
+    {
+      "text": "唯",
+      "start_time": 94.8,
+      "end_time": 94.96
+    },
+    {
+      "text": "一",
+      "start_time": 94.96,
+      "end_time": 95.04
+    },
+    {
+      "text": "区",
+      "start_time": 95.04,
+      "end_time": 95.28
+    },
+    {
+      "text": "别",
+      "start_time": 95.28,
+      "end_time": 95.52
+    },
+    {
+      "text": "是",
+      "start_time": 98.4,
+      "end_time": 98.56
+    },
+    {
+      "text": "目",
+      "start_time": 98.56,
+      "end_time": 98.72
+    },
+    {
+      "text": "标",
+      "start_time": 98.72,
+      "end_time": 98.88
+    },
+    {
+      "text": "标",
+      "start_time": 98.88,
+      "end_time": 99.12
+    },
+    {
+      "text": "记",
+      "start_time": 99.12,
+      "end_time": 99.28
+    },
+    {
+      "text": "正",
+      "start_time": 99.28,
+      "end_time": 99.44
+    },
+    {
+      "text": "在",
+      "start_time": 99.44,
+      "end_time": 99.6
+    },
+    {
+      "text": "关",
+      "start_time": 99.6,
+      "end_time": 99.76
+    },
+    {
+      "text": "注",
+      "start_time": 99.76,
+      "end_time": 99.84
+    },
+    {
+      "text": "输",
+      "start_time": 99.84,
+      "end_time": 100.0
+    },
+    {
+      "text": "入",
+      "start_time": 100.0,
+      "end_time": 100.16
+    },
+    {
+      "text": "标",
+      "start_time": 100.16,
+      "end_time": 100.4
+    },
+    {
+      "text": "记",
+      "start_time": 100.4,
+      "end_time": 100.56
+    },
+    {
+      "text": "在",
+      "start_time": 100.96,
+      "end_time": 101.12
+    },
+    {
+      "text": "这",
+      "start_time": 101.12,
+      "end_time": 101.2
+    },
+    {
+      "text": "种",
+      "start_time": 101.2,
+      "end_time": 101.28
+    },
+    {
+      "text": "情",
+      "start_time": 101.28,
+      "end_time": 101.52
+    },
+    {
+      "text": "况",
+      "start_time": 101.52,
+      "end_time": 101.6
+    },
+    {
+      "text": "下",
+      "start_time": 101.6,
+      "end_time": 101.76
+    },
+    {
+      "text": "这",
+      "start_time": 102.64,
+      "end_time": 102.72
+    },
+    {
+      "text": "也",
+      "start_time": 102.72,
+      "end_time": 102.88
+    },
+    {
+      "text": "可",
+      "start_time": 102.88,
+      "end_time": 102.96
+    },
+    {
+      "text": "以",
+      "start_time": 102.96,
+      "end_time": 103.04
+    },
+    {
+      "text": "在",
+      "start_time": 103.04,
+      "end_time": 103.2
+    },
+    {
+      "text": "这",
+      "start_time": 103.2,
+      "end_time": 103.36
+    },
+    {
+      "text": "个",
+      "start_time": 103.36,
+      "end_time": 103.52
+    },
+    {
+      "text": "公",
+      "start_time": 103.6,
+      "end_time": 103.76
+    },
+    {
+      "text": "式",
+      "start_time": 103.76,
+      "end_time": 103.92
+    },
+    {
+      "text": "中",
+      "start_time": 103.92,
+      "end_time": 104.08
+    },
+    {
+      "text": "看",
+      "start_time": 104.08,
+      "end_time": 104.32
+    },
+    {
+      "text": "到",
+      "start_time": 104.32,
+      "end_time": 104.48
+    },
+    {
+      "text": "蓝",
+      "start_time": 107.76,
+      "end_time": 107.92
+    },
+    {
+      "text": "色",
+      "start_time": 107.92,
+      "end_time": 108.0
+    },
+    {
+      "text": "方",
+      "start_time": 108.0,
+      "end_time": 108.24
+    },
+    {
+      "text": "块",
+      "start_time": 108.24,
+      "end_time": 108.4
+    },
+    {
+      "text": "代",
+      "start_time": 108.4,
+      "end_time": 108.48
+    },
+    {
+      "text": "表",
+      "start_time": 108.48,
+      "end_time": 108.64
+    },
+    {
+      "text": "需",
+      "start_time": 108.72,
+      "end_time": 108.8
+    },
+    {
+      "text": "要",
+      "start_time": 108.88,
+      "end_time": 108.96
+    },
+    {
+      "text": "计",
+      "start_time": 108.96,
+      "end_time": 109.12
+    },
+    {
+      "text": "算",
+      "start_time": 109.12,
+      "end_time": 109.28
+    },
+    {
+      "text": "的",
+      "start_time": 109.28,
+      "end_time": 109.36
+    },
+    {
+      "text": "关",
+      "start_time": 109.36,
+      "end_time": 109.6
+    },
+    {
+      "text": "系",
+      "start_time": 109.6,
+      "end_time": 109.68
+    },
+    {
+      "text": "在",
+      "start_time": 110.48,
+      "end_time": 110.64
+    },
+    {
+      "text": "全",
+      "start_time": 110.64,
+      "end_time": 110.88
+    },
+    {
+      "text": "注",
+      "start_time": 110.88,
+      "end_time": 111.04
+    },
+    {
+      "text": "意",
+      "start_time": 111.04,
+      "end_time": 111.12
+    },
+    {
+      "text": "力",
+      "start_time": 111.12,
+      "end_time": 111.2
+    },
+    {
+      "text": "的",
+      "start_time": 111.2,
+      "end_time": 111.28
+    },
+    {
+      "text": "情",
+      "start_time": 111.28,
+      "end_time": 111.44
+    },
+    {
+      "text": "况",
+      "start_time": 111.44,
+      "end_time": 111.6
+    },
+    {
+      "text": "下",
+      "start_time": 111.6,
+      "end_time": 111.84
+    },
+    {
+      "text": "我",
+      "start_time": 114.56,
+      "end_time": 114.64
+    },
+    {
+      "text": "们",
+      "start_time": 114.64,
+      "end_time": 114.8
+    },
+    {
+      "text": "需",
+      "start_time": 114.8,
+      "end_time": 114.96
+    },
+    {
+      "text": "要",
+      "start_time": 114.96,
+      "end_time": 115.04
+    },
+    {
+      "text": "计",
+      "start_time": 115.04,
+      "end_time": 115.2
+    },
+    {
+      "text": "算",
+      "start_time": 115.2,
+      "end_time": 115.36
+    },
+    {
+      "text": "输",
+      "start_time": 115.36,
+      "end_time": 115.52
+    },
+    {
+      "text": "入",
+      "start_time": 115.52,
+      "end_time": 115.68
+    },
+    {
+      "text": "序",
+      "start_time": 115.68,
+      "end_time": 115.92
+    },
+    {
+      "text": "列",
+      "start_time": 115.92,
+      "end_time": 116.0
+    },
+    {
+      "text": "中",
+      "start_time": 116.0,
+      "end_time": 116.16
+    },
+    {
+      "text": "的",
+      "start_time": 116.16,
+      "end_time": 116.24
+    },
+    {
+      "text": "每",
+      "start_time": 116.24,
+      "end_time": 116.4
+    },
+    {
+      "text": "一",
+      "start_time": 116.48,
+      "end_time": 116.48
+    },
+    {
+      "text": "个",
+      "start_time": 116.48,
+      "end_time": 116.64
+    },
+    {
+      "text": "关",
+      "start_time": 116.64,
+      "end_time": 116.8
+    },
+    {
+      "text": "系",
+      "start_time": 116.8,
+      "end_time": 116.96
+    },
+    {
+      "text": "现",
+      "start_time": 119.36,
+      "end_time": 119.44
+    },
+    {
+      "text": "在",
+      "start_time": 119.44,
+      "end_time": 119.52
+    },
+    {
+      "text": "我",
+      "start_time": 119.6,
+      "end_time": 119.6
+    },
+    {
+      "text": "们",
+      "start_time": 119.6,
+      "end_time": 119.76
+    },
+    {
+      "text": "来",
+      "start_time": 119.76,
+      "end_time": 119.84
+    },
+    {
+      "text": "看",
+      "start_time": 119.84,
+      "end_time": 120.08
+    },
+    {
+      "text": "看",
+      "start_time": 120.08,
+      "end_time": 120.32
+    },
+    {
+      "text": "当",
+      "start_time": 120.32,
+      "end_time": 120.48
+    },
+    {
+      "text": "我",
+      "start_time": 120.48,
+      "end_time": 120.56
+    },
+    {
+      "text": "们",
+      "start_time": 120.56,
+      "end_time": 120.72
+    },
+    {
+      "text": "有",
+      "start_time": 120.72,
+      "end_time": 120.8
+    },
+    {
+      "text": "一",
+      "start_time": 120.8,
+      "end_time": 120.88
+    },
+    {
+      "text": "个",
+      "start_time": 120.88,
+      "end_time": 121.04
+    },
+    {
+      "text": "分",
+      "start_time": 121.04,
+      "end_time": 121.2
+    },
+    {
+      "text": "块",
+      "start_time": 121.2,
+      "end_time": 121.44
+    },
+    {
+      "text": "编",
+      "start_time": 121.44,
+      "end_time": 121.6
+    },
+    {
+      "text": "码",
+      "start_time": 121.6,
+      "end_time": 121.76
+    },
+    {
+      "text": "器",
+      "start_time": 121.76,
+      "end_time": 121.92
+    },
+    {
+      "text": "时",
+      "start_time": 122.0,
+      "end_time": 122.16
+    },
+    {
+      "text": "会",
+      "start_time": 122.16,
+      "end_time": 122.32
+    },
+    {
+      "text": "发",
+      "start_time": 122.32,
+      "end_time": 122.48
+    },
+    {
+      "text": "生",
+      "start_time": 122.48,
+      "end_time": 122.64
+    },
+    {
+      "text": "什",
+      "start_time": 122.64,
+      "end_time": 122.72
+    },
+    {
+      "text": "么",
+      "start_time": 122.72,
+      "end_time": 122.88
+    },
+    {
+      "text": "它",
+      "start_time": 123.2,
+      "end_time": 123.36
+    },
+    {
+      "text": "通",
+      "start_time": 123.36,
+      "end_time": 123.44
+    },
+    {
+      "text": "过",
+      "start_time": 123.44,
+      "end_time": 123.52
+    },
+    {
+      "text": "限",
+      "start_time": 123.52,
+      "end_time": 123.76
+    },
+    {
+      "text": "制",
+      "start_time": 123.76,
+      "end_time": 123.92
+    },
+    {
+      "text": "标",
+      "start_time": 123.92,
+      "end_time": 124.08
+    },
+    {
+      "text": "记",
+      "start_time": 124.08,
+      "end_time": 124.16
+    },
+    {
+      "text": "的",
+      "start_time": 124.16,
+      "end_time": 124.32
+    },
+    {
+      "text": "连",
+      "start_time": 124.32,
+      "end_time": 124.48
+    },
+    {
+      "text": "接",
+      "start_time": 124.48,
+      "end_time": 124.56
+    },
+    {
+      "text": "性",
+      "start_time": 124.56,
+      "end_time": 124.72
+    },
+    {
+      "text": "来",
+      "start_time": 124.72,
+      "end_time": 124.88
+    },
+    {
+      "text": "工",
+      "start_time": 124.88,
+      "end_time": 125.04
+    },
+    {
+      "text": "作",
+      "start_time": 125.04,
+      "end_time": 125.2
+    },
+    {
+      "text": "这",
+      "start_time": 125.92,
+      "end_time": 126.0
+    },
+    {
+      "text": "样",
+      "start_time": 126.0,
+      "end_time": 126.08
+    },
+    {
+      "text": "它",
+      "start_time": 126.08,
+      "end_time": 126.16
+    },
+    {
+      "text": "们",
+      "start_time": 126.16,
+      "end_time": 126.24
+    },
+    {
+      "text": "只",
+      "start_time": 126.24,
+      "end_time": 126.4
+    },
+    {
+      "text": "能",
+      "start_time": 126.4,
+      "end_time": 126.48
+    },
+    {
+      "text": "看",
+      "start_time": 126.48,
+      "end_time": 126.64
+    },
+    {
+      "text": "到",
+      "start_time": 126.64,
+      "end_time": 126.8
+    },
+    {
+      "text": "其",
+      "start_time": 126.88,
+      "end_time": 127.04
+    },
+    {
+      "text": "他",
+      "start_time": 127.04,
+      "end_time": 127.28
+    },
+    {
+      "text": "附",
+      "start_time": 127.28,
+      "end_time": 127.36
+    },
+    {
+      "text": "近",
+      "start_time": 127.36,
+      "end_time": 127.52
+    },
+    {
+      "text": "的",
+      "start_time": 127.52,
+      "end_time": 127.6
+    },
+    {
+      "text": "标",
+      "start_time": 127.6,
+      "end_time": 127.84
+    },
+    {
+      "text": "记",
+      "start_time": 127.84,
+      "end_time": 128.0
+    },
+    {
+      "text": "文",
+      "start_time": 129.84,
+      "end_time": 130.0
+    },
+    {
+      "text": "本",
+      "start_time": 130.0,
+      "end_time": 130.16
+    },
+    {
+      "text": "是",
+      "start_time": 130.16,
+      "end_time": 130.32
+    },
+    {
+      "text": "分",
+      "start_time": 130.32,
+      "end_time": 130.56
+    },
+    {
+      "text": "块",
+      "start_time": 130.56,
+      "end_time": 130.72
+    },
+    {
+      "text": "读",
+      "start_time": 130.72,
+      "end_time": 130.88
+    },
+    {
+      "text": "取",
+      "start_time": 130.88,
+      "end_time": 131.12
+    },
+    {
+      "text": "的",
+      "start_time": 131.12,
+      "end_time": 131.28
+    },
+    {
+      "text": "这",
+      "start_time": 132.56,
+      "end_time": 132.72
+    },
+    {
+      "text": "可",
+      "start_time": 132.72,
+      "end_time": 132.72
+    },
+    {
+      "text": "以",
+      "start_time": 132.72,
+      "end_time": 132.88
+    },
+    {
+      "text": "大",
+      "start_time": 132.88,
+      "end_time": 133.04
+    },
+    {
+      "text": "大",
+      "start_time": 133.04,
+      "end_time": 133.12
+    },
+    {
+      "text": "减",
+      "start_time": 133.12,
+      "end_time": 133.28
+    },
+    {
+      "text": "少",
+      "start_time": 133.28,
+      "end_time": 133.44
+    },
+    {
+      "text": "计",
+      "start_time": 133.44,
+      "end_time": 133.6
+    },
+    {
+      "text": "算",
+      "start_time": 133.6,
+      "end_time": 133.76
+    },
+    {
+      "text": "量",
+      "start_time": 133.76,
+      "end_time": 133.92
+    },
+    {
+      "text": "在",
+      "start_time": 134.32,
+      "end_time": 134.48
+    },
+    {
+      "text": "编",
+      "start_time": 134.48,
+      "end_time": 134.64
+    },
+    {
+      "text": "码",
+      "start_time": 134.64,
+      "end_time": 134.72
+    },
+    {
+      "text": "器",
+      "start_time": 134.8,
+      "end_time": 134.96
+    },
+    {
+      "text": "端",
+      "start_time": 134.96,
+      "end_time": 135.12
+    },
+    {
+      "text": "在",
+      "start_time": 137.52,
+      "end_time": 137.6
+    },
+    {
+      "text": "并",
+      "start_time": 137.6,
+      "end_time": 137.84
+    },
+    {
+      "text": "没",
+      "start_time": 137.84,
+      "end_time": 137.92
+    },
+    {
+      "text": "有",
+      "start_time": 137.92,
+      "end_time": 138.0
+    },
+    {
+      "text": "提",
+      "start_time": 138.0,
+      "end_time": 138.16
+    },
+    {
+      "text": "高",
+      "start_time": 138.16,
+      "end_time": 138.32
+    },
+    {
+      "text": "解",
+      "start_time": 138.32,
+      "end_time": 138.56
+    },
+    {
+      "text": "码",
+      "start_time": 138.56,
+      "end_time": 138.72
+    },
+    {
+      "text": "器",
+      "start_time": 138.72,
+      "end_time": 138.88
+    },
+    {
+      "text": "的",
+      "start_time": 138.88,
+      "end_time": 138.96
+    },
+    {
+      "text": "交",
+      "start_time": 138.96,
+      "end_time": 139.12
+    },
+    {
+      "text": "叉",
+      "start_time": 139.12,
+      "end_time": 139.28
+    },
+    {
+      "text": "注",
+      "start_time": 139.28,
+      "end_time": 139.44
+    },
+    {
+      "text": "意",
+      "start_time": 139.44,
+      "end_time": 139.6
+    },
+    {
+      "text": "力",
+      "start_time": 139.6,
+      "end_time": 139.76
+    },
+    {
+      "text": "因",
+      "start_time": 141.36,
+      "end_time": 141.52
+    },
+    {
+      "text": "为",
+      "start_time": 141.52,
+      "end_time": 141.52
+    },
+    {
+      "text": "每",
+      "start_time": 141.52,
+      "end_time": 141.68
+    },
+    {
+      "text": "个",
+      "start_time": 141.76,
+      "end_time": 141.84
+    },
+    {
+      "text": "输",
+      "start_time": 141.84,
+      "end_time": 142.0
+    },
+    {
+      "text": "入",
+      "start_time": 142.0,
+      "end_time": 142.16
+    },
+    {
+      "text": "标",
+      "start_time": 142.16,
+      "end_time": 142.32
+    },
+    {
+      "text": "记",
+      "start_time": 142.32,
+      "end_time": 142.48
+    },
+    {
+      "text": "都",
+      "start_time": 142.48,
+      "end_time": 142.56
+    },
+    {
+      "text": "会",
+      "start_time": 142.56,
+      "end_time": 142.72
+    },
+    {
+      "text": "传",
+      "start_time": 142.72,
+      "end_time": 142.96
+    },
+    {
+      "text": "递",
+      "start_time": 142.96,
+      "end_time": 143.04
+    },
+    {
+      "text": "给",
+      "start_time": 143.04,
+      "end_time": 143.2
+    },
+    {
+      "text": "解",
+      "start_time": 143.2,
+      "end_time": 143.28
+    },
+    {
+      "text": "码",
+      "start_time": 143.28,
+      "end_time": 143.44
+    },
+    {
+      "text": "器",
+      "start_time": 143.44,
+      "end_time": 143.6
+    },
+    {
+      "text": "这",
+      "start_time": 145.92,
+      "end_time": 146.0
+    },
+    {
+      "text": "种",
+      "start_time": 146.0,
+      "end_time": 146.16
+    },
+    {
+      "text": "方",
+      "start_time": 146.16,
+      "end_time": 146.32
+    },
+    {
+      "text": "法",
+      "start_time": 146.32,
+      "end_time": 146.4
+    },
+    {
+      "text": "通",
+      "start_time": 146.4,
+      "end_time": 146.64
+    },
+    {
+      "text": "常",
+      "start_time": 146.64,
+      "end_time": 146.72
+    },
+    {
+      "text": "被",
+      "start_time": 146.72,
+      "end_time": 146.88
+    },
+    {
+      "text": "称",
+      "start_time": 146.88,
+      "end_time": 147.12
+    },
+    {
+      "text": "为",
+      "start_time": 147.12,
+      "end_time": 147.2
+    },
+    {
+      "text": "编",
+      "start_time": 147.2,
+      "end_time": 147.36
+    },
+    {
+      "text": "码",
+      "start_time": 147.36,
+      "end_time": 147.52
+    },
+    {
+      "text": "器",
+      "start_time": 147.52,
+      "end_time": 147.68
+    },
+    {
+      "text": "融",
+      "start_time": 147.68,
+      "end_time": 147.92
+    },
+    {
+      "text": "合",
+      "start_time": 147.92,
+      "end_time": 148.0
+    },
+    {
+      "text": "这",
+      "start_time": 149.12,
+      "end_time": 149.2
+    },
+    {
+      "text": "里",
+      "start_time": 149.2,
+      "end_time": 149.28
+    },
+    {
+      "text": "的",
+      "start_time": 149.28,
+      "end_time": 149.44
+    },
+    {
+      "text": "改",
+      "start_time": 149.44,
+      "end_time": 149.6
+    },
+    {
+      "text": "进",
+      "start_time": 149.6,
+      "end_time": 149.76
+    },
+    {
+      "text": "可",
+      "start_time": 149.76,
+      "end_time": 149.92
+    },
+    {
+      "text": "以",
+      "start_time": 149.92,
+      "end_time": 150.0
+    },
+    {
+      "text": "解",
+      "start_time": 150.0,
+      "end_time": 150.16
+    },
+    {
+      "text": "释",
+      "start_time": 150.16,
+      "end_time": 150.32
+    },
+    {
+      "text": "为",
+      "start_time": 150.32,
+      "end_time": 150.56
+    },
+    {
+      "text": "将",
+      "start_time": 153.68,
+      "end_time": 153.92
+    },
+    {
+      "text": "n",
+      "start_time": 153.92,
+      "end_time": 153.92
+    },
+    {
+      "text": "的",
+      "start_time": 154.0,
+      "end_time": 154.16
+    },
+    {
+      "text": "一",
+      "start_time": 154.16,
+      "end_time": 154.24
+    },
+    {
+      "text": "个",
+      "start_time": 154.24,
+      "end_time": 154.32
+    },
+    {
+      "text": "依",
+      "start_time": 154.32,
+      "end_time": 154.4
+    },
+    {
+      "text": "赖",
+      "start_time": 154.4,
+      "end_time": 154.56
+    },
+    {
+      "text": "项",
+      "start_time": 154.56,
+      "end_time": 154.8
+    },
+    {
+      "text": "更",
+      "start_time": 154.8,
+      "end_time": 154.96
+    },
+    {
+      "text": "改",
+      "start_time": 154.96,
+      "end_time": 155.12
+    },
+    {
+      "text": "为",
+      "start_time": 155.12,
+      "end_time": 155.2
+    },
+    {
+      "text": "另",
+      "start_time": 155.2,
+      "end_time": 155.36
+    },
+    {
+      "text": "一",
+      "start_time": 155.36,
+      "end_time": 155.52
+    },
+    {
+      "text": "个",
+      "start_time": 155.52,
+      "end_time": 155.6
+    },
+    {
+      "text": "常",
+      "start_time": 155.6,
+      "end_time": 155.76
+    },
+    {
+      "text": "数",
+      "start_time": 155.76,
+      "end_time": 155.92
+    },
+    {
+      "text": "m",
+      "start_time": 155.92,
+      "end_time": 156.24
+    },
+    {
+      "text": "代",
+      "start_time": 156.56,
+      "end_time": 156.64
+    },
+    {
+      "text": "表",
+      "start_time": 156.64,
+      "end_time": 156.8
+    },
+    {
+      "text": "块",
+      "start_time": 156.8,
+      "end_time": 156.96
+    },
+    {
+      "text": "大",
+      "start_time": 156.96,
+      "end_time": 157.12
+    },
+    {
+      "text": "小",
+      "start_time": 157.12,
+      "end_time": 157.28
+    },
+    {
+      "text": "我",
+      "start_time": 162.16,
+      "end_time": 162.24
+    },
+    {
+      "text": "们",
+      "start_time": 162.24,
+      "end_time": 162.32
+    },
+    {
+      "text": "的",
+      "start_time": 162.32,
+      "end_time": 162.48
+    },
+    {
+      "text": "关",
+      "start_time": 162.48,
+      "end_time": 162.64
+    },
+    {
+      "text": "键",
+      "start_time": 162.64,
+      "end_time": 162.8
+    },
+    {
+      "text": "观",
+      "start_time": 162.8,
+      "end_time": 162.96
+    },
+    {
+      "text": "察",
+      "start_time": 162.96,
+      "end_time": 163.2
+    },
+    {
+      "text": "是",
+      "start_time": 163.2,
+      "end_time": 163.44
+    },
+    {
+      "text": "大",
+      "start_time": 166.4,
+      "end_time": 166.48
+    },
+    {
+      "text": "多",
+      "start_time": 166.48,
+      "end_time": 166.64
+    },
+    {
+      "text": "数",
+      "start_time": 166.64,
+      "end_time": 166.8
+    },
+    {
+      "text": "token",
+      "start_time": 166.8,
+      "end_time": 167.2
+    },
+    {
+      "text": "与",
+      "start_time": 167.2,
+      "end_time": 167.2
+    },
+    {
+      "text": "各",
+      "start_time": 167.2,
+      "end_time": 167.36
+    },
+    {
+      "text": "种",
+      "start_time": 167.36,
+      "end_time": 167.44
+    },
+    {
+      "text": "任",
+      "start_time": 167.44,
+      "end_time": 167.6
+    },
+    {
+      "text": "务",
+      "start_time": 167.6,
+      "end_time": 167.68
+    },
+    {
+      "text": "无",
+      "start_time": 167.76,
+      "end_time": 167.84
+    },
+    {
+      "text": "关",
+      "start_time": 167.84,
+      "end_time": 168.0
+    },
+    {
+      "text": "几",
+      "start_time": 169.6,
+      "end_time": 169.76
+    },
+    {
+      "text": "乎",
+      "start_time": 169.76,
+      "end_time": 169.92
+    },
+    {
+      "text": "可",
+      "start_time": 169.92,
+      "end_time": 170.0
+    },
+    {
+      "text": "以",
+      "start_time": 170.0,
+      "end_time": 170.08
+    },
+    {
+      "text": "完",
+      "start_time": 170.08,
+      "end_time": 170.24
+    },
+    {
+      "text": "全",
+      "start_time": 170.24,
+      "end_time": 170.32
+    },
+    {
+      "text": "忽",
+      "start_time": 170.32,
+      "end_time": 170.56
+    },
+    {
+      "text": "略",
+      "start_time": 170.56,
+      "end_time": 170.64
+    },
+    {
+      "text": "就",
+      "start_time": 172.32,
+      "end_time": 172.48
+    },
+    {
+      "text": "在",
+      "start_time": 172.48,
+      "end_time": 172.56
+    },
+    {
+      "text": "幻",
+      "start_time": 172.56,
+      "end_time": 172.72
+    },
+    {
+      "text": "灯",
+      "start_time": 172.72,
+      "end_time": 172.88
+    },
+    {
+      "text": "片",
+      "start_time": 172.88,
+      "end_time": 173.04
+    },
+    {
+      "text": "上",
+      "start_time": 173.04,
+      "end_time": 173.12
+    },
+    {
+      "text": "有",
+      "start_time": 173.12,
+      "end_time": 173.2
+    },
+    {
+      "text": "示",
+      "start_time": 173.2,
+      "end_time": 173.44
+    },
+    {
+      "text": "例",
+      "start_time": 173.44,
+      "end_time": 173.6
+    },
+    {
+      "text": "只",
+      "start_time": 178.04,
+      "end_time": 178.2
+    },
+    {
+      "text": "有",
+      "start_time": 178.2,
+      "end_time": 178.28
+    },
+    {
+      "text": "部",
+      "start_time": 178.28,
+      "end_time": 178.36
+    },
+    {
+      "text": "分",
+      "start_time": 178.36,
+      "end_time": 178.52
+    },
+    {
+      "text": "输",
+      "start_time": 178.52,
+      "end_time": 178.68
+    },
+    {
+      "text": "入",
+      "start_time": 178.68,
+      "end_time": 178.84
+    },
+    {
+      "text": "与",
+      "start_time": 178.84,
+      "end_time": 179.0
+    },
+    {
+      "text": "所",
+      "start_time": 179.0,
+      "end_time": 179.16
+    },
+    {
+      "text": "需",
+      "start_time": 179.16,
+      "end_time": 179.32
+    },
+    {
+      "text": "输",
+      "start_time": 179.32,
+      "end_time": 179.48
+    },
+    {
+      "text": "出",
+      "start_time": 179.48,
+      "end_time": 179.64
+    },
+    {
+      "text": "相",
+      "start_time": 179.64,
+      "end_time": 179.8
+    },
+    {
+      "text": "关",
+      "start_time": 179.8,
+      "end_time": 180.04
+    },
+    {
+      "text": "例",
+      "start_time": 185.64,
+      "end_time": 185.72
+    },
+    {
+      "text": "如",
+      "start_time": 185.72,
+      "end_time": 186.04
+    },
+    {
+      "text": "人",
+      "start_time": 186.36,
+      "end_time": 186.44
+    },
+    {
+      "text": "们",
+      "start_time": 186.44,
+      "end_time": 186.52
+    },
+    {
+      "text": "可",
+      "start_time": 186.52,
+      "end_time": 186.6
+    },
+    {
+      "text": "以",
+      "start_time": 186.6,
+      "end_time": 186.68
+    },
+    {
+      "text": "读",
+      "start_time": 186.68,
+      "end_time": 186.84
+    },
+    {
+      "text": "一",
+      "start_time": 186.84,
+      "end_time": 186.84
+    },
+    {
+      "text": "篇",
+      "start_time": 186.84,
+      "end_time": 187.0
+    },
+    {
+      "text": "文",
+      "start_time": 187.0,
+      "end_time": 187.08
+    },
+    {
+      "text": "章",
+      "start_time": 187.08,
+      "end_time": 187.24
+    },
+    {
+      "text": "一",
+      "start_time": 187.24,
+      "end_time": 187.32
+    },
+    {
+      "text": "次",
+      "start_time": 187.32,
+      "end_time": 187.64
+    },
+    {
+      "text": "用",
+      "start_time": 189.08,
+      "end_time": 189.24
+    },
+    {
+      "text": "荧",
+      "start_time": 189.24,
+      "end_time": 189.32
+    },
+    {
+      "text": "光",
+      "start_time": 189.32,
+      "end_time": 189.48
+    },
+    {
+      "text": "笔",
+      "start_time": 189.48,
+      "end_time": 189.56
+    },
+    {
+      "text": "标",
+      "start_time": 189.56,
+      "end_time": 189.8
+    },
+    {
+      "text": "记",
+      "start_time": 189.8,
+      "end_time": 189.88
+    },
+    {
+      "text": "最",
+      "start_time": 189.88,
+      "end_time": 190.04
+    },
+    {
+      "text": "重",
+      "start_time": 190.04,
+      "end_time": 190.12
+    },
+    {
+      "text": "要",
+      "start_time": 190.12,
+      "end_time": 190.2
+    },
+    {
+      "text": "的",
+      "start_time": 190.2,
+      "end_time": 190.28
+    },
+    {
+      "text": "部",
+      "start_time": 190.28,
+      "end_time": 190.44
+    },
+    {
+      "text": "分",
+      "start_time": 190.44,
+      "end_time": 190.6
+    },
+    {
+      "text": "然",
+      "start_time": 194.36,
+      "end_time": 194.44
+    },
+    {
+      "text": "后",
+      "start_time": 194.44,
+      "end_time": 194.52
+    },
+    {
+      "text": "仅",
+      "start_time": 194.52,
+      "end_time": 194.68
+    },
+    {
+      "text": "从",
+      "start_time": 194.68,
+      "end_time": 194.84
+    },
+    {
+      "text": "中",
+      "start_time": 194.84,
+      "end_time": 195.0
+    },
+    {
+      "text": "间",
+      "start_time": 195.0,
+      "end_time": 195.08
+    },
+    {
+      "text": "阶",
+      "start_time": 195.08,
+      "end_time": 195.24
+    },
+    {
+      "text": "段",
+      "start_time": 195.24,
+      "end_time": 195.32
+    },
+    {
+      "text": "开",
+      "start_time": 195.32,
+      "end_time": 195.48
+    },
+    {
+      "text": "始",
+      "start_time": 195.48,
+      "end_time": 195.64
+    },
+    {
+      "text": "基",
+      "start_time": 195.64,
+      "end_time": 195.8
+    },
+    {
+      "text": "于",
+      "start_time": 195.8,
+      "end_time": 195.88
+    },
+    {
+      "text": "这",
+      "start_time": 195.88,
+      "end_time": 195.96
+    },
+    {
+      "text": "些",
+      "start_time": 195.96,
+      "end_time": 196.12
+    },
+    {
+      "text": "部",
+      "start_time": 196.12,
+      "end_time": 196.2
+    },
+    {
+      "text": "分",
+      "start_time": 196.2,
+      "end_time": 196.36
+    },
+    {
+      "text": "生",
+      "start_time": 196.36,
+      "end_time": 196.44
+    },
+    {
+      "text": "成",
+      "start_time": 196.44,
+      "end_time": 196.6
+    },
+    {
+      "text": "摘",
+      "start_time": 196.6,
+      "end_time": 196.76
+    },
+    {
+      "text": "要",
+      "start_time": 196.76,
+      "end_time": 196.84
+    },
+    {
+      "text": "标",
+      "start_time": 200.52,
+      "end_time": 200.68
+    },
+    {
+      "text": "记",
+      "start_time": 200.68,
+      "end_time": 200.84
+    },
+    {
+      "text": "和",
+      "start_time": 200.84,
+      "end_time": 200.92
+    },
+    {
+      "text": "决",
+      "start_time": 200.92,
+      "end_time": 201.08
+    },
+    {
+      "text": "定",
+      "start_time": 201.08,
+      "end_time": 201.32
+    },
+    {
+      "text": "当",
+      "start_time": 201.32,
+      "end_time": 201.48
+    },
+    {
+      "text": "前",
+      "start_time": 201.48,
+      "end_time": 201.64
+    },
+    {
+      "text": "标",
+      "start_time": 201.64,
+      "end_time": 201.8
+    },
+    {
+      "text": "记",
+      "start_time": 201.8,
+      "end_time": 201.88
+    },
+    {
+      "text": "是",
+      "start_time": 201.88,
+      "end_time": 202.12
+    },
+    {
+      "text": "否",
+      "start_time": 202.12,
+      "end_time": 202.2
+    },
+    {
+      "text": "对",
+      "start_time": 202.2,
+      "end_time": 202.36
+    },
+    {
+      "text": "生",
+      "start_time": 202.36,
+      "end_time": 202.52
+    },
+    {
+      "text": "成",
+      "start_time": 202.52,
+      "end_time": 202.68
+    },
+    {
+      "text": "摘",
+      "start_time": 202.68,
+      "end_time": 202.84
+    },
+    {
+      "text": "要",
+      "start_time": 202.84,
+      "end_time": 202.92
+    },
+    {
+      "text": "是",
+      "start_time": 202.92,
+      "end_time": 203.08
+    },
+    {
+      "text": "必",
+      "start_time": 203.08,
+      "end_time": 203.24
+    },
+    {
+      "text": "要",
+      "start_time": 203.24,
+      "end_time": 203.32
+    },
+    {
+      "text": "的",
+      "start_time": 203.32,
+      "end_time": 203.4
+    },
+    {
+      "text": "成",
+      "start_time": 203.4,
+      "end_time": 203.64
+    },
+    {
+      "text": "本",
+      "start_time": 203.64,
+      "end_time": 203.8
+    },
+    {
+      "text": "因",
+      "start_time": 203.96,
+      "end_time": 204.12
+    },
+    {
+      "text": "此",
+      "start_time": 204.12,
+      "end_time": 204.28
+    },
+    {
+      "text": "很",
+      "start_time": 204.28,
+      "end_time": 204.36
+    },
+    {
+      "text": "便",
+      "start_time": 204.36,
+      "end_time": 204.6
+    },
+    {
+      "text": "宜",
+      "start_time": 204.6,
+      "end_time": 204.6
+    },
+    {
+      "text": "并",
+      "start_time": 204.6,
+      "end_time": 204.76
+    },
+    {
+      "text": "且",
+      "start_time": 204.76,
+      "end_time": 204.92
+    },
+    {
+      "text": "只",
+      "start_time": 204.92,
+      "end_time": 205.0
+    },
+    {
+      "text": "取",
+      "start_time": 205.0,
+      "end_time": 205.16
+    },
+    {
+      "text": "决",
+      "start_time": 205.16,
+      "end_time": 205.32
+    },
+    {
+      "text": "于",
+      "start_time": 205.32,
+      "end_time": 205.32
+    },
+    {
+      "text": "标",
+      "start_time": 205.32,
+      "end_time": 205.56
+    },
+    {
+      "text": "记",
+      "start_time": 205.56,
+      "end_time": 205.64
+    },
+    {
+      "text": "的",
+      "start_time": 205.64,
+      "end_time": 205.64
+    },
+    {
+      "text": "表",
+      "start_time": 205.64,
+      "end_time": 205.8
+    },
+    {
+      "text": "示",
+      "start_time": 205.8,
+      "end_time": 205.96
+    },
+    {
+      "text": "得",
+      "start_time": 211.56,
+      "end_time": 211.72
+    },
+    {
+      "text": "益",
+      "start_time": 211.72,
+      "end_time": 211.8
+    },
+    {
+      "text": "于",
+      "start_time": 211.8,
+      "end_time": 211.88
+    },
+    {
+      "text": "我",
+      "start_time": 211.88,
+      "end_time": 212.04
+    },
+    {
+      "text": "们",
+      "start_time": 212.04,
+      "end_time": 212.12
+    },
+    {
+      "text": "的",
+      "start_time": 212.12,
+      "end_time": 212.36
+    },
+    {
+      "text": "top",
+      "start_time": 212.36,
+      "end_time": 212.52
+    },
+    {
+      "text": "k",
+      "start_time": 212.52,
+      "end_time": 212.68
+    },
+    {
+      "text": "簇",
+      "start_time": 212.68,
+      "end_time": 212.84
+    },
+    {
+      "text": "子",
+      "start_time": 212.92,
+      "end_time": 213.16
+    },
+    {
+      "text": "突",
+      "start_time": 213.48,
+      "end_time": 213.64
+    },
+    {
+      "text": "出",
+      "start_time": 213.64,
+      "end_time": 213.72
+    },
+    {
+      "text": "显",
+      "start_time": 213.72,
+      "end_time": 213.88
+    },
+    {
+      "text": "示",
+      "start_time": 213.88,
+      "end_time": 214.04
+    },
+    {
+      "text": "的",
+      "start_time": 214.04,
+      "end_time": 214.04
+    },
+    {
+      "text": "token",
+      "start_time": 214.04,
+      "end_time": 214.36
+    },
+    {
+      "text": "可",
+      "start_time": 214.36,
+      "end_time": 214.44
+    },
+    {
+      "text": "以",
+      "start_time": 214.44,
+      "end_time": 214.44
+    },
+    {
+      "text": "汇",
+      "start_time": 214.44,
+      "end_time": 214.68
+    },
+    {
+      "text": "集",
+      "start_time": 214.68,
+      "end_time": 214.92
+    },
+    {
+      "text": "其",
+      "start_time": 218.44,
+      "end_time": 218.52
+    },
+    {
+      "text": "成",
+      "start_time": 218.52,
+      "end_time": 218.68
+    },
+    {
+      "text": "本",
+      "start_time": 218.68,
+      "end_time": 218.84
+    },
+    {
+      "text": "可",
+      "start_time": 218.84,
+      "end_time": 218.92
+    },
+    {
+      "text": "以",
+      "start_time": 218.92,
+      "end_time": 219.0
+    },
+    {
+      "text": "忽",
+      "start_time": 219.0,
+      "end_time": 219.16
+    },
+    {
+      "text": "略",
+      "start_time": 219.16,
+      "end_time": 219.24
+    },
+    {
+      "text": "不",
+      "start_time": 219.24,
+      "end_time": 219.32
+    },
+    {
+      "text": "计",
+      "start_time": 219.32,
+      "end_time": 219.56
+    },
+    {
+      "text": "从",
+      "start_time": 221.8,
+      "end_time": 221.96
+    },
+    {
+      "text": "缩",
+      "start_time": 221.96,
+      "end_time": 222.12
+    },
+    {
+      "text": "短",
+      "start_time": 222.12,
+      "end_time": 222.2
+    },
+    {
+      "text": "的",
+      "start_time": 222.2,
+      "end_time": 222.28
+    },
+    {
+      "text": "输",
+      "start_time": 222.28,
+      "end_time": 222.44
+    },
+    {
+      "text": "入",
+      "start_time": 222.44,
+      "end_time": 222.68
+    },
+    {
+      "text": "中",
+      "start_time": 222.68,
+      "end_time": 222.68
+    },
+    {
+      "text": "生",
+      "start_time": 222.68,
+      "end_time": 222.84
+    },
+    {
+      "text": "成",
+      "start_time": 222.92,
+      "end_time": 223.0
+    },
+    {
+      "text": "摘",
+      "start_time": 223.0,
+      "end_time": 223.08
+    },
+    {
+      "text": "要",
+      "start_time": 223.08,
+      "end_time": 223.16
+    },
+    {
+      "text": "的",
+      "start_time": 223.16,
+      "end_time": 223.24
+    },
+    {
+      "text": "成",
+      "start_time": 223.24,
+      "end_time": 223.48
+    },
+    {
+      "text": "本",
+      "start_time": 223.48,
+      "end_time": 223.64
+    },
+    {
+      "text": "也",
+      "start_time": 223.88,
+      "end_time": 223.96
+    },
+    {
+      "text": "远",
+      "start_time": 223.96,
+      "end_time": 224.2
+    },
+    {
+      "text": "低",
+      "start_time": 224.2,
+      "end_time": 224.36
+    },
+    {
+      "text": "于",
+      "start_time": 224.36,
+      "end_time": 224.36
+    },
+    {
+      "text": "原",
+      "start_time": 224.36,
+      "end_time": 224.52
+    },
+    {
+      "text": "始",
+      "start_time": 224.52,
+      "end_time": 224.6
+    },
+    {
+      "text": "模",
+      "start_time": 224.6,
+      "end_time": 224.76
+    },
+    {
+      "text": "型",
+      "start_time": 224.76,
+      "end_time": 224.92
+    },
+    {
+      "text": "但",
+      "start_time": 226.36,
+      "end_time": 226.52
+    },
+    {
+      "text": "有",
+      "start_time": 226.52,
+      "end_time": 226.68
+    },
+    {
+      "text": "一",
+      "start_time": 226.68,
+      "end_time": 226.76
+    },
+    {
+      "text": "个",
+      "start_time": 226.76,
+      "end_time": 226.84
+    },
+    {
+      "text": "问",
+      "start_time": 226.84,
+      "end_time": 227.0
+    },
+    {
+      "text": "题",
+      "start_time": 227.0,
+      "end_time": 227.16
+    },
+    {
+      "text": "如",
+      "start_time": 228.12,
+      "end_time": 228.28
+    },
+    {
+      "text": "何",
+      "start_time": 228.28,
+      "end_time": 228.36
+    },
+    {
+      "text": "选",
+      "start_time": 228.36,
+      "end_time": 228.52
+    },
+    {
+      "text": "择",
+      "start_time": 228.52,
+      "end_time": 228.68
+    },
+    {
+      "text": "重",
+      "start_time": 228.68,
+      "end_time": 228.76
+    },
+    {
+      "text": "要",
+      "start_time": 228.76,
+      "end_time": 228.92
+    },
+    {
+      "text": "的",
+      "start_time": 228.92,
+      "end_time": 229.0
+    },
+    {
+      "text": "标",
+      "start_time": 229.0,
+      "end_time": 229.16
+    },
+    {
+      "text": "记",
+      "start_time": 229.16,
+      "end_time": 229.4
+    },
+    {
+      "text": "并",
+      "start_time": 231.48,
+      "end_time": 231.56
+    },
+    {
+      "text": "通",
+      "start_time": 231.56,
+      "end_time": 231.72
+    },
+    {
+      "text": "过",
+      "start_time": 231.72,
+      "end_time": 231.8
+    },
+    {
+      "text": "该",
+      "start_time": 231.8,
+      "end_time": 231.96
+    },
+    {
+      "text": "选",
+      "start_time": 231.96,
+      "end_time": 232.12
+    },
+    {
+      "text": "择",
+      "start_time": 232.12,
+      "end_time": 232.2
+    },
+    {
+      "text": "反",
+      "start_time": 232.2,
+      "end_time": 232.36
+    },
+    {
+      "text": "向",
+      "start_time": 232.36,
+      "end_time": 232.44
+    },
+    {
+      "text": "传",
+      "start_time": 232.44,
+      "end_time": 232.6
+    },
+    {
+      "text": "播",
+      "start_time": 232.6,
+      "end_time": 232.68
+    },
+    {
+      "text": "梯",
+      "start_time": 232.68,
+      "end_time": 232.84
+    },
+    {
+      "text": "度",
+      "start_time": 232.84,
+      "end_time": 233.0
+    },
+    {
+      "text": "我",
+      "start_time": 234.6,
+      "end_time": 234.6
+    },
+    {
+      "text": "们",
+      "start_time": 234.6,
+      "end_time": 234.76
+    },
+    {
+      "text": "要",
+      "start_time": 234.76,
+      "end_time": 234.84
+    },
+    {
+      "text": "解",
+      "start_time": 234.84,
+      "end_time": 235.0
+    },
+    {
+      "text": "决",
+      "start_time": 235.0,
+      "end_time": 235.24
+    },
+    {
+      "text": "的",
+      "start_time": 235.24,
+      "end_time": 235.24
+    },
+    {
+      "text": "根",
+      "start_time": 235.24,
+      "end_time": 235.4
+    },
+    {
+      "text": "本",
+      "start_time": 235.4,
+      "end_time": 235.48
+    },
+    {
+      "text": "问",
+      "start_time": 235.48,
+      "end_time": 235.64
+    },
+    {
+      "text": "题",
+      "start_time": 235.64,
+      "end_time": 235.88
+    },
+    {
+      "text": "是",
+      "start_time": 237.4,
+      "end_time": 237.56
+    },
+    {
+      "text": "提",
+      "start_time": 237.56,
+      "end_time": 237.8
+    },
+    {
+      "text": "出",
+      "start_time": 237.8,
+      "end_time": 237.88
+    },
+    {
+      "text": "可",
+      "start_time": 237.88,
+      "end_time": 238.04
+    },
+    {
+      "text": "训",
+      "start_time": 238.04,
+      "end_time": 238.2
+    },
+    {
+      "text": "练",
+      "start_time": 238.2,
+      "end_time": 238.36
+    },
+    {
+      "text": "的",
+      "start_time": 238.36,
+      "end_time": 238.44
+    },
+    {
+      "text": "选",
+      "start_time": 238.44,
+      "end_time": 238.6
+    },
+    {
+      "text": "择",
+      "start_time": 238.6,
+      "end_time": 238.68
+    },
+    {
+      "text": "机",
+      "start_time": 238.68,
+      "end_time": 238.84
+    },
+    {
+      "text": "制",
+      "start_time": 238.84,
+      "end_time": 239.08
+    },
+    {
+      "text": "允",
+      "start_time": 242.52,
+      "end_time": 242.68
+    },
+    {
+      "text": "许",
+      "start_time": 242.68,
+      "end_time": 242.76
+    },
+    {
+      "text": "在",
+      "start_time": 242.76,
+      "end_time": 242.84
+    },
+    {
+      "text": "训",
+      "start_time": 242.84,
+      "end_time": 243.0
+    },
+    {
+      "text": "练",
+      "start_time": 243.0,
+      "end_time": 243.08
+    },
+    {
+      "text": "期",
+      "start_time": 243.08,
+      "end_time": 243.24
+    },
+    {
+      "text": "间",
+      "start_time": 243.24,
+      "end_time": 243.32
+    },
+    {
+      "text": "反",
+      "start_time": 243.32,
+      "end_time": 243.4
+    },
+    {
+      "text": "向",
+      "start_time": 243.4,
+      "end_time": 243.56
+    },
+    {
+      "text": "传",
+      "start_time": 243.56,
+      "end_time": 243.72
+    },
+    {
+      "text": "播",
+      "start_time": 243.72,
+      "end_time": 243.8
+    },
+    {
+      "text": "梯",
+      "start_time": 243.8,
+      "end_time": 243.88
+    },
+    {
+      "text": "度",
+      "start_time": 243.88,
+      "end_time": 244.12
+    },
+    {
+      "text": "以",
+      "start_time": 246.04,
+      "end_time": 246.12
+    },
+    {
+      "text": "便",
+      "start_time": 246.12,
+      "end_time": 246.2
+    },
+    {
+      "text": "网",
+      "start_time": 246.2,
+      "end_time": 246.36
+    },
+    {
+      "text": "络",
+      "start_time": 246.36,
+      "end_time": 246.44
+    },
+    {
+      "text": "能",
+      "start_time": 246.44,
+      "end_time": 246.6
+    },
+    {
+      "text": "够",
+      "start_time": 246.6,
+      "end_time": 246.68
+    },
+    {
+      "text": "学",
+      "start_time": 246.68,
+      "end_time": 246.76
+    },
+    {
+      "text": "习",
+      "start_time": 246.76,
+      "end_time": 246.92
+    },
+    {
+      "text": "选",
+      "start_time": 246.92,
+      "end_time": 247.0
+    },
+    {
+      "text": "择",
+      "start_time": 247.08,
+      "end_time": 247.16
+    },
+    {
+      "text": "最",
+      "start_time": 247.16,
+      "end_time": 247.24
+    },
+    {
+      "text": "重",
+      "start_time": 247.24,
+      "end_time": 247.4
+    },
+    {
+      "text": "要",
+      "start_time": 247.4,
+      "end_time": 247.48
+    },
+    {
+      "text": "的",
+      "start_time": 247.48,
+      "end_time": 247.48
+    },
+    {
+      "text": "标",
+      "start_time": 247.48,
+      "end_time": 247.64
+    },
+    {
+      "text": "记",
+      "start_time": 247.64,
+      "end_time": 247.8
+    },
+    {
+      "text": "更",
+      "start_time": 248.12,
+      "end_time": 248.28
+    },
+    {
+      "text": "准",
+      "start_time": 248.28,
+      "end_time": 248.44
+    },
+    {
+      "text": "确",
+      "start_time": 248.44,
+      "end_time": 248.52
+    },
+    {
+      "text": "地",
+      "start_time": 248.52,
+      "end_time": 248.6
+    },
+    {
+      "text": "说",
+      "start_time": 248.6,
+      "end_time": 248.84
+    },
+    {
+      "text": "给",
+      "start_time": 251.64,
+      "end_time": 251.8
+    },
+    {
+      "text": "定",
+      "start_time": 251.8,
+      "end_time": 251.96
+    },
+    {
+      "text": "一",
+      "start_time": 251.96,
+      "end_time": 251.96
+    },
+    {
+      "text": "些",
+      "start_time": 251.96,
+      "end_time": 252.04
+    },
+    {
+      "text": "嵌",
+      "start_time": 252.04,
+      "end_time": 252.28
+    },
+    {
+      "text": "入",
+      "start_time": 252.28,
+      "end_time": 252.36
+    },
+    {
+      "text": "和",
+      "start_time": 252.36,
+      "end_time": 252.52
+    },
+    {
+      "text": "它",
+      "start_time": 252.52,
+      "end_time": 252.6
+    },
+    {
+      "text": "们",
+      "start_time": 252.6,
+      "end_time": 252.68
+    },
+    {
+      "text": "的",
+      "start_time": 252.68,
+      "end_time": 252.76
+    },
+    {
+      "text": "分",
+      "start_time": 252.76,
+      "end_time": 252.92
+    },
+    {
+      "text": "数",
+      "start_time": 252.92,
+      "end_time": 253.16
+    },
+    {
+      "text": "这",
+      "start_time": 253.96,
+      "end_time": 254.04
+    },
+    {
+      "text": "些",
+      "start_time": 254.04,
+      "end_time": 254.12
+    },
+    {
+      "text": "嵌",
+      "start_time": 254.12,
+      "end_time": 254.28
+    },
+    {
+      "text": "入",
+      "start_time": 254.28,
+      "end_time": 254.36
+    },
+    {
+      "text": "来",
+      "start_time": 254.36,
+      "end_time": 254.44
+    },
+    {
+      "text": "自",
+      "start_time": 254.44,
+      "end_time": 254.6
+    },
+    {
+      "text": "一",
+      "start_time": 254.6,
+      "end_time": 254.6
+    },
+    {
+      "text": "个",
+      "start_time": 254.6,
+      "end_time": 254.68
+    },
+    {
+      "text": "简",
+      "start_time": 254.68,
+      "end_time": 254.84
+    },
+    {
+      "text": "单",
+      "start_time": 254.84,
+      "end_time": 254.92
+    },
+    {
+      "text": "的",
+      "start_time": 254.92,
+      "end_time": 255.0
+    },
+    {
+      "text": "线",
+      "start_time": 255.0,
+      "end_time": 255.08
+    },
+    {
+      "text": "性",
+      "start_time": 255.16,
+      "end_time": 255.24
+    },
+    {
+      "text": "层",
+      "start_time": 255.24,
+      "end_time": 255.48
+    },
+    {
+      "text": "任",
+      "start_time": 257.16,
+      "end_time": 257.32
+    },
+    {
+      "text": "务",
+      "start_time": 257.32,
+      "end_time": 257.4
+    },
+    {
+      "text": "是",
+      "start_time": 257.4,
+      "end_time": 257.56
+    },
+    {
+      "text": "返",
+      "start_time": 257.56,
+      "end_time": 257.64
+    },
+    {
+      "text": "回",
+      "start_time": 257.64,
+      "end_time": 257.8
+    },
+    {
+      "text": "得",
+      "start_time": 257.8,
+      "end_time": 257.88
+    },
+    {
+      "text": "分",
+      "start_time": 257.88,
+      "end_time": 258.04
+    },
+    {
+      "text": "最",
+      "start_time": 258.04,
+      "end_time": 258.12
+    },
+    {
+      "text": "高",
+      "start_time": 258.12,
+      "end_time": 258.28
+    },
+    {
+      "text": "的",
+      "start_time": 258.28,
+      "end_time": 258.36
+    },
+    {
+      "text": "嵌",
+      "start_time": 258.36,
+      "end_time": 258.52
+    },
+    {
+      "text": "入",
+      "start_time": 258.52,
+      "end_time": 258.6
+    },
+    {
+      "text": "首",
+      "start_time": 260.28,
+      "end_time": 260.44
+    },
+    {
+      "text": "先",
+      "start_time": 260.44,
+      "end_time": 260.68
+    },
+    {
+      "text": "对",
+      "start_time": 261.0,
+      "end_time": 261.16
+    },
+    {
+      "text": "序",
+      "start_time": 261.16,
+      "end_time": 261.32
+    },
+    {
+      "text": "列",
+      "start_time": 261.32,
+      "end_time": 261.48
+    },
+    {
+      "text": "进",
+      "start_time": 261.48,
+      "end_time": 261.56
+    },
+    {
+      "text": "行",
+      "start_time": 261.56,
+      "end_time": 261.64
+    },
+    {
+      "text": "排",
+      "start_time": 261.64,
+      "end_time": 261.8
+    },
+    {
+      "text": "列",
+      "start_time": 261.8,
+      "end_time": 261.96
+    },
+    {
+      "text": "并",
+      "start_time": 262.36,
+      "end_time": 262.52
+    },
+    {
+      "text": "准",
+      "start_time": 262.52,
+      "end_time": 262.6
+    },
+    {
+      "text": "备",
+      "start_time": 262.6,
+      "end_time": 262.68
+    },
+    {
+      "text": "好",
+      "start_time": 262.68,
+      "end_time": 262.84
+    },
+    {
+      "text": "配",
+      "start_time": 262.84,
+      "end_time": 263.0
+    },
+    {
+      "text": "对",
+      "start_time": 263.0,
+      "end_time": 263.24
+    },
+    {
+      "text": "以",
+      "start_time": 266.76,
+      "end_time": 266.84
+    },
+    {
+      "text": "便",
+      "start_time": 266.84,
+      "end_time": 267.0
+    },
+    {
+      "text": "将",
+      "start_time": 267.0,
+      "end_time": 267.16
+    },
+    {
+      "text": "得",
+      "start_time": 267.16,
+      "end_time": 267.24
+    },
+    {
+      "text": "分",
+      "start_time": 267.32,
+      "end_time": 267.4
+    },
+    {
+      "text": "较",
+      "start_time": 267.4,
+      "end_time": 267.56
+    },
+    {
+      "text": "高",
+      "start_time": 267.56,
+      "end_time": 267.64
+    },
+    {
+      "text": "的",
+      "start_time": 267.64,
+      "end_time": 267.72
+    },
+    {
+      "text": "向",
+      "start_time": 267.72,
+      "end_time": 267.8
+    },
+    {
+      "text": "量",
+      "start_time": 267.8,
+      "end_time": 267.96
+    },
+    {
+      "text": "与",
+      "start_time": 267.96,
+      "end_time": 268.04
+    },
+    {
+      "text": "得",
+      "start_time": 268.04,
+      "end_time": 268.2
+    },
+    {
+      "text": "分",
+      "start_time": 268.2,
+      "end_time": 268.36
+    },
+    {
+      "text": "较",
+      "start_time": 268.36,
+      "end_time": 268.44
+    },
+    {
+      "text": "低",
+      "start_time": 268.44,
+      "end_time": 268.6
+    },
+    {
+      "text": "的",
+      "start_time": 268.6,
+      "end_time": 268.68
+    },
+    {
+      "text": "向",
+      "start_time": 268.68,
+      "end_time": 268.76
+    },
+    {
+      "text": "量",
+      "start_time": 268.76,
+      "end_time": 268.92
+    },
+    {
+      "text": "进",
+      "start_time": 268.92,
+      "end_time": 269.0
+    },
+    {
+      "text": "行",
+      "start_time": 269.0,
+      "end_time": 269.08
+    },
+    {
+      "text": "组",
+      "start_time": 269.08,
+      "end_time": 269.24
+    },
+    {
+      "text": "合",
+      "start_time": 269.24,
+      "end_time": 269.4
+    },
+    {
+      "text": "接",
+      "start_time": 271.88,
+      "end_time": 272.04
+    },
+    {
+      "text": "下",
+      "start_time": 272.04,
+      "end_time": 272.12
+    },
+    {
+      "text": "来",
+      "start_time": 272.12,
+      "end_time": 272.36
+    },
+    {
+      "text": "使",
+      "start_time": 272.68,
+      "end_time": 272.84
+    },
+    {
+      "text": "用",
+      "start_time": 272.84,
+      "end_time": 272.92
+    },
+    {
+      "text": "增",
+      "start_time": 272.92,
+      "end_time": 273.08
+    },
+    {
+      "text": "强",
+      "start_time": 273.08,
+      "end_time": 273.24
+    },
+    {
+      "text": "的",
+      "start_time": 273.24,
+      "end_time": 273.32
+    },
+    {
+      "text": "softmax",
+      "start_time": 273.32,
+      "end_time": 273.8
+    },
+    {
+      "text": "过",
+      "start_time": 273.8,
+      "end_time": 273.96
+    },
+    {
+      "text": "渡",
+      "start_time": 273.96,
+      "end_time": 274.04
+    },
+    {
+      "text": "得",
+      "start_time": 274.04,
+      "end_time": 274.12
+    },
+    {
+      "text": "分",
+      "start_time": 274.12,
+      "end_time": 274.28
+    },
+    {
+      "text": "来",
+      "start_time": 274.28,
+      "end_time": 274.44
+    },
+    {
+      "text": "计",
+      "start_time": 274.44,
+      "end_time": 274.52
+    },
+    {
+      "text": "算",
+      "start_time": 274.52,
+      "end_time": 274.68
+    },
+    {
+      "text": "权",
+      "start_time": 274.68,
+      "end_time": 274.84
+    },
+    {
+      "text": "重",
+      "start_time": 274.84,
+      "end_time": 275.0
+    },
+    {
+      "text": "在",
+      "start_time": 275.24,
+      "end_time": 275.32
+    },
+    {
+      "text": "每",
+      "start_time": 275.32,
+      "end_time": 275.48
+    },
+    {
+      "text": "一",
+      "start_time": 275.48,
+      "end_time": 275.48
+    },
+    {
+      "text": "轮",
+      "start_time": 275.48,
+      "end_time": 275.64
+    },
+    {
+      "text": "训",
+      "start_time": 275.64,
+      "end_time": 275.8
+    },
+    {
+      "text": "练",
+      "start_time": 275.8,
+      "end_time": 275.88
+    },
+    {
+      "text": "之",
+      "start_time": 275.88,
+      "end_time": 275.96
+    },
+    {
+      "text": "后",
+      "start_time": 275.96,
+      "end_time": 276.2
+    },
+    {
+      "text": "新",
+      "start_time": 283.16,
+      "end_time": 283.32
+    },
+    {
+      "text": "的",
+      "start_time": 283.4,
+      "end_time": 283.48
+    },
+    {
+      "text": "向",
+      "start_time": 283.48,
+      "end_time": 283.64
+    },
+    {
+      "text": "量",
+      "start_time": 283.64,
+      "end_time": 283.8
+    },
+    {
+      "text": "和",
+      "start_time": 283.8,
+      "end_time": 283.88
+    },
+    {
+      "text": "分",
+      "start_time": 283.88,
+      "end_time": 284.04
+    },
+    {
+      "text": "数",
+      "start_time": 284.04,
+      "end_time": 284.28
+    },
+    {
+      "text": "是",
+      "start_time": 284.28,
+      "end_time": 284.44
+    },
+    {
+      "text": "由",
+      "start_time": 284.44,
+      "end_time": 284.6
+    },
+    {
+      "text": "稀",
+      "start_time": 284.6,
+      "end_time": 284.76
+    },
+    {
+      "text": "疏",
+      "start_time": 284.76,
+      "end_time": 284.92
+    },
+    {
+      "text": "权",
+      "start_time": 284.92,
+      "end_time": 285.08
+    },
+    {
+      "text": "重",
+      "start_time": 285.08,
+      "end_time": 285.24
+    },
+    {
+      "text": "线",
+      "start_time": 285.24,
+      "end_time": 285.4
+    },
+    {
+      "text": "性",
+      "start_time": 285.4,
+      "end_time": 285.48
+    },
+    {
+      "text": "组",
+      "start_time": 285.48,
+      "end_time": 285.64
+    },
+    {
+      "text": "合",
+      "start_time": 285.64,
+      "end_time": 285.72
+    },
+    {
+      "text": "而",
+      "start_time": 285.72,
+      "end_time": 285.8
+    },
+    {
+      "text": "成",
+      "start_time": 285.8,
+      "end_time": 285.96
+    },
+    {
+      "text": "的",
+      "start_time": 285.96,
+      "end_time": 286.12
+    },
+    {
+      "text": "这",
+      "start_time": 287.8,
+      "end_time": 287.88
+    },
+    {
+      "text": "些",
+      "start_time": 287.88,
+      "end_time": 287.96
+    },
+    {
+      "text": "权",
+      "start_time": 287.96,
+      "end_time": 288.12
+    },
+    {
+      "text": "重",
+      "start_time": 288.12,
+      "end_time": 288.28
+    },
+    {
+      "text": "是",
+      "start_time": 288.28,
+      "end_time": 288.36
+    },
+    {
+      "text": "通",
+      "start_time": 288.36,
+      "end_time": 288.52
+    },
+    {
+      "text": "过",
+      "start_time": 288.52,
+      "end_time": 288.6
+    },
+    {
+      "text": "训",
+      "start_time": 288.6,
+      "end_time": 288.76
+    },
+    {
+      "text": "练",
+      "start_time": 288.76,
+      "end_time": 288.84
+    },
+    {
+      "text": "得",
+      "start_time": 288.84,
+      "end_time": 289.0
+    },
+    {
+      "text": "到",
+      "start_time": 289.0,
+      "end_time": 289.16
+    },
+    {
+      "text": "的",
+      "start_time": 289.16,
+      "end_time": 289.24
+    },
+    {
+      "text": "简",
+      "start_time": 289.24,
+      "end_time": 289.4
+    },
+    {
+      "text": "而",
+      "start_time": 289.4,
+      "end_time": 289.48
+    },
+    {
+      "text": "言",
+      "start_time": 289.48,
+      "end_time": 289.56
+    },
+    {
+      "text": "之",
+      "start_time": 289.56,
+      "end_time": 289.88
+    },
+    {
+      "text": "我",
+      "start_time": 294.68,
+      "end_time": 294.76
+    },
+    {
+      "text": "们",
+      "start_time": 294.76,
+      "end_time": 294.92
+    },
+    {
+      "text": "通",
+      "start_time": 294.92,
+      "end_time": 295.08
+    },
+    {
+      "text": "过",
+      "start_time": 295.08,
+      "end_time": 295.16
+    },
+    {
+      "text": "对",
+      "start_time": 295.16,
+      "end_time": 295.32
+    },
+    {
+      "text": "分",
+      "start_time": 295.32,
+      "end_time": 295.48
+    },
+    {
+      "text": "数",
+      "start_time": 295.48,
+      "end_time": 295.64
+    },
+    {
+      "text": "进",
+      "start_time": 295.64,
+      "end_time": 295.8
+    },
+    {
+      "text": "行",
+      "start_time": 295.8,
+      "end_time": 295.88
+    },
+    {
+      "text": "softmax",
+      "start_time": 295.88,
+      "end_time": 296.36
+    },
+    {
+      "text": "操",
+      "start_time": 296.36,
+      "end_time": 296.6
+    },
+    {
+      "text": "作",
+      "start_time": 296.6,
+      "end_time": 296.68
+    },
+    {
+      "text": "来",
+      "start_time": 296.76,
+      "end_time": 296.84
+    },
+    {
+      "text": "线",
+      "start_time": 296.84,
+      "end_time": 297.0
+    },
+    {
+      "text": "性",
+      "start_time": 297.0,
+      "end_time": 297.16
+    },
+    {
+      "text": "组",
+      "start_time": 297.16,
+      "end_time": 297.32
+    },
+    {
+      "text": "合",
+      "start_time": 297.32,
+      "end_time": 297.4
+    },
+    {
+      "text": "它",
+      "start_time": 297.4,
+      "end_time": 297.48
+    },
+    {
+      "text": "们",
+      "start_time": 297.48,
+      "end_time": 297.64
+    },
+    {
+      "text": "在",
+      "start_time": 298.92,
+      "end_time": 299.08
+    },
+    {
+      "text": "组",
+      "start_time": 299.08,
+      "end_time": 299.24
+    },
+    {
+      "text": "合",
+      "start_time": 299.24,
+      "end_time": 299.32
+    },
+    {
+      "text": "两",
+      "start_time": 299.32,
+      "end_time": 299.48
+    },
+    {
+      "text": "个",
+      "start_time": 299.48,
+      "end_time": 299.56
+    },
+    {
+      "text": "token",
+      "start_time": 299.56,
+      "end_time": 299.8
+    },
+    {
+      "text": "时",
+      "start_time": 299.8,
+      "end_time": 300.12
+    },
+    {
+      "text": "可",
+      "start_time": 302.28,
+      "end_time": 302.36
+    },
+    {
+      "text": "能",
+      "start_time": 302.36,
+      "end_time": 302.52
+    },
+    {
+      "text": "会",
+      "start_time": 302.52,
+      "end_time": 302.52
+    },
+    {
+      "text": "产",
+      "start_time": 302.52,
+      "end_time": 302.68
+    },
+    {
+      "text": "生",
+      "start_time": 302.68,
+      "end_time": 302.84
+    },
+    {
+      "text": "一",
+      "start_time": 302.84,
+      "end_time": 302.84
+    },
+    {
+      "text": "些",
+      "start_time": 302.84,
+      "end_time": 303.0
+    },
+    {
+      "text": "噪",
+      "start_time": 303.0,
+      "end_time": 303.16
+    },
+    {
+      "text": "声",
+      "start_time": 303.16,
+      "end_time": 303.32
+    },
+    {
+      "text": "但",
+      "start_time": 307.96,
+      "end_time": 308.2
+    },
+    {
+      "text": "这",
+      "start_time": 308.2,
+      "end_time": 308.28
+    },
+    {
+      "text": "也",
+      "start_time": 308.28,
+      "end_time": 308.36
+    },
+    {
+      "text": "允",
+      "start_time": 308.36,
+      "end_time": 308.52
+    },
+    {
+      "text": "许",
+      "start_time": 308.52,
+      "end_time": 308.68
+    },
+    {
+      "text": "梯",
+      "start_time": 308.68,
+      "end_time": 308.84
+    },
+    {
+      "text": "度",
+      "start_time": 308.84,
+      "end_time": 308.92
+    },
+    {
+      "text": "传",
+      "start_time": 308.92,
+      "end_time": 309.08
+    },
+    {
+      "text": "播",
+      "start_time": 309.08,
+      "end_time": 309.16
+    },
+    {
+      "text": "到",
+      "start_time": 309.16,
+      "end_time": 309.32
+    },
+    {
+      "text": "所",
+      "start_time": 309.32,
+      "end_time": 309.48
+    },
+    {
+      "text": "有",
+      "start_time": 309.48,
+      "end_time": 309.56
+    },
+    {
+      "text": "输",
+      "start_time": 309.56,
+      "end_time": 309.72
+    },
+    {
+      "text": "入",
+      "start_time": 309.72,
+      "end_time": 309.8
+    },
+    {
+      "text": "嵌",
+      "start_time": 309.8,
+      "end_time": 310.04
+    },
+    {
+      "text": "入",
+      "start_time": 310.04,
+      "end_time": 310.12
+    },
+    {
+      "text": "中",
+      "start_time": 310.12,
+      "end_time": 310.28
+    },
+    {
+      "text": "简",
+      "start_time": 310.36,
+      "end_time": 310.44
+    },
+    {
+      "text": "而",
+      "start_time": 310.44,
+      "end_time": 310.6
+    },
+    {
+      "text": "言",
+      "start_time": 310.6,
+      "end_time": 310.76
+    },
+    {
+      "text": "之",
+      "start_time": 310.76,
+      "end_time": 310.92
+    },
+    {
+      "text": "我",
+      "start_time": 315.0,
+      "end_time": 315.16
+    },
+    {
+      "text": "们",
+      "start_time": 315.16,
+      "end_time": 315.24
+    },
+    {
+      "text": "提",
+      "start_time": 315.24,
+      "end_time": 315.4
+    },
+    {
+      "text": "出",
+      "start_time": 315.4,
+      "end_time": 315.48
+    },
+    {
+      "text": "了",
+      "start_time": 315.48,
+      "end_time": 315.64
+    },
+    {
+      "text": "一",
+      "start_time": 315.64,
+      "end_time": 315.64
+    },
+    {
+      "text": "个",
+      "start_time": 315.64,
+      "end_time": 315.8
+    },
+    {
+      "text": "可",
+      "start_time": 315.8,
+      "end_time": 315.96
+    },
+    {
+      "text": "训",
+      "start_time": 315.96,
+      "end_time": 316.12
+    },
+    {
+      "text": "练",
+      "start_time": 316.12,
+      "end_time": 316.2
+    },
+    {
+      "text": "的",
+      "start_time": 316.2,
+      "end_time": 316.28
+    },
+    {
+      "text": "top",
+      "start_time": 316.28,
+      "end_time": 316.52
+    },
+    {
+      "text": "k",
+      "start_time": 316.52,
+      "end_time": 316.76
+    },
+    {
+      "text": "机",
+      "start_time": 316.76,
+      "end_time": 316.92
+    },
+    {
+      "text": "制",
+      "start_time": 316.92,
+      "end_time": 317.16
+    },
+    {
+      "text": "该",
+      "start_time": 317.72,
+      "end_time": 317.8
+    },
+    {
+      "text": "机",
+      "start_time": 317.8,
+      "end_time": 317.96
+    },
+    {
+      "text": "制",
+      "start_time": 317.96,
+      "end_time": 318.12
+    },
+    {
+      "text": "基",
+      "start_time": 318.12,
+      "end_time": 318.36
+    },
+    {
+      "text": "于",
+      "start_time": 318.36,
+      "end_time": 318.44
+    },
+    {
+      "text": "执",
+      "start_time": 318.44,
+      "end_time": 318.6
+    },
+    {
+      "text": "行",
+      "start_time": 318.6,
+      "end_time": 318.76
+    },
+    {
+      "text": "类",
+      "start_time": 318.76,
+      "end_time": 318.84
+    },
+    {
+      "text": "似",
+      "start_time": 318.84,
+      "end_time": 319.0
+    },
+    {
+      "text": "锦",
+      "start_time": 319.0,
+      "end_time": 319.16
+    },
+    {
+      "text": "标",
+      "start_time": 319.16,
+      "end_time": 319.24
+    },
+    {
+      "text": "赛",
+      "start_time": 319.24,
+      "end_time": 319.4
+    },
+    {
+      "text": "的",
+      "start_time": 319.4,
+      "end_time": 319.48
+    },
+    {
+      "text": "软",
+      "start_time": 319.48,
+      "end_time": 319.64
+    },
+    {
+      "text": "选",
+      "start_time": 319.64,
+      "end_time": 319.8
+    },
+    {
+      "text": "择",
+      "start_time": 319.8,
+      "end_time": 320.04
+    },
+    {
+      "text": "在",
+      "start_time": 320.28,
+      "end_time": 320.44
+    },
+    {
+      "text": "每",
+      "start_time": 320.44,
+      "end_time": 320.6
+    },
+    {
+      "text": "一",
+      "start_time": 320.6,
+      "end_time": 320.68
+    },
+    {
+      "text": "步",
+      "start_time": 320.68,
+      "end_time": 320.76
+    },
+    {
+      "text": "进",
+      "start_time": 320.76,
+      "end_time": 321.0
+    },
+    {
+      "text": "行",
+      "start_time": 321.0,
+      "end_time": 321.0
+    },
+    {
+      "text": "从",
+      "start_time": 321.56,
+      "end_time": 321.72
+    },
+    {
+      "text": "另",
+      "start_time": 321.72,
+      "end_time": 321.88
+    },
+    {
+      "text": "一",
+      "start_time": 321.88,
+      "end_time": 321.88
+    },
+    {
+      "text": "个",
+      "start_time": 321.88,
+      "end_time": 321.96
+    },
+    {
+      "text": "角",
+      "start_time": 321.96,
+      "end_time": 322.12
+    },
+    {
+      "text": "度",
+      "start_time": 322.12,
+      "end_time": 322.2
+    },
+    {
+      "text": "来",
+      "start_time": 322.2,
+      "end_time": 322.36
+    },
+    {
+      "text": "看",
+      "start_time": 322.36,
+      "end_time": 322.6
+    },
+    {
+      "text": "所",
+      "start_time": 325.96,
+      "end_time": 326.2
+    },
+    {
+      "text": "提",
+      "start_time": 326.2,
+      "end_time": 326.36
+    },
+    {
+      "text": "出",
+      "start_time": 326.36,
+      "end_time": 326.52
+    },
+    {
+      "text": "的",
+      "start_time": 326.52,
+      "end_time": 326.6
+    },
+    {
+      "text": "表",
+      "start_time": 326.6,
+      "end_time": 326.76
+    },
+    {
+      "text": "示",
+      "start_time": 326.76,
+      "end_time": 326.84
+    },
+    {
+      "text": "是",
+      "start_time": 326.84,
+      "end_time": 327.08
+    },
+    {
+      "text": "遵",
+      "start_time": 327.08,
+      "end_time": 327.16
+    },
+    {
+      "text": "循",
+      "start_time": 327.32,
+      "end_time": 327.48
+    },
+    {
+      "text": "编",
+      "start_time": 327.48,
+      "end_time": 327.64
+    },
+    {
+      "text": "码",
+      "start_time": 327.64,
+      "end_time": 327.72
+    },
+    {
+      "text": "器",
+      "start_time": 327.72,
+      "end_time": 327.88
+    },
+    {
+      "text": "层",
+      "start_time": 327.88,
+      "end_time": 328.12
+    },
+    {
+      "text": "首",
+      "start_time": 328.76,
+      "end_time": 328.92
+    },
+    {
+      "text": "先",
+      "start_time": 328.92,
+      "end_time": 329.08
+    },
+    {
+      "text": "对",
+      "start_time": 329.08,
+      "end_time": 329.24
+    },
+    {
+      "text": "每",
+      "start_time": 329.24,
+      "end_time": 329.4
+    },
+    {
+      "text": "个",
+      "start_time": 329.4,
+      "end_time": 329.48
+    },
+    {
+      "text": "表",
+      "start_time": 329.48,
+      "end_time": 329.64
+    },
+    {
+      "text": "示",
+      "start_time": 329.64,
+      "end_time": 329.72
+    },
+    {
+      "text": "进",
+      "start_time": 329.72,
+      "end_time": 329.8
+    },
+    {
+      "text": "行",
+      "start_time": 329.8,
+      "end_time": 329.88
+    },
+    {
+      "text": "评",
+      "start_time": 329.88,
+      "end_time": 330.04
+    },
+    {
+      "text": "分",
+      "start_time": 330.04,
+      "end_time": 330.28
+    },
+    {
+      "text": "然",
+      "start_time": 333.72,
+      "end_time": 333.8
+    },
+    {
+      "text": "后",
+      "start_time": 333.8,
+      "end_time": 333.88
+    },
+    {
+      "text": "具",
+      "start_time": 333.88,
+      "end_time": 334.04
+    },
+    {
+      "text": "有",
+      "start_time": 334.04,
+      "end_time": 334.04
+    },
+    {
+      "text": "得",
+      "start_time": 334.04,
+      "end_time": 334.2
+    },
+    {
+      "text": "分",
+      "start_time": 334.2,
+      "end_time": 334.36
+    },
+    {
+      "text": "最",
+      "start_time": 334.36,
+      "end_time": 334.52
+    },
+    {
+      "text": "高",
+      "start_time": 334.52,
+      "end_time": 334.6
+    },
+    {
+      "text": "的",
+      "start_time": 334.6,
+      "end_time": 334.68
+    },
+    {
+      "text": "表",
+      "start_time": 334.68,
+      "end_time": 334.84
+    },
+    {
+      "text": "示",
+      "start_time": 334.84,
+      "end_time": 334.92
+    },
+    {
+      "text": "会",
+      "start_time": 334.92,
+      "end_time": 335.0
+    },
+    {
+      "text": "传",
+      "start_time": 335.0,
+      "end_time": 335.24
+    },
+    {
+      "text": "递",
+      "start_time": 335.24,
+      "end_time": 335.32
+    },
+    {
+      "text": "到",
+      "start_time": 335.32,
+      "end_time": 335.4
+    },
+    {
+      "text": "下",
+      "start_time": 335.4,
+      "end_time": 335.64
+    },
+    {
+      "text": "一",
+      "start_time": 335.64,
+      "end_time": 335.64
+    },
+    {
+      "text": "层",
+      "start_time": 335.64,
+      "end_time": 335.8
+    },
+    {
+      "text": "编",
+      "start_time": 338.84,
+      "end_time": 338.92
+    },
+    {
+      "text": "码",
+      "start_time": 338.92,
+      "end_time": 339.08
+    },
+    {
+      "text": "器",
+      "start_time": 339.16,
+      "end_time": 339.32
+    },
+    {
+      "text": "按",
+      "start_time": 339.32,
+      "end_time": 339.4
+    },
+    {
+      "text": "照",
+      "start_time": 339.4,
+      "end_time": 339.56
+    },
+    {
+      "text": "标",
+      "start_time": 339.56,
+      "end_time": 339.8
+    },
+    {
+      "text": "准",
+      "start_time": 339.8,
+      "end_time": 339.96
+    },
+    {
+      "text": "Transformer",
+      "start_time": 339.96,
+      "end_time": 340.52
+    },
+    {
+      "text": "架",
+      "start_time": 340.52,
+      "end_time": 340.6
+    },
+    {
+      "text": "构",
+      "start_time": 340.6,
+      "end_time": 340.76
+    },
+    {
+      "text": "进",
+      "start_time": 340.76,
+      "end_time": 340.84
+    },
+    {
+      "text": "行",
+      "start_time": 340.84,
+      "end_time": 341.16
+    },
+    {
+      "text": "对",
+      "start_time": 341.48,
+      "end_time": 341.56
+    },
+    {
+      "text": "完",
+      "start_time": 341.56,
+      "end_time": 341.72
+    },
+    {
+      "text": "整",
+      "start_time": 341.72,
+      "end_time": 341.8
+    },
+    {
+      "text": "长",
+      "start_time": 341.8,
+      "end_time": 342.04
+    },
+    {
+      "text": "度",
+      "start_time": 342.04,
+      "end_time": 342.12
+    },
+    {
+      "text": "的",
+      "start_time": 342.12,
+      "end_time": 342.2
+    },
+    {
+      "text": "输",
+      "start_time": 342.2,
+      "end_time": 342.36
+    },
+    {
+      "text": "入",
+      "start_time": 342.36,
+      "end_time": 342.44
+    },
+    {
+      "text": "进",
+      "start_time": 342.44,
+      "end_time": 342.6
+    },
+    {
+      "text": "行",
+      "start_time": 342.6,
+      "end_time": 342.68
+    },
+    {
+      "text": "然",
+      "start_time": 346.12,
+      "end_time": 346.28
+    },
+    {
+      "text": "而",
+      "start_time": 346.28,
+      "end_time": 346.44
+    },
+    {
+      "text": "可",
+      "start_time": 346.68,
+      "end_time": 346.84
+    },
+    {
+      "text": "以",
+      "start_time": 346.84,
+      "end_time": 347.0
+    },
+    {
+      "text": "以",
+      "start_time": 347.0,
+      "end_time": 347.0
+    },
+    {
+      "text": "固",
+      "start_time": 347.0,
+      "end_time": 347.16
+    },
+    {
+      "text": "定",
+      "start_time": 347.16,
+      "end_time": 347.24
+    },
+    {
+      "text": "长",
+      "start_time": 347.24,
+      "end_time": 347.48
+    },
+    {
+      "text": "度",
+      "start_time": 347.48,
+      "end_time": 347.56
+    },
+    {
+      "text": "的",
+      "start_time": 347.56,
+      "end_time": 347.64
+    },
+    {
+      "text": "文",
+      "start_time": 347.64,
+      "end_time": 347.72
+    },
+    {
+      "text": "本",
+      "start_time": 347.72,
+      "end_time": 347.88
+    },
+    {
+      "text": "块",
+      "start_time": 347.88,
+      "end_time": 348.04
+    },
+    {
+      "text": "进",
+      "start_time": 348.04,
+      "end_time": 348.2
+    },
+    {
+      "text": "行",
+      "start_time": 348.2,
+      "end_time": 348.28
+    },
+    {
+      "text": "处",
+      "start_time": 348.28,
+      "end_time": 348.44
+    },
+    {
+      "text": "理",
+      "start_time": 348.44,
+      "end_time": 348.6
+    },
+    {
+      "text": "并",
+      "start_time": 349.24,
+      "end_time": 349.4
+    },
+    {
+      "text": "全",
+      "start_time": 349.4,
+      "end_time": 349.56
+    },
+    {
+      "text": "局",
+      "start_time": 349.56,
+      "end_time": 349.64
+    },
+    {
+      "text": "选",
+      "start_time": 349.64,
+      "end_time": 349.8
+    },
+    {
+      "text": "择",
+      "start_time": 349.8,
+      "end_time": 349.96
+    },
+    {
+      "text": "最",
+      "start_time": 349.96,
+      "end_time": 350.04
+    },
+    {
+      "text": "佳",
+      "start_time": 350.04,
+      "end_time": 350.2
+    },
+    {
+      "text": "表",
+      "start_time": 350.2,
+      "end_time": 350.36
+    },
+    {
+      "text": "示",
+      "start_time": 350.36,
+      "end_time": 350.52
+    },
+    {
+      "text": "这",
+      "start_time": 356.314,
+      "end_time": 356.394
+    },
+    {
+      "text": "里",
+      "start_time": 356.474,
+      "end_time": 356.474
+    },
+    {
+      "text": "是",
+      "start_time": 356.474,
+      "end_time": 356.714
+    },
+    {
+      "text": "编",
+      "start_time": 356.714,
+      "end_time": 356.874
+    },
+    {
+      "text": "码",
+      "start_time": 356.874,
+      "end_time": 356.954
+    },
+    {
+      "text": "器",
+      "start_time": 356.954,
+      "end_time": 357.194
+    },
+    {
+      "text": "后",
+      "start_time": 357.194,
+      "end_time": 357.354
+    },
+    {
+      "text": "引",
+      "start_time": 357.354,
+      "end_time": 357.434
+    },
+    {
+      "text": "入",
+      "start_time": 357.434,
+      "end_time": 357.594
+    },
+    {
+      "text": "的",
+      "start_time": 357.594,
+      "end_time": 357.754
+    },
+    {
+      "text": "表",
+      "start_time": 357.754,
+      "end_time": 357.834
+    },
+    {
+      "text": "示",
+      "start_time": 357.834,
+      "end_time": 357.994
+    },
+    {
+      "text": "池",
+      "start_time": 357.994,
+      "end_time": 358.154
+    },
+    {
+      "text": "的",
+      "start_time": 358.154,
+      "end_time": 358.234
+    },
+    {
+      "text": "一",
+      "start_time": 358.234,
+      "end_time": 358.314
+    },
+    {
+      "text": "个",
+      "start_time": 358.314,
+      "end_time": 358.394
+    },
+    {
+      "text": "例",
+      "start_time": 358.394,
+      "end_time": 358.554
+    },
+    {
+      "text": "子",
+      "start_time": 358.554,
+      "end_time": 358.634
+    },
+    {
+      "text": "这",
+      "start_time": 360.474,
+      "end_time": 360.554
+    },
+    {
+      "text": "直",
+      "start_time": 360.554,
+      "end_time": 360.714
+    },
+    {
+      "text": "接",
+      "start_time": 360.714,
+      "end_time": 360.874
+    },
+    {
+      "text": "影",
+      "start_time": 360.874,
+      "end_time": 360.954
+    },
+    {
+      "text": "响",
+      "start_time": 360.954,
+      "end_time": 361.034
+    },
+    {
+      "text": "了",
+      "start_time": 361.034,
+      "end_time": 361.194
+    },
+    {
+      "text": "交",
+      "start_time": 361.194,
+      "end_time": 361.274
+    },
+    {
+      "text": "叉",
+      "start_time": 361.274,
+      "end_time": 361.434
+    },
+    {
+      "text": "注",
+      "start_time": 361.434,
+      "end_time": 361.594
+    },
+    {
+      "text": "意",
+      "start_time": 361.594,
+      "end_time": 361.674
+    },
+    {
+      "text": "力",
+      "start_time": 361.674,
+      "end_time": 361.754
+    },
+    {
+      "text": "的",
+      "start_time": 361.754,
+      "end_time": 361.914
+    },
+    {
+      "text": "过",
+      "start_time": 361.914,
+      "end_time": 362.074
+    },
+    {
+      "text": "程",
+      "start_time": 362.074,
+      "end_time": 362.154
+    },
+    {
+      "text": "它",
+      "start_time": 366.554,
+      "end_time": 366.714
+    },
+    {
+      "text": "不",
+      "start_time": 366.714,
+      "end_time": 366.794
+    },
+    {
+      "text": "依",
+      "start_time": 366.794,
+      "end_time": 366.954
+    },
+    {
+      "text": "赖",
+      "start_time": 366.954,
+      "end_time": 367.114
+    },
+    {
+      "text": "于",
+      "start_time": 367.114,
+      "end_time": 367.194
+    },
+    {
+      "text": "输",
+      "start_time": 367.194,
+      "end_time": 367.354
+    },
+    {
+      "text": "入",
+      "start_time": 367.354,
+      "end_time": 367.434
+    },
+    {
+      "text": "长",
+      "start_time": 367.434,
+      "end_time": 367.674
+    },
+    {
+      "text": "度",
+      "start_time": 367.674,
+      "end_time": 367.914
+    },
+    {
+      "text": "而",
+      "start_time": 368.154,
+      "end_time": 368.234
+    },
+    {
+      "text": "是",
+      "start_time": 368.234,
+      "end_time": 368.394
+    },
+    {
+      "text": "依",
+      "start_time": 368.394,
+      "end_time": 368.394
+    },
+    {
+      "text": "赖",
+      "start_time": 368.394,
+      "end_time": 368.554
+    },
+    {
+      "text": "于",
+      "start_time": 368.554,
+      "end_time": 368.634
+    },
+    {
+      "text": "常",
+      "start_time": 368.634,
+      "end_time": 368.874
+    },
+    {
+      "text": "数",
+      "start_time": 368.874,
+      "end_time": 369.034
+    },
+    {
+      "text": "表",
+      "start_time": 369.034,
+      "end_time": 369.354
+    },
+    {
+      "text": "示",
+      "start_time": 369.354,
+      "end_time": 369.434
+    },
+    {
+      "text": "池",
+      "start_time": 369.434,
+      "end_time": 369.594
+    },
+    {
+      "text": "长",
+      "start_time": 369.594,
+      "end_time": 369.834
+    },
+    {
+      "text": "度",
+      "start_time": 369.834,
+      "end_time": 369.914
+    },
+    {
+      "text": "这",
+      "start_time": 374.394,
+      "end_time": 374.474
+    },
+    {
+      "text": "个",
+      "start_time": 374.474,
+      "end_time": 374.554
+    },
+    {
+      "text": "常",
+      "start_time": 374.554,
+      "end_time": 374.794
+    },
+    {
+      "text": "数",
+      "start_time": 374.794,
+      "end_time": 374.874
+    },
+    {
+      "text": "表",
+      "start_time": 374.874,
+      "end_time": 375.034
+    },
+    {
+      "text": "示",
+      "start_time": 375.034,
+      "end_time": 375.274
+    },
+    {
+      "text": "选",
+      "start_time": 375.274,
+      "end_time": 375.514
+    },
+    {
+      "text": "择",
+      "start_time": 375.514,
+      "end_time": 375.594
+    },
+    {
+      "text": "了",
+      "start_time": 375.594,
+      "end_time": 375.674
+    },
+    {
+      "text": "多",
+      "start_time": 375.674,
+      "end_time": 375.834
+    },
+    {
+      "text": "少",
+      "start_time": 375.834,
+      "end_time": 375.914
+    },
+    {
+      "text": "个",
+      "start_time": 375.914,
+      "end_time": 375.994
+    },
+    {
+      "text": "表",
+      "start_time": 375.994,
+      "end_time": 376.154
+    },
+    {
+      "text": "示",
+      "start_time": 376.154,
+      "end_time": 376.394
+    },
+    {
+      "text": "并",
+      "start_time": 376.874,
+      "end_time": 377.034
+    },
+    {
+      "text": "传",
+      "start_time": 377.034,
+      "end_time": 377.274
+    },
+    {
+      "text": "递",
+      "start_time": 377.274,
+      "end_time": 377.354
+    },
+    {
+      "text": "给",
+      "start_time": 377.354,
+      "end_time": 377.434
+    },
+    {
+      "text": "编",
+      "start_time": 377.434,
+      "end_time": 377.594
+    },
+    {
+      "text": "码",
+      "start_time": 377.594,
+      "end_time": 377.674
+    },
+    {
+      "text": "器",
+      "start_time": 377.674,
+      "end_time": 377.914
+    },
+    {
+      "text": "从",
+      "start_time": 380.234,
+      "end_time": 380.474
+    },
+    {
+      "text": "短",
+      "start_time": 380.474,
+      "end_time": 380.634
+    },
+    {
+      "text": "文",
+      "start_time": 380.634,
+      "end_time": 380.794
+    },
+    {
+      "text": "本",
+      "start_time": 380.794,
+      "end_time": 380.874
+    },
+    {
+      "text": "中",
+      "start_time": 380.874,
+      "end_time": 381.034
+    },
+    {
+      "text": "生",
+      "start_time": 381.034,
+      "end_time": 381.194
+    },
+    {
+      "text": "成",
+      "start_time": 381.194,
+      "end_time": 381.354
+    },
+    {
+      "text": "摘",
+      "start_time": 381.354,
+      "end_time": 381.514
+    },
+    {
+      "text": "要",
+      "start_time": 381.514,
+      "end_time": 381.754
+    },
+    {
+      "text": "比",
+      "start_time": 382.714,
+      "end_time": 382.954
+    },
+    {
+      "text": "以",
+      "start_time": 382.954,
+      "end_time": 382.954
+    },
+    {
+      "text": "前",
+      "start_time": 382.954,
+      "end_time": 383.114
+    },
+    {
+      "text": "的",
+      "start_time": 383.114,
+      "end_time": 383.194
+    },
+    {
+      "text": "解",
+      "start_time": 383.194,
+      "end_time": 383.354
+    },
+    {
+      "text": "决",
+      "start_time": 383.354,
+      "end_time": 383.434
+    },
+    {
+      "text": "方",
+      "start_time": 383.434,
+      "end_time": 383.674
+    },
+    {
+      "text": "案",
+      "start_time": 383.674,
+      "end_time": 383.754
+    },
+    {
+      "text": "便",
+      "start_time": 383.754,
+      "end_time": 383.914
+    },
+    {
+      "text": "宜",
+      "start_time": 383.914,
+      "end_time": 383.994
+    },
+    {
+      "text": "得",
+      "start_time": 383.994,
+      "end_time": 384.074
+    },
+    {
+      "text": "多",
+      "start_time": 384.074,
+      "end_time": 384.314
+    },
+    {
+      "text": "因",
+      "start_time": 387.834,
+      "end_time": 387.834
+    },
+    {
+      "text": "为",
+      "start_time": 387.914,
+      "end_time": 387.994
+    },
+    {
+      "text": "序",
+      "start_time": 387.994,
+      "end_time": 388.074
+    },
+    {
+      "text": "列",
+      "start_time": 388.154,
+      "end_time": 388.234
+    },
+    {
+      "text": "长",
+      "start_time": 388.234,
+      "end_time": 388.474
+    },
+    {
+      "text": "度",
+      "start_time": 388.474,
+      "end_time": 388.554
+    },
+    {
+      "text": "可",
+      "start_time": 388.554,
+      "end_time": 388.714
+    },
+    {
+      "text": "以",
+      "start_time": 388.714,
+      "end_time": 388.794
+    },
+    {
+      "text": "大",
+      "start_time": 388.794,
+      "end_time": 388.954
+    },
+    {
+      "text": "幅",
+      "start_time": 388.954,
+      "end_time": 389.034
+    },
+    {
+      "text": "缩",
+      "start_time": 389.034,
+      "end_time": 389.194
+    },
+    {
+      "text": "短",
+      "start_time": 389.194,
+      "end_time": 389.354
+    },
+    {
+      "text": "例",
+      "start_time": 392.394,
+      "end_time": 392.474
+    },
+    {
+      "text": "如",
+      "start_time": 392.474,
+      "end_time": 392.794
+    },
+    {
+      "text": "我",
+      "start_time": 393.194,
+      "end_time": 393.274
+    },
+    {
+      "text": "们",
+      "start_time": 393.274,
+      "end_time": 393.354
+    },
+    {
+      "text": "成",
+      "start_time": 393.354,
+      "end_time": 393.514
+    },
+    {
+      "text": "功",
+      "start_time": 393.514,
+      "end_time": 393.674
+    },
+    {
+      "text": "的",
+      "start_time": 393.674,
+      "end_time": 393.754
+    },
+    {
+      "text": "使",
+      "start_time": 393.754,
+      "end_time": 393.914
+    },
+    {
+      "text": "用",
+      "start_time": 393.994,
+      "end_time": 394.074
+    },
+    {
+      "text": "了",
+      "start_time": 394.074,
+      "end_time": 394.154
+    },
+    {
+      "text": "16",
+      "start_time": 394.154,
+      "end_time": 394.634
+    },
+    {
+      "text": "甚",
+      "start_time": 394.634,
+      "end_time": 394.874
+    },
+    {
+      "text": "至",
+      "start_time": 394.874,
+      "end_time": 395.034
+    },
+    {
+      "text": "60",
+      "start_time": 395.034,
+      "end_time": 395.514
+    },
+    {
+      "text": "个",
+      "start_time": 395.514,
+      "end_time": 395.514
+    },
+    {
+      "text": "比",
+      "start_time": 396.874,
+      "end_time": 397.034
+    },
+    {
+      "text": "N",
+      "start_time": 397.034,
+      "end_time": 397.194
+    },
+    {
+      "text": "值",
+      "start_time": 397.194,
+      "end_time": 397.354
+    },
+    {
+      "text": "级",
+      "start_time": 397.354,
+      "end_time": 397.514
+    },
+    {
+      "text": "比",
+      "start_time": 397.514,
+      "end_time": 397.674
+    },
+    {
+      "text": "列",
+      "start_time": 397.674,
+      "end_time": 397.754
+    },
+    {
+      "text": "的",
+      "start_time": 397.754,
+      "end_time": 397.914
+    },
+    {
+      "text": "数",
+      "start_time": 397.914,
+      "end_time": 398.074
+    },
+    {
+      "text": "字",
+      "start_time": 398.074,
+      "end_time": 398.234
+    },
+    {
+      "text": "项",
+      "start_time": 398.234,
+      "end_time": 398.394
+    },
+    {
+      "text": "在",
+      "start_time": 398.794,
+      "end_time": 398.954
+    },
+    {
+      "text": "我",
+      "start_time": 398.954,
+      "end_time": 399.034
+    },
+    {
+      "text": "们",
+      "start_time": 399.034,
+      "end_time": 399.114
+    },
+    {
+      "text": "的",
+      "start_time": 399.114,
+      "end_time": 399.194
+    },
+    {
+      "text": "实",
+      "start_time": 399.194,
+      "end_time": 399.354
+    },
+    {
+      "text": "验",
+      "start_time": 399.354,
+      "end_time": 399.514
+    },
+    {
+      "text": "中",
+      "start_time": 399.514,
+      "end_time": 399.754
+    },
+    {
+      "text": "请",
+      "start_time": 401.354,
+      "end_time": 401.514
+    },
+    {
+      "text": "注",
+      "start_time": 401.514,
+      "end_time": 401.674
+    },
+    {
+      "text": "意",
+      "start_time": 401.674,
+      "end_time": 401.834
+    },
+    {
+      "text": "分",
+      "start_time": 406.154,
+      "end_time": 406.314
+    },
+    {
+      "text": "块",
+      "start_time": 406.314,
+      "end_time": 406.394
+    },
+    {
+      "text": "编",
+      "start_time": 406.394,
+      "end_time": 406.554
+    },
+    {
+      "text": "码",
+      "start_time": 406.554,
+      "end_time": 406.714
+    },
+    {
+      "text": "的",
+      "start_time": 406.714,
+      "end_time": 406.874
+    },
+    {
+      "text": "有",
+      "start_time": 406.874,
+      "end_time": 407.034
+    },
+    {
+      "text": "益",
+      "start_time": 407.034,
+      "end_time": 407.114
+    },
+    {
+      "text": "影",
+      "start_time": 407.114,
+      "end_time": 407.354
+    },
+    {
+      "text": "响",
+      "start_time": 407.354,
+      "end_time": 407.594
+    },
+    {
+      "text": "和",
+      "start_time": 407.994,
+      "end_time": 408.154
+    },
+    {
+      "text": "自",
+      "start_time": 408.154,
+      "end_time": 408.314
+    },
+    {
+      "text": "注",
+      "start_time": 408.314,
+      "end_time": 408.474
+    },
+    {
+      "text": "意",
+      "start_time": 408.474,
+      "end_time": 408.554
+    },
+    {
+      "text": "力",
+      "start_time": 408.554,
+      "end_time": 408.714
+    },
+    {
+      "text": "是",
+      "start_time": 408.714,
+      "end_time": 408.794
+    },
+    {
+      "text": "持",
+      "start_time": 408.794,
+      "end_time": 409.034
+    },
+    {
+      "text": "续",
+      "start_time": 409.034,
+      "end_time": 409.274
+    },
+    {
+      "text": "的",
+      "start_time": 409.274,
+      "end_time": 409.274
+    },
+    {
+      "text": "记",
+      "start_time": 411.034,
+      "end_time": 411.034
+    },
+    {
+      "text": "住",
+      "start_time": 411.034,
+      "end_time": 411.354
+    },
+    {
+      "text": "注",
+      "start_time": 415.514,
+      "end_time": 415.674
+    },
+    {
+      "text": "意",
+      "start_time": 415.674,
+      "end_time": 415.754
+    },
+    {
+      "text": "力",
+      "start_time": 415.754,
+      "end_time": 415.834
+    },
+    {
+      "text": "的",
+      "start_time": 415.834,
+      "end_time": 415.994
+    },
+    {
+      "text": "计",
+      "start_time": 415.994,
+      "end_time": 416.074
+    },
+    {
+      "text": "算",
+      "start_time": 416.074,
+      "end_time": 416.234
+    },
+    {
+      "text": "成",
+      "start_time": 416.234,
+      "end_time": 416.474
+    },
+    {
+      "text": "本",
+      "start_time": 416.474,
+      "end_time": 416.634
+    },
+    {
+      "text": "取",
+      "start_time": 416.634,
+      "end_time": 416.794
+    },
+    {
+      "text": "决",
+      "start_time": 416.794,
+      "end_time": 417.034
+    },
+    {
+      "text": "于",
+      "start_time": 417.034,
+      "end_time": 417.034
+    },
+    {
+      "text": "输",
+      "start_time": 417.034,
+      "end_time": 417.274
+    },
+    {
+      "text": "入",
+      "start_time": 417.274,
+      "end_time": 417.354
+    },
+    {
+      "text": "长",
+      "start_time": 417.354,
+      "end_time": 417.594
+    },
+    {
+      "text": "度",
+      "start_time": 417.594,
+      "end_time": 417.674
+    },
+    {
+      "text": "的",
+      "start_time": 417.674,
+      "end_time": 417.754
+    },
+    {
+      "text": "平",
+      "start_time": 417.754,
+      "end_time": 417.914
+    },
+    {
+      "text": "方",
+      "start_time": 417.914,
+      "end_time": 418.074
+    },
+    {
+      "text": "提",
+      "start_time": 419.034,
+      "end_time": 419.194
+    },
+    {
+      "text": "前",
+      "start_time": 419.194,
+      "end_time": 419.354
+    },
+    {
+      "text": "减",
+      "start_time": 419.354,
+      "end_time": 419.514
+    },
+    {
+      "text": "少",
+      "start_time": 419.514,
+      "end_time": 419.674
+    },
+    {
+      "text": "输",
+      "start_time": 419.674,
+      "end_time": 419.834
+    },
+    {
+      "text": "入",
+      "start_time": 419.834,
+      "end_time": 420.074
+    },
+    {
+      "text": "在",
+      "start_time": 420.634,
+      "end_time": 420.794
+    },
+    {
+      "text": "编",
+      "start_time": 420.794,
+      "end_time": 420.954
+    },
+    {
+      "text": "码",
+      "start_time": 420.954,
+      "end_time": 421.034
+    },
+    {
+      "text": "过",
+      "start_time": 421.034,
+      "end_time": 421.194
+    },
+    {
+      "text": "程",
+      "start_time": 421.194,
+      "end_time": 421.354
+    },
+    {
+      "text": "中",
+      "start_time": 421.354,
+      "end_time": 421.594
+    },
+    {
+      "text": "可",
+      "start_time": 423.434,
+      "end_time": 423.514
+    },
+    {
+      "text": "以",
+      "start_time": 423.514,
+      "end_time": 423.594
+    },
+    {
+      "text": "显",
+      "start_time": 423.594,
+      "end_time": 423.754
+    },
+    {
+      "text": "著",
+      "start_time": 423.754,
+      "end_time": 423.914
+    },
+    {
+      "text": "降",
+      "start_time": 423.914,
+      "end_time": 424.074
+    },
+    {
+      "text": "低",
+      "start_time": 424.074,
+      "end_time": 424.154
+    },
+    {
+      "text": "成",
+      "start_time": 424.154,
+      "end_time": 424.394
+    },
+    {
+      "text": "本",
+      "start_time": 424.394,
+      "end_time": 424.474
+    },
+    {
+      "text": "对",
+      "start_time": 425.274,
+      "end_time": 425.514
+    },
+    {
+      "text": "于",
+      "start_time": 425.514,
+      "end_time": 425.514
+    },
+    {
+      "text": "Pyramid",
+      "start_time": 425.514,
+      "end_time": 425.914
+    },
+    {
+      "text": "模",
+      "start_time": 426.074,
+      "end_time": 426.234
+    },
+    {
+      "text": "型",
+      "start_time": 426.234,
+      "end_time": 426.474
+    },
+    {
+      "text": "我",
+      "start_time": 427.194,
+      "end_time": 427.274
+    },
+    {
+      "text": "们",
+      "start_time": 427.274,
+      "end_time": 427.354
+    },
+    {
+      "text": "缩",
+      "start_time": 427.354,
+      "end_time": 427.594
+    },
+    {
+      "text": "小",
+      "start_time": 427.594,
+      "end_time": 427.754
+    },
+    {
+      "text": "了",
+      "start_time": 427.754,
+      "end_time": 427.834
+    },
+    {
+      "text": "表",
+      "start_time": 427.834,
+      "end_time": 427.994
+    },
+    {
+      "text": "示",
+      "start_time": 427.994,
+      "end_time": 428.154
+    },
+    {
+      "text": "的",
+      "start_time": 428.154,
+      "end_time": 428.234
+    },
+    {
+      "text": "大",
+      "start_time": 428.314,
+      "end_time": 428.474
+    },
+    {
+      "text": "小",
+      "start_time": 428.474,
+      "end_time": 428.714
+    },
+    {
+      "text": "在",
+      "start_time": 431.114,
+      "end_time": 431.194
+    },
+    {
+      "text": "每",
+      "start_time": 431.194,
+      "end_time": 431.354
+    },
+    {
+      "text": "个",
+      "start_time": 431.354,
+      "end_time": 431.434
+    },
+    {
+      "text": "选",
+      "start_time": 431.434,
+      "end_time": 431.674
+    },
+    {
+      "text": "定",
+      "start_time": 431.674,
+      "end_time": 431.754
+    },
+    {
+      "text": "层",
+      "start_time": 431.754,
+      "end_time": 431.914
+    },
+    {
+      "text": "的",
+      "start_time": 431.914,
+      "end_time": 431.994
+    },
+    {
+      "text": "输",
+      "start_time": 431.994,
+      "end_time": 432.154
+    },
+    {
+      "text": "出",
+      "start_time": 432.154,
+      "end_time": 432.314
+    },
+    {
+      "text": "上",
+      "start_time": 432.314,
+      "end_time": 432.474
+    },
+    {
+      "text": "这",
+      "start_time": 434.954,
+      "end_time": 435.034
+    },
+    {
+      "text": "导",
+      "start_time": 435.034,
+      "end_time": 435.194
+    },
+    {
+      "text": "致",
+      "start_time": 435.194,
+      "end_time": 435.354
+    },
+    {
+      "text": "计",
+      "start_time": 435.354,
+      "end_time": 435.514
+    },
+    {
+      "text": "算",
+      "start_time": 435.514,
+      "end_time": 435.674
+    },
+    {
+      "text": "成",
+      "start_time": 435.674,
+      "end_time": 435.914
+    },
+    {
+      "text": "本",
+      "start_time": 435.914,
+      "end_time": 436.074
+    },
+    {
+      "text": "呈",
+      "start_time": 436.074,
+      "end_time": 436.234
+    },
+    {
+      "text": "指",
+      "start_time": 436.234,
+      "end_time": 436.394
+    },
+    {
+      "text": "数",
+      "start_time": 436.394,
+      "end_time": 436.474
+    },
+    {
+      "text": "级",
+      "start_time": 436.474,
+      "end_time": 436.634
+    },
+    {
+      "text": "下",
+      "start_time": 436.634,
+      "end_time": 436.794
+    },
+    {
+      "text": "降",
+      "start_time": 436.794,
+      "end_time": 437.034
+    },
+    {
+      "text": "随",
+      "start_time": 437.274,
+      "end_time": 437.434
+    },
+    {
+      "text": "着",
+      "start_time": 437.434,
+      "end_time": 437.514
+    },
+    {
+      "text": "编",
+      "start_time": 437.514,
+      "end_time": 437.674
+    },
+    {
+      "text": "码",
+      "start_time": 437.674,
+      "end_time": 437.834
+    },
+    {
+      "text": "的",
+      "start_time": 437.834,
+      "end_time": 437.914
+    },
+    {
+      "text": "进",
+      "start_time": 437.914,
+      "end_time": 438.154
+    },
+    {
+      "text": "行",
+      "start_time": 438.154,
+      "end_time": 438.154
+    },
+    {
+      "text": "如",
+      "start_time": 438.154,
+      "end_time": 438.314
+    },
+    {
+      "text": "你",
+      "start_time": 438.314,
+      "end_time": 438.394
+    },
+    {
+      "text": "所",
+      "start_time": 438.394,
+      "end_time": 438.634
+    },
+    {
+      "text": "见",
+      "start_time": 438.634,
+      "end_time": 438.874
+    },
+    {
+      "text": "这",
+      "start_time": 441.994,
+      "end_time": 442.074
+    },
+    {
+      "text": "里",
+      "start_time": 442.074,
+      "end_time": 442.234
+    },
+    {
+      "text": "完",
+      "start_time": 442.234,
+      "end_time": 442.394
+    },
+    {
+      "text": "整",
+      "start_time": 442.394,
+      "end_time": 442.554
+    },
+    {
+      "text": "编",
+      "start_time": 442.554,
+      "end_time": 442.714
+    },
+    {
+      "text": "码",
+      "start_time": 442.714,
+      "end_time": 442.874
+    },
+    {
+      "text": "器",
+      "start_time": 442.874,
+      "end_time": 443.034
+    },
+    {
+      "text": "的",
+      "start_time": 443.034,
+      "end_time": 443.114
+    },
+    {
+      "text": "总",
+      "start_time": 443.114,
+      "end_time": 443.354
+    },
+    {
+      "text": "计",
+      "start_time": 443.354,
+      "end_time": 443.434
+    },
+    {
+      "text": "算",
+      "start_time": 443.434,
+      "end_time": 443.674
+    },
+    {
+      "text": "成",
+      "start_time": 443.674,
+      "end_time": 443.834
+    },
+    {
+      "text": "本",
+      "start_time": 443.834,
+      "end_time": 444.074
+    },
+    {
+      "text": "不",
+      "start_time": 446.474,
+      "end_time": 446.554
+    },
+    {
+      "text": "到",
+      "start_time": 446.554,
+      "end_time": 446.714
+    },
+    {
+      "text": "全",
+      "start_time": 446.714,
+      "end_time": 446.954
+    },
+    {
+      "text": "尺",
+      "start_time": 446.954,
+      "end_time": 447.034
+    },
+    {
+      "text": "寸",
+      "start_time": 447.034,
+      "end_time": 447.274
+    },
+    {
+      "text": "计",
+      "start_time": 447.274,
+      "end_time": 447.434
+    },
+    {
+      "text": "算",
+      "start_time": 447.434,
+      "end_time": 447.594
+    },
+    {
+      "text": "成",
+      "start_time": 447.594,
+      "end_time": 447.754
+    },
+    {
+      "text": "本",
+      "start_time": 447.754,
+      "end_time": 447.914
+    },
+    {
+      "text": "的",
+      "start_time": 447.914,
+      "end_time": 447.914
+    },
+    {
+      "text": "两",
+      "start_time": 447.914,
+      "end_time": 448.154
+    },
+    {
+      "text": "倍",
+      "start_time": 448.154,
+      "end_time": 448.234
+    },
+    {
+      "text": "当",
+      "start_time": 449.194,
+      "end_time": 449.354
+    },
+    {
+      "text": "更",
+      "start_time": 449.354,
+      "end_time": 449.514
+    },
+    {
+      "text": "早",
+      "start_time": 449.514,
+      "end_time": 449.674
+    },
+    {
+      "text": "引",
+      "start_time": 449.674,
+      "end_time": 449.834
+    },
+    {
+      "text": "入",
+      "start_time": 449.834,
+      "end_time": 449.914
+    },
+    {
+      "text": "池",
+      "start_time": 449.914,
+      "end_time": 450.074
+    },
+    {
+      "text": "化",
+      "start_time": 450.074,
+      "end_time": 450.314
+    },
+    {
+      "text": "时",
+      "start_time": 450.314,
+      "end_time": 450.554
+    },
+    {
+      "text": "所",
+      "start_time": 451.514,
+      "end_time": 451.754
+    },
+    {
+      "text": "有",
+      "start_time": 451.754,
+      "end_time": 451.834
+    },
+    {
+      "text": "子",
+      "start_time": 451.834,
+      "end_time": 451.994
+    },
+    {
+      "text": "块",
+      "start_time": 451.994,
+      "end_time": 452.074
+    },
+    {
+      "text": "方",
+      "start_time": 452.154,
+      "end_time": 452.314
+    },
+    {
+      "text": "块",
+      "start_time": 452.314,
+      "end_time": 452.474
+    },
+    {
+      "text": "的",
+      "start_time": 452.474,
+      "end_time": 452.554
+    },
+    {
+      "text": "总",
+      "start_time": 452.554,
+      "end_time": 452.714
+    },
+    {
+      "text": "和",
+      "start_time": 452.714,
+      "end_time": 453.034
+    },
+    {
+      "text": "被",
+      "start_time": 454.154,
+      "end_time": 454.314
+    },
+    {
+      "text": "限",
+      "start_time": 454.314,
+      "end_time": 454.474
+    },
+    {
+      "text": "定",
+      "start_time": 454.474,
+      "end_time": 454.634
+    },
+    {
+      "text": "在",
+      "start_time": 454.634,
+      "end_time": 454.714
+    },
+    {
+      "text": "一",
+      "start_time": 454.714,
+      "end_time": 454.794
+    },
+    {
+      "text": "个",
+      "start_time": 454.794,
+      "end_time": 454.874
+    },
+    {
+      "text": "常",
+      "start_time": 454.874,
+      "end_time": 455.114
+    },
+    {
+      "text": "数",
+      "start_time": 455.114,
+      "end_time": 455.274
+    },
+    {
+      "text": "内",
+      "start_time": 455.274,
+      "end_time": 455.434
+    },
+    {
+      "text": "不",
+      "start_time": 457.434,
+      "end_time": 457.514
+    },
+    {
+      "text": "依",
+      "start_time": 457.514,
+      "end_time": 457.594
+    },
+    {
+      "text": "赖",
+      "start_time": 457.594,
+      "end_time": 457.834
+    },
+    {
+      "text": "于",
+      "start_time": 457.834,
+      "end_time": 457.914
+    },
+    {
+      "text": "层",
+      "start_time": 457.914,
+      "end_time": 458.074
+    },
+    {
+      "text": "数",
+      "start_time": 458.074,
+      "end_time": 458.234
+    },
+    {
+      "text": "量",
+      "start_time": 458.234,
+      "end_time": 458.394
+    },
+    {
+      "text": "而",
+      "start_time": 459.354,
+      "end_time": 459.434
+    },
+    {
+      "text": "是",
+      "start_time": 459.434,
+      "end_time": 459.594
+    },
+    {
+      "text": "依",
+      "start_time": 459.594,
+      "end_time": 459.674
+    },
+    {
+      "text": "赖",
+      "start_time": 459.674,
+      "end_time": 459.834
+    },
+    {
+      "text": "于",
+      "start_time": 459.914,
+      "end_time": 459.994
+    },
+    {
+      "text": "常",
+      "start_time": 459.994,
+      "end_time": 460.234
+    },
+    {
+      "text": "数",
+      "start_time": 460.234,
+      "end_time": 460.394
+    },
+    {
+      "text": "C",
+      "start_time": 460.394,
+      "end_time": 460.634
+    },
+    {
+      "text": "这",
+      "start_time": 463.274,
+      "end_time": 463.434
+    },
+    {
+      "text": "可",
+      "start_time": 463.434,
+      "end_time": 463.514
+    },
+    {
+      "text": "以",
+      "start_time": 463.514,
+      "end_time": 463.594
+    },
+    {
+      "text": "通",
+      "start_time": 463.594,
+      "end_time": 463.754
+    },
+    {
+      "text": "过",
+      "start_time": 463.754,
+      "end_time": 463.834
+    },
+    {
+      "text": "放",
+      "start_time": 463.834,
+      "end_time": 464.074
+    },
+    {
+      "text": "置",
+      "start_time": 464.074,
+      "end_time": 464.154
+    },
+    {
+      "text": "池",
+      "start_time": 464.154,
+      "end_time": 464.314
+    },
+    {
+      "text": "化",
+      "start_time": 464.314,
+      "end_time": 464.474
+    },
+    {
+      "text": "层",
+      "start_time": 464.474,
+      "end_time": 464.634
+    },
+    {
+      "text": "来",
+      "start_time": 464.634,
+      "end_time": 464.714
+    },
+    {
+      "text": "影",
+      "start_time": 464.714,
+      "end_time": 464.874
+    },
+    {
+      "text": "响",
+      "start_time": 464.874,
+      "end_time": 465.034
+    },
+    {
+      "text": "在",
+      "start_time": 465.434,
+      "end_time": 465.514
+    },
+    {
+      "text": "网",
+      "start_time": 465.514,
+      "end_time": 465.674
+    },
+    {
+      "text": "络",
+      "start_time": 465.674,
+      "end_time": 465.834
+    },
+    {
+      "text": "中",
+      "start_time": 465.834,
+      "end_time": 465.994
+    },
+    {
+      "text": "我",
+      "start_time": 467.674,
+      "end_time": 467.754
+    },
+    {
+      "text": "们",
+      "start_time": 467.754,
+      "end_time": 467.914
+    },
+    {
+      "text": "的",
+      "start_time": 467.914,
+      "end_time": 467.914
+    },
+    {
+      "text": "改",
+      "start_time": 467.914,
+      "end_time": 468.074
+    },
+    {
+      "text": "进",
+      "start_time": 468.074,
+      "end_time": 468.234
+    },
+    {
+      "text": "进",
+      "start_time": 468.234,
+      "end_time": 468.394
+    },
+    {
+      "text": "行",
+      "start_time": 468.394,
+      "end_time": 468.474
+    },
+    {
+      "text": "了",
+      "start_time": 468.474,
+      "end_time": 468.554
+    },
+    {
+      "text": "基",
+      "start_time": 468.554,
+      "end_time": 468.714
+    },
+    {
+      "text": "准",
+      "start_time": 468.714,
+      "end_time": 468.874
+    },
+    {
+      "text": "测",
+      "start_time": 468.874,
+      "end_time": 469.034
+    },
+    {
+      "text": "试",
+      "start_time": 469.034,
+      "end_time": 469.354
+    },
+    {
+      "text": "针",
+      "start_time": 470.314,
+      "end_time": 470.474
+    },
+    {
+      "text": "对",
+      "start_time": 470.474,
+      "end_time": 470.634
+    },
+    {
+      "text": "八",
+      "start_time": 470.634,
+      "end_time": 470.794
+    },
+    {
+      "text": "千",
+      "start_time": 470.794,
+      "end_time": 470.954
+    },
+    {
+      "text": "个",
+      "start_time": 470.954,
+      "end_time": 471.034
+    },
+    {
+      "text": "文",
+      "start_time": 471.034,
+      "end_time": 471.194
+    },
+    {
+      "text": "本",
+      "start_time": 471.194,
+      "end_time": 471.354
+    },
+    {
+      "text": "的",
+      "start_time": 471.354,
+      "end_time": 471.354
+    },
+    {
+      "text": "输",
+      "start_time": 471.354,
+      "end_time": 471.514
+    },
+    {
+      "text": "入",
+      "start_time": 471.514,
+      "end_time": 471.594
+    },
+    {
+      "text": "长",
+      "start_time": 471.594,
+      "end_time": 471.834
+    },
+    {
+      "text": "度",
+      "start_time": 471.834,
+      "end_time": 471.994
+    },
+    {
+      "text": "数",
+      "start_time": 472.154,
+      "end_time": 472.314
+    },
+    {
+      "text": "据",
+      "start_time": 472.314,
+      "end_time": 472.394
+    },
+    {
+      "text": "显",
+      "start_time": 472.394,
+      "end_time": 472.634
+    },
+    {
+      "text": "示",
+      "start_time": 472.634,
+      "end_time": 472.874
+    },
+    {
+      "text": "当",
+      "start_time": 473.434,
+      "end_time": 473.594
+    },
+    {
+      "text": "启",
+      "start_time": 473.594,
+      "end_time": 473.754
+    },
+    {
+      "text": "用",
+      "start_time": 473.754,
+      "end_time": 473.914
+    },
+    {
+      "text": "池",
+      "start_time": 473.914,
+      "end_time": 474.074
+    },
+    {
+      "text": "化",
+      "start_time": 474.074,
+      "end_time": 474.234
+    },
+    {
+      "text": "时",
+      "start_time": 474.234,
+      "end_time": 474.474
+    },
+    {
+      "text": "网",
+      "start_time": 476.314,
+      "end_time": 476.394
+    },
+    {
+      "text": "络",
+      "start_time": 476.394,
+      "end_time": 476.474
+    },
+    {
+      "text": "深",
+      "start_time": 476.474,
+      "end_time": 476.634
+    },
+    {
+      "text": "度",
+      "start_time": 476.634,
+      "end_time": 476.794
+    },
+    {
+      "text": "的",
+      "start_time": 476.794,
+      "end_time": 476.874
+    },
+    {
+      "text": "最",
+      "start_time": 476.874,
+      "end_time": 477.034
+    },
+    {
+      "text": "佳",
+      "start_time": 477.034,
+      "end_time": 477.194
+    },
+    {
+      "text": "可",
+      "start_time": 477.194,
+      "end_time": 477.354
+    },
+    {
+      "text": "扩",
+      "start_time": 477.354,
+      "end_time": 477.434
+    },
+    {
+      "text": "展",
+      "start_time": 477.434,
+      "end_time": 477.594
+    },
+    {
+      "text": "性",
+      "start_time": 477.594,
+      "end_time": 477.834
+    },
+    {
+      "text": "得",
+      "start_time": 478.074,
+      "end_time": 478.234
+    },
+    {
+      "text": "以",
+      "start_time": 478.234,
+      "end_time": 478.234
+    },
+    {
+      "text": "实",
+      "start_time": 478.234,
+      "end_time": 478.474
+    },
+    {
+      "text": "现",
+      "start_time": 478.474,
+      "end_time": 478.554
+    },
+    {
+      "text": "这",
+      "start_time": 478.634,
+      "end_time": 478.714
+    },
+    {
+      "text": "里",
+      "start_time": 478.714,
+      "end_time": 478.794
+    },
+    {
+      "text": "可",
+      "start_time": 478.794,
+      "end_time": 478.874
+    },
+    {
+      "text": "以",
+      "start_time": 478.874,
+      "end_time": 478.954
+    },
+    {
+      "text": "注",
+      "start_time": 478.954,
+      "end_time": 479.194
+    },
+    {
+      "text": "意",
+      "start_time": 479.194,
+      "end_time": 479.194
+    },
+    {
+      "text": "到",
+      "start_time": 479.194,
+      "end_time": 479.434
+    },
+    {
+      "text": "训",
+      "start_time": 482.634,
+      "end_time": 482.794
+    },
+    {
+      "text": "练",
+      "start_time": 482.794,
+      "end_time": 482.954
+    },
+    {
+      "text": "二",
+      "start_time": 482.954,
+      "end_time": 483.034
+    },
+    {
+      "text": "四",
+      "start_time": 483.034,
+      "end_time": 483.194
+    },
+    {
+      "text": "层",
+      "start_time": 483.194,
+      "end_time": 483.354
+    },
+    {
+      "text": "的",
+      "start_time": 483.354,
+      "end_time": 483.434
+    },
+    {
+      "text": "金",
+      "start_time": 483.434,
+      "end_time": 483.594
+    },
+    {
+      "text": "字",
+      "start_time": 483.594,
+      "end_time": 483.674
+    },
+    {
+      "text": "塔",
+      "start_time": 483.674,
+      "end_time": 483.914
+    },
+    {
+      "text": "比",
+      "start_time": 486.474,
+      "end_time": 486.554
+    },
+    {
+      "text": "训",
+      "start_time": 486.554,
+      "end_time": 486.714
+    },
+    {
+      "text": "练",
+      "start_time": 486.714,
+      "end_time": 486.874
+    },
+    {
+      "text": "两",
+      "start_time": 486.874,
+      "end_time": 486.954
+    },
+    {
+      "text": "层",
+      "start_time": 486.954,
+      "end_time": 487.114
+    },
+    {
+      "text": "的",
+      "start_time": 487.114,
+      "end_time": 487.194
+    },
+    {
+      "text": "香",
+      "start_time": 487.194,
+      "end_time": 487.354
+    },
+    {
+      "text": "草",
+      "start_time": 487.354,
+      "end_time": 487.434
+    },
+    {
+      "text": "Transformer",
+      "start_time": 487.434,
+      "end_time": 488.074
+    },
+    {
+      "text": "在",
+      "start_time": 488.074,
+      "end_time": 488.154
+    },
+    {
+      "text": "如",
+      "start_time": 488.154,
+      "end_time": 488.314
+    },
+    {
+      "text": "此",
+      "start_time": 488.314,
+      "end_time": 488.474
+    },
+    {
+      "text": "长",
+      "start_time": 488.474,
+      "end_time": 488.634
+    },
+    {
+      "text": "的",
+      "start_time": 488.634,
+      "end_time": 488.714
+    },
+    {
+      "text": "输",
+      "start_time": 488.714,
+      "end_time": 488.874
+    },
+    {
+      "text": "入",
+      "start_time": 488.874,
+      "end_time": 488.954
+    },
+    {
+      "text": "上",
+      "start_time": 488.954,
+      "end_time": 489.114
+    },
+    {
+      "text": "成",
+      "start_time": 489.114,
+      "end_time": 489.274
+    },
+    {
+      "text": "本",
+      "start_time": 489.274,
+      "end_time": 489.434
+    },
+    {
+      "text": "更",
+      "start_time": 489.434,
+      "end_time": 489.594
+    },
+    {
+      "text": "低",
+      "start_time": 489.594,
+      "end_time": 489.754
+    },
+    {
+      "text": "更",
+      "start_time": 494.154,
+      "end_time": 494.394
+    },
+    {
+      "text": "不",
+      "start_time": 494.394,
+      "end_time": 494.394
+    },
+    {
+      "text": "用",
+      "start_time": 494.394,
+      "end_time": 494.474
+    },
+    {
+      "text": "说",
+      "start_time": 494.474,
+      "end_time": 494.634
+    },
+    {
+      "text": "香",
+      "start_time": 494.634,
+      "end_time": 494.874
+    },
+    {
+      "text": "草",
+      "start_time": 494.874,
+      "end_time": 495.034
+    },
+    {
+      "text": "Transformer",
+      "start_time": 495.034,
+      "end_time": 495.594
+    },
+    {
+      "text": "很",
+      "start_time": 495.594,
+      "end_time": 495.594
+    },
+    {
+      "text": "容",
+      "start_time": 495.594,
+      "end_time": 495.754
+    },
+    {
+      "text": "易",
+      "start_time": 495.754,
+      "end_time": 495.834
+    },
+    {
+      "text": "就",
+      "start_time": 495.834,
+      "end_time": 495.994
+    },
+    {
+      "text": "会",
+      "start_time": 495.994,
+      "end_time": 496.074
+    },
+    {
+      "text": "内",
+      "start_time": 496.074,
+      "end_time": 496.234
+    },
+    {
+      "text": "存",
+      "start_time": 496.234,
+      "end_time": 496.394
+    },
+    {
+      "text": "溢",
+      "start_time": 496.394,
+      "end_time": 496.474
+    },
+    {
+      "text": "出",
+      "start_time": 496.474,
+      "end_time": 496.794
+    },
+    {
+      "text": "对",
+      "start_time": 496.954,
+      "end_time": 497.114
+    },
+    {
+      "text": "于",
+      "start_time": 497.114,
+      "end_time": 497.194
+    },
+    {
+      "text": "这",
+      "start_time": 497.194,
+      "end_time": 497.274
+    },
+    {
+      "text": "么",
+      "start_time": 497.274,
+      "end_time": 497.354
+    },
+    {
+      "text": "长",
+      "start_time": 497.354,
+      "end_time": 497.514
+    },
+    {
+      "text": "的",
+      "start_time": 497.514,
+      "end_time": 497.594
+    },
+    {
+      "text": "输",
+      "start_time": 497.594,
+      "end_time": 497.754
+    },
+    {
+      "text": "入",
+      "start_time": 497.754,
+      "end_time": 497.914
+    },
+    {
+      "text": "我",
+      "start_time": 501.834,
+      "end_time": 501.914
+    },
+    {
+      "text": "们",
+      "start_time": 501.914,
+      "end_time": 501.994
+    },
+    {
+      "text": "训",
+      "start_time": 501.994,
+      "end_time": 502.234
+    },
+    {
+      "text": "练",
+      "start_time": 502.234,
+      "end_time": 502.394
+    },
+    {
+      "text": "的",
+      "start_time": 502.394,
+      "end_time": 502.394
+    },
+    {
+      "text": "深",
+      "start_time": 502.474,
+      "end_time": 502.634
+    },
+    {
+      "text": "度",
+      "start_time": 502.634,
+      "end_time": 502.794
+    },
+    {
+      "text": "金",
+      "start_time": 502.794,
+      "end_time": 502.874
+    },
+    {
+      "text": "字",
+      "start_time": 502.874,
+      "end_time": 502.954
+    },
+    {
+      "text": "塔",
+      "start_time": 502.954,
+      "end_time": 503.114
+    },
+    {
+      "text": "模",
+      "start_time": 503.114,
+      "end_time": 503.274
+    },
+    {
+      "text": "型",
+      "start_time": 503.274,
+      "end_time": 503.434
+    },
+    {
+      "text": "的",
+      "start_time": 503.434,
+      "end_time": 503.514
+    },
+    {
+      "text": "定",
+      "start_time": 503.514,
+      "end_time": 503.674
+    },
+    {
+      "text": "性",
+      "start_time": 503.674,
+      "end_time": 503.834
+    },
+    {
+      "text": "比",
+      "start_time": 503.834,
+      "end_time": 503.914
+    },
+    {
+      "text": "较",
+      "start_time": 503.914,
+      "end_time": 504.234
+    },
+    {
+      "text": "是",
+      "start_time": 506.394,
+      "end_time": 506.554
+    },
+    {
+      "text": "在",
+      "start_time": 506.554,
+      "end_time": 506.714
+    },
+    {
+      "text": "长",
+      "start_time": 506.714,
+      "end_time": 506.954
+    },
+    {
+      "text": "文",
+      "start_time": 506.954,
+      "end_time": 507.034
+    },
+    {
+      "text": "档",
+      "start_time": 507.034,
+      "end_time": 507.194
+    },
+    {
+      "text": "总",
+      "start_time": 507.194,
+      "end_time": 507.274
+    },
+    {
+      "text": "结",
+      "start_time": 507.274,
+      "end_time": 507.434
+    },
+    {
+      "text": "任",
+      "start_time": 507.434,
+      "end_time": 507.514
+    },
+    {
+      "text": "务",
+      "start_time": 507.514,
+      "end_time": 507.674
+    },
+    {
+      "text": "上",
+      "start_time": 507.674,
+      "end_time": 507.834
+    },
+    {
+      "text": "进",
+      "start_time": 507.834,
+      "end_time": 507.914
+    },
+    {
+      "text": "行",
+      "start_time": 507.914,
+      "end_time": 508.074
+    },
+    {
+      "text": "的",
+      "start_time": 508.074,
+      "end_time": 508.234
+    },
+    {
+      "text": "给",
+      "start_time": 510.234,
+      "end_time": 510.314
+    },
+    {
+      "text": "定",
+      "start_time": 510.314,
+      "end_time": 510.474
+    },
+    {
+      "text": "X",
+      "start_time": 510.474,
+      "end_time": 510.634
+    },
+    {
+      "text": "或",
+      "start_time": 510.874,
+      "end_time": 510.954
+    },
+    {
+      "text": "PubMed",
+      "start_time": 510.954,
+      "end_time": 511.354
+    },
+    {
+      "text": "上",
+      "start_time": 511.434,
+      "end_time": 511.514
+    },
+    {
+      "text": "的",
+      "start_time": 511.514,
+      "end_time": 511.594
+    },
+    {
+      "text": "一",
+      "start_time": 511.594,
+      "end_time": 511.674
+    },
+    {
+      "text": "篇",
+      "start_time": 511.674,
+      "end_time": 511.834
+    },
+    {
+      "text": "文",
+      "start_time": 511.834,
+      "end_time": 511.914
+    },
+    {
+      "text": "章",
+      "start_time": 511.914,
+      "end_time": 512.074
+    },
+    {
+      "text": "的",
+      "start_time": 512.074,
+      "end_time": 512.154
+    },
+    {
+      "text": "主",
+      "start_time": 512.154,
+      "end_time": 512.314
+    },
+    {
+      "text": "体",
+      "start_time": 512.314,
+      "end_time": 512.394
+    },
+    {
+      "text": "部",
+      "start_time": 512.394,
+      "end_time": 512.554
+    },
+    {
+      "text": "分",
+      "start_time": 512.554,
+      "end_time": 512.714
+    },
+    {
+      "text": "任",
+      "start_time": 512.954,
+      "end_time": 513.194
+    },
+    {
+      "text": "务",
+      "start_time": 513.194,
+      "end_time": 513.274
+    },
+    {
+      "text": "是",
+      "start_time": 513.274,
+      "end_time": 513.354
+    },
+    {
+      "text": "生",
+      "start_time": 513.354,
+      "end_time": 513.514
+    },
+    {
+      "text": "成",
+      "start_time": 513.514,
+      "end_time": 513.674
+    },
+    {
+      "text": "其",
+      "start_time": 513.674,
+      "end_time": 513.834
+    },
+    {
+      "text": "摘",
+      "start_time": 513.834,
+      "end_time": 514.074
+    },
+    {
+      "text": "要",
+      "start_time": 514.074,
+      "end_time": 514.074
+    },
+    {
+      "text": "可",
+      "start_time": 515.994,
+      "end_time": 516.154
+    },
+    {
+      "text": "以",
+      "start_time": 516.154,
+      "end_time": 516.234
+    },
+    {
+      "text": "看",
+      "start_time": 516.234,
+      "end_time": 516.394
+    },
+    {
+      "text": "到",
+      "start_time": 516.394,
+      "end_time": 516.634
+    },
+    {
+      "text": "逐",
+      "start_time": 519.194,
+      "end_time": 519.354
+    },
+    {
+      "text": "块",
+      "start_time": 519.354,
+      "end_time": 519.514
+    },
+    {
+      "text": "处",
+      "start_time": 519.594,
+      "end_time": 519.674
+    },
+    {
+      "text": "理",
+      "start_time": 519.674,
+      "end_time": 519.834
+    },
+    {
+      "text": "是",
+      "start_time": 519.834,
+      "end_time": 519.914
+    },
+    {
+      "text": "我",
+      "start_time": 519.914,
+      "end_time": 519.994
+    },
+    {
+      "text": "们",
+      "start_time": 519.994,
+      "end_time": 520.074
+    },
+    {
+      "text": "的",
+      "start_time": 520.074,
+      "end_time": 520.154
+    },
+    {
+      "text": "极",
+      "start_time": 520.154,
+      "end_time": 520.394
+    },
+    {
+      "text": "限",
+      "start_time": 520.394,
+      "end_time": 520.554
+    },
+    {
+      "text": "其",
+      "start_time": 523.194,
+      "end_time": 523.354
+    },
+    {
+      "text": "性",
+      "start_time": 523.354,
+      "end_time": 523.514
+    },
+    {
+      "text": "能",
+      "start_time": 523.514,
+      "end_time": 523.674
+    },
+    {
+      "text": "与",
+      "start_time": 523.674,
+      "end_time": 523.674
+    },
+    {
+      "text": "最",
+      "start_time": 523.674,
+      "end_time": 523.834
+    },
+    {
+      "text": "新",
+      "start_time": 523.834,
+      "end_time": 523.994
+    },
+    {
+      "text": "技",
+      "start_time": 523.994,
+      "end_time": 524.154
+    },
+    {
+      "text": "术",
+      "start_time": 524.154,
+      "end_time": 524.234
+    },
+    {
+      "text": "水",
+      "start_time": 524.234,
+      "end_time": 524.394
+    },
+    {
+      "text": "平",
+      "start_time": 524.394,
+      "end_time": 524.554
+    },
+    {
+      "text": "相",
+      "start_time": 524.554,
+      "end_time": 524.714
+    },
+    {
+      "text": "当",
+      "start_time": 524.714,
+      "end_time": 524.954
+    },
+    {
+      "text": "而",
+      "start_time": 530.434,
+      "end_time": 530.514
+    },
+    {
+      "text": "深",
+      "start_time": 530.514,
+      "end_time": 530.754
+    },
+    {
+      "text": "度",
+      "start_time": 530.754,
+      "end_time": 530.834
+    },
+    {
+      "text": "金",
+      "start_time": 530.834,
+      "end_time": 530.994
+    },
+    {
+      "text": "字",
+      "start_time": 530.994,
+      "end_time": 531.074
+    },
+    {
+      "text": "塔",
+      "start_time": 531.074,
+      "end_time": 531.234
+    },
+    {
+      "text": "模",
+      "start_time": 531.234,
+      "end_time": 531.394
+    },
+    {
+      "text": "型",
+      "start_time": 531.394,
+      "end_time": 531.554
+    },
+    {
+      "text": "则",
+      "start_time": 531.554,
+      "end_time": 531.714
+    },
+    {
+      "text": "保",
+      "start_time": 531.714,
+      "end_time": 531.874
+    },
+    {
+      "text": "持",
+      "start_time": 531.874,
+      "end_time": 532.034
+    },
+    {
+      "text": "或",
+      "start_time": 532.034,
+      "end_time": 532.194
+    },
+    {
+      "text": "提",
+      "start_time": 532.194,
+      "end_time": 532.354
+    },
+    {
+      "text": "高",
+      "start_time": 532.354,
+      "end_time": 532.514
+    },
+    {
+      "text": "了",
+      "start_time": 532.514,
+      "end_time": 532.594
+    },
+    {
+      "text": "这",
+      "start_time": 532.594,
+      "end_time": 532.754
+    },
+    {
+      "text": "一",
+      "start_time": 532.754,
+      "end_time": 532.834
+    },
+    {
+      "text": "有",
+      "start_time": 532.834,
+      "end_time": 532.994
+    },
+    {
+      "text": "竞",
+      "start_time": 532.994,
+      "end_time": 533.234
+    },
+    {
+      "text": "争",
+      "start_time": 533.234,
+      "end_time": 533.314
+    },
+    {
+      "text": "力",
+      "start_time": 533.314,
+      "end_time": 533.394
+    },
+    {
+      "text": "的",
+      "start_time": 533.394,
+      "end_time": 533.554
+    },
+    {
+      "text": "基",
+      "start_time": 533.554,
+      "end_time": 533.714
+    },
+    {
+      "text": "线",
+      "start_time": 533.714,
+      "end_time": 533.794
+    },
+    {
+      "text": "的",
+      "start_time": 533.794,
+      "end_time": 533.874
+    },
+    {
+      "text": "性",
+      "start_time": 533.874,
+      "end_time": 534.114
+    },
+    {
+      "text": "能",
+      "start_time": 534.114,
+      "end_time": 534.114
+    },
+    {
+      "text": "同",
+      "start_time": 534.194,
+      "end_time": 534.354
+    },
+    {
+      "text": "时",
+      "start_time": 534.354,
+      "end_time": 534.674
+    },
+    {
+      "text": "我",
+      "start_time": 537.234,
+      "end_time": 537.234
+    },
+    {
+      "text": "们",
+      "start_time": 537.234,
+      "end_time": 537.394
+    },
+    {
+      "text": "的",
+      "start_time": 537.394,
+      "end_time": 537.474
+    },
+    {
+      "text": "模",
+      "start_time": 537.474,
+      "end_time": 537.634
+    },
+    {
+      "text": "型",
+      "start_time": 537.634,
+      "end_time": 537.874
+    },
+    {
+      "text": "训",
+      "start_time": 537.874,
+      "end_time": 538.034
+    },
+    {
+      "text": "练",
+      "start_time": 538.034,
+      "end_time": 538.114
+    },
+    {
+      "text": "速",
+      "start_time": 538.114,
+      "end_time": 538.354
+    },
+    {
+      "text": "度",
+      "start_time": 538.354,
+      "end_time": 538.514
+    },
+    {
+      "text": "快",
+      "start_time": 538.514,
+      "end_time": 538.674
+    },
+    {
+      "text": "了",
+      "start_time": 538.674,
+      "end_time": 538.754
+    },
+    {
+      "text": "80",
+      "start_time": 538.754,
+      "end_time": 539.074
+    },
+    {
+      "text": "推",
+      "start_time": 539.074,
+      "end_time": 539.074
+    },
+    {
+      "text": "理",
+      "start_time": 541.874,
+      "end_time": 542.034
+    },
+    {
+      "text": "速",
+      "start_time": 542.034,
+      "end_time": 542.194
+    },
+    {
+      "text": "度",
+      "start_time": 542.194,
+      "end_time": 542.274
+    },
+    {
+      "text": "快",
+      "start_time": 542.274,
+      "end_time": 542.514
+    },
+    {
+      "text": "了",
+      "start_time": 542.514,
+      "end_time": 542.594
+    },
+    {
+      "text": "450",
+      "start_time": 542.594,
+      "end_time": 543.234
+    },
+    {
+      "text": "以",
+      "start_time": 543.474,
+      "end_time": 543.554
+    },
+    {
+      "text": "上",
+      "start_time": 543.554,
+      "end_time": 543.794
+    },
+    {
+      "text": "与",
+      "start_time": 544.514,
+      "end_time": 544.594
+    },
+    {
+      "text": "逐",
+      "start_time": 544.594,
+      "end_time": 544.754
+    },
+    {
+      "text": "块",
+      "start_time": 544.754,
+      "end_time": 544.914
+    },
+    {
+      "text": "基",
+      "start_time": 544.914,
+      "end_time": 545.074
+    },
+    {
+      "text": "线",
+      "start_time": 545.074,
+      "end_time": 545.234
+    },
+    {
+      "text": "模",
+      "start_time": 545.234,
+      "end_time": 545.314
+    },
+    {
+      "text": "型",
+      "start_time": 545.394,
+      "end_time": 545.474
+    },
+    {
+      "text": "相",
+      "start_time": 545.474,
+      "end_time": 545.714
+    },
+    {
+      "text": "比",
+      "start_time": 545.714,
+      "end_time": 545.874
+    },
+    {
+      "text": "两",
+      "start_time": 548.674,
+      "end_time": 548.914
+    },
+    {
+      "text": "个",
+      "start_time": 548.914,
+      "end_time": 548.994
+    },
+    {
+      "text": "模",
+      "start_time": 548.994,
+      "end_time": 549.154
+    },
+    {
+      "text": "型",
+      "start_time": 549.154,
+      "end_time": 549.314
+    },
+    {
+      "text": "的",
+      "start_time": 549.314,
+      "end_time": 549.394
+    },
+    {
+      "text": "参",
+      "start_time": 549.394,
+      "end_time": 549.554
+    },
+    {
+      "text": "数",
+      "start_time": 549.554,
+      "end_time": 549.714
+    },
+    {
+      "text": "数",
+      "start_time": 549.714,
+      "end_time": 549.874
+    },
+    {
+      "text": "量",
+      "start_time": 549.874,
+      "end_time": 550.034
+    },
+    {
+      "text": "都",
+      "start_time": 550.034,
+      "end_time": 550.194
+    },
+    {
+      "text": "要",
+      "start_time": 550.194,
+      "end_time": 550.274
+    },
+    {
+      "text": "低",
+      "start_time": 550.274,
+      "end_time": 550.434
+    },
+    {
+      "text": "得",
+      "start_time": 550.434,
+      "end_time": 550.594
+    },
+    {
+      "text": "多",
+      "start_time": 550.594,
+      "end_time": 550.834
+    },
+    {
+      "text": "并",
+      "start_time": 552.114,
+      "end_time": 552.194
+    },
+    {
+      "text": "且",
+      "start_time": 552.194,
+      "end_time": 552.354
+    },
+    {
+      "text": "都",
+      "start_time": 552.354,
+      "end_time": 552.434
+    },
+    {
+      "text": "是",
+      "start_time": 552.434,
+      "end_time": 552.514
+    },
+    {
+      "text": "在",
+      "start_time": 552.514,
+      "end_time": 552.674
+    },
+    {
+      "text": "选",
+      "start_time": 552.674,
+      "end_time": 552.914
+    },
+    {
+      "text": "定",
+      "start_time": 552.914,
+      "end_time": 552.994
+    },
+    {
+      "text": "的",
+      "start_time": 552.994,
+      "end_time": 553.074
+    },
+    {
+      "text": "任",
+      "start_time": 553.074,
+      "end_time": 553.234
+    },
+    {
+      "text": "务",
+      "start_time": 553.234,
+      "end_time": 553.314
+    },
+    {
+      "text": "上",
+      "start_time": 553.314,
+      "end_time": 553.474
+    },
+    {
+      "text": "从",
+      "start_time": 553.474,
+      "end_time": 553.714
+    },
+    {
+      "text": "零",
+      "start_time": 553.714,
+      "end_time": 553.794
+    },
+    {
+      "text": "开",
+      "start_time": 553.794,
+      "end_time": 553.954
+    },
+    {
+      "text": "始",
+      "start_time": 553.954,
+      "end_time": 554.034
+    },
+    {
+      "text": "训",
+      "start_time": 554.034,
+      "end_time": 554.274
+    },
+    {
+      "text": "练",
+      "start_time": 554.274,
+      "end_time": 554.434
+    },
+    {
+      "text": "之",
+      "start_time": 558.434,
+      "end_time": 558.514
+    },
+    {
+      "text": "前",
+      "start_time": 558.514,
+      "end_time": 558.674
+    },
+    {
+      "text": "为",
+      "start_time": 558.674,
+      "end_time": 558.834
+    },
+    {
+      "text": "了",
+      "start_time": 558.834,
+      "end_time": 558.994
+    },
+    {
+      "text": "达",
+      "start_time": 558.994,
+      "end_time": 559.154
+    },
+    {
+      "text": "到",
+      "start_time": 559.154,
+      "end_time": 559.234
+    },
+    {
+      "text": "类",
+      "start_time": 559.234,
+      "end_time": 559.394
+    },
+    {
+      "text": "似",
+      "start_time": 559.394,
+      "end_time": 559.634
+    },
+    {
+      "text": "的",
+      "start_time": 559.634,
+      "end_time": 559.714
+    },
+    {
+      "text": "性",
+      "start_time": 559.714,
+      "end_time": 559.874
+    },
+    {
+      "text": "能",
+      "start_time": 559.874,
+      "end_time": 560.114
+    },
+    {
+      "text": "不",
+      "start_time": 561.234,
+      "end_time": 561.314
+    },
+    {
+      "text": "得",
+      "start_time": 561.314,
+      "end_time": 561.394
+    },
+    {
+      "text": "不",
+      "start_time": 561.394,
+      "end_time": 561.554
+    },
+    {
+      "text": "使",
+      "start_time": 561.554,
+      "end_time": 561.714
+    },
+    {
+      "text": "用",
+      "start_time": 561.714,
+      "end_time": 561.794
+    },
+    {
+      "text": "更",
+      "start_time": 561.794,
+      "end_time": 561.954
+    },
+    {
+      "text": "多",
+      "start_time": 561.954,
+      "end_time": 562.114
+    },
+    {
+      "text": "的",
+      "start_time": 562.114,
+      "end_time": 562.194
+    },
+    {
+      "text": "参",
+      "start_time": 562.194,
+      "end_time": 562.354
+    },
+    {
+      "text": "数",
+      "start_time": 562.434,
+      "end_time": 562.594
+    },
+    {
+      "text": "并",
+      "start_time": 564.914,
+      "end_time": 565.074
+    },
+    {
+      "text": "利",
+      "start_time": 565.074,
+      "end_time": 565.234
+    },
+    {
+      "text": "用",
+      "start_time": 565.234,
+      "end_time": 565.314
+    },
+    {
+      "text": "预",
+      "start_time": 565.314,
+      "end_time": 565.474
+    },
+    {
+      "text": "训",
+      "start_time": 565.474,
+      "end_time": 565.634
+    },
+    {
+      "text": "练",
+      "start_time": 565.634,
+      "end_time": 565.714
+    },
+    {
+      "text": "的",
+      "start_time": 565.714,
+      "end_time": 565.874
+    },
+    {
+      "text": "基",
+      "start_time": 565.874,
+      "end_time": 566.034
+    },
+    {
+      "text": "础",
+      "start_time": 566.034,
+      "end_time": 566.194
+    },
+    {
+      "text": "模",
+      "start_time": 566.194,
+      "end_time": 566.274
+    },
+    {
+      "text": "型",
+      "start_time": 566.274,
+      "end_time": 566.434
+    },
+    {
+      "text": "和",
+      "start_time": 567.394,
+      "end_time": 567.554
+    },
+    {
+      "text": "额",
+      "start_time": 567.554,
+      "end_time": 567.794
+    },
+    {
+      "text": "外",
+      "start_time": 567.794,
+      "end_time": 567.794
+    },
+    {
+      "text": "的",
+      "start_time": 567.794,
+      "end_time": 567.954
+    },
+    {
+      "text": "语",
+      "start_time": 567.954,
+      "end_time": 568.114
+    },
+    {
+      "text": "言",
+      "start_time": 568.114,
+      "end_time": 568.194
+    },
+    {
+      "text": "预",
+      "start_time": 568.194,
+      "end_time": 568.274
+    },
+    {
+      "text": "训",
+      "start_time": 568.274,
+      "end_time": 568.434
+    },
+    {
+      "text": "练",
+      "start_time": 568.434,
+      "end_time": 568.674
+    },
+    {
+      "text": "旨",
+      "start_time": 570.674,
+      "end_time": 570.754
+    },
+    {
+      "text": "在",
+      "start_time": 570.754,
+      "end_time": 570.914
+    },
+    {
+      "text": "达",
+      "start_time": 570.914,
+      "end_time": 570.994
+    },
+    {
+      "text": "到",
+      "start_time": 570.994,
+      "end_time": 571.154
+    },
+    {
+      "text": "类",
+      "start_time": 571.154,
+      "end_time": 571.314
+    },
+    {
+      "text": "似",
+      "start_time": 571.314,
+      "end_time": 571.474
+    },
+    {
+      "text": "的",
+      "start_time": 571.474,
+      "end_time": 571.474
+    },
+    {
+      "text": "性",
+      "start_time": 571.474,
+      "end_time": 571.794
+    },
+    {
+      "text": "能",
+      "start_time": 571.794,
+      "end_time": 571.794
+    },
+    {
+      "text": "欢",
+      "start_time": 576.594,
+      "end_time": 576.754
+    },
+    {
+      "text": "迎",
+      "start_time": 576.754,
+      "end_time": 576.834
+    },
+    {
+      "text": "大",
+      "start_time": 576.834,
+      "end_time": 576.914
+    },
+    {
+      "text": "家",
+      "start_time": 576.914,
+      "end_time": 577.074
+    },
+    {
+      "text": "阅",
+      "start_time": 577.074,
+      "end_time": 577.234
+    },
+    {
+      "text": "读",
+      "start_time": 577.234,
+      "end_time": 577.394
+    },
+    {
+      "text": "我",
+      "start_time": 577.394,
+      "end_time": 577.474
+    },
+    {
+      "text": "们",
+      "start_time": 577.474,
+      "end_time": 577.554
+    },
+    {
+      "text": "的",
+      "start_time": 577.554,
+      "end_time": 577.634
+    },
+    {
+      "text": "全",
+      "start_time": 577.634,
+      "end_time": 577.874
+    },
+    {
+      "text": "文",
+      "start_time": 577.874,
+      "end_time": 578.114
+    },
+    {
+      "text": "并",
+      "start_time": 578.434,
+      "end_time": 578.594
+    },
+    {
+      "text": "使",
+      "start_time": 578.594,
+      "end_time": 578.754
+    },
+    {
+      "text": "用",
+      "start_time": 578.754,
+      "end_time": 578.834
+    },
+    {
+      "text": "我",
+      "start_time": 578.834,
+      "end_time": 578.914
+    },
+    {
+      "text": "们",
+      "start_time": 578.914,
+      "end_time": 579.074
+    },
+    {
+      "text": "的",
+      "start_time": 579.074,
+      "end_time": 579.154
+    },
+    {
+      "text": "GitHub",
+      "start_time": 579.154,
+      "end_time": 579.554
+    },
+    {
+      "text": "代",
+      "start_time": 579.554,
+      "end_time": 579.714
+    },
+    {
+      "text": "码",
+      "start_time": 579.714,
+      "end_time": 579.794
+    },
+    {
+      "text": "感",
+      "start_time": 580.914,
+      "end_time": 581.074
+    },
+    {
+      "text": "谢",
+      "start_time": 581.074,
+      "end_time": 581.234
+    },
+    {
+      "text": "您",
+      "start_time": 581.234,
+      "end_time": 581.394
+    },
+    {
+      "text": "的",
+      "start_time": 581.394,
+      "end_time": 581.554
+    },
+    {
+      "text": "观",
+      "start_time": 581.554,
+      "end_time": 581.714
+    },
+    {
+      "text": "看",
+      "start_time": 581.714,
+      "end_time": 581.794
+    }
+  ]
+}
