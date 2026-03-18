@@ -169,6 +169,14 @@ class EndingOffsetScorer:
 def evaluate_instances(
     resegmented_instances: List[Instance], tokenizer: str
 ) -> Dict[str, float]:
+    # 防线：空 source 或空 prediction 的 instance 不参与 latency/quality 计分
+    resegmented_instances = [
+        ins
+        for ins in resegmented_instances
+        if (getattr(ins, "source", "") or "").strip()
+        and (getattr(ins, "prediction", "") or "").strip()
+    ]
+    
     ca_unaware_yaal_scorer = YAALScorer(is_longform=True, force_unit_target_len=True)
     ca_aware_yaal_scorer = YAALScorer(
         computation_aware=True, is_longform=True, force_unit_target_len=True
