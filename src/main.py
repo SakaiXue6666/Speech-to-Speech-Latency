@@ -15,7 +15,11 @@ from src.asr import step1_asr
 from src.asr import step1_asr_vllm
 from src.alignment import step2_segale
 from src.evaluation import step3_longyaal
-from pipeline_plot_ending_offset_delay import ending_offset_delay
+from pipeline_plot_ending_offset_delay import (
+    ending_offset_delay,
+    delay_span_vs_source_length,
+    tgt_minus_src_length_histogram,
+)
 
 import argparse
 import json
@@ -154,32 +158,32 @@ def main():
     # ================================================================
     # 都会生成文件的，想单独跑某step：注释其他steps就好
 
-    # step1 asr -------------------------------------------------------
-    print("\n" + "=" * 60)
-    print("Starting ASR...")
-    if asr_backend == "vllm":
-        step1_asr_vllm(
-            manifest=manifest,
-            tgt_language=tgt_language,
-            out_dir=output_dir_asr,
-            batch_size=batch_size,
-            max_new_tokens=max_new_tokens,
-            gpu_memory_utilization=0.7,
-        )
-    else:
-        step1_asr(
-            manifest=manifest,
-            tgt_language=tgt_language,
-            out_dir=output_dir_asr,
-            batch_size=batch_size,
-            max_new_tokens=max_new_tokens,
-        )
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    print("ASR finished.")
+    # # step1 asr -------------------------------------------------------
+    # print("\n" + "=" * 60)
+    # print("Starting ASR...")
+    # if asr_backend == "vllm":
+    #     step1_asr_vllm(
+    #         manifest=manifest,
+    #         tgt_language=tgt_language,
+    #         out_dir=output_dir_asr,
+    #         batch_size=batch_size,
+    #         max_new_tokens=max_new_tokens,
+    #         gpu_memory_utilization=0.7,
+    #     )
+    # else:
+    #     step1_asr(
+    #         manifest=manifest,
+    #         tgt_language=tgt_language,
+    #         out_dir=output_dir_asr,
+    #         batch_size=batch_size,
+    #         max_new_tokens=max_new_tokens,
+    #     )
+    # gc.collect()
+    # if torch.cuda.is_available():
+    #     torch.cuda.empty_cache()
+    # print("ASR finished.")
 
-    # ---------------------------------------------------------------
+    # # ---------------------------------------------------------------
     # # 中间过程，算 asr 的 unit 索引 
     # add_char_spans_for_dir(
     #     output_dir_asr,
@@ -229,11 +233,22 @@ def main():
     # print("Longyaal finished.")
 
     # # ending offset delay ---------------------------------------------------------------
-    # ending_offset_delay(
-    #     instances=os.path.join(output_dir_longyaal, "instances.resegmented.json"),
-    #     out_png=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.png"),
-    #     out_csv=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.csv"),
-    # )
+    ending_offset_delay(
+        instances=os.path.join(output_dir_longyaal, "instances.resegmented.json"),
+        out_png=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.png"),
+        out_csv=os.path.join(output_dir_longyaal, "last_delay_minus_recording_end.csv"),
+    )
+    delay_span_vs_source_length(
+        instances=os.path.join(output_dir_longyaal, "instances.resegmented.json"),
+        out_png=os.path.join(output_dir_longyaal, "delay_span_vs_source_length.png")
+    )
+    tgt_minus_src_length_histogram(
+        instances=os.path.join(output_dir_longyaal, "instances.resegmented.json"),
+        out_png=os.path.join(output_dir_longyaal, "tgt_minus_src_length_histogram.png"),
+        src_lang=src_lang,
+        tgt_lang=tgt_lang,
+        only_doc_ids=("110", "117"),  # 仅某几个 acl-long 音频；不要则注释掉或传 None
+    )
 
 if __name__ == "__main__":
     main()
