@@ -1,0 +1,4 @@
+[console_scripts]
+segale-align = segale_align:main
+segale-eval = segale_eval:main
+vecalign = vecalign.vecalign:_main

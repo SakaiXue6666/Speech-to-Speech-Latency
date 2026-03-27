@@ -2707,91 +2707,6 @@
   {
     "index": 26,
     "doc_id": "2022.acl-long.268.wav",
-    "seg_id": 27,
-    "source": "",
-    "reference": "",
-    "source_length": 6696.0,
-    "delays": [
-      37455.0,
-      37775.0,
-      38095.0,
-      38095.0,
-      38255.0,
-      38415.0,
-      38815.0,
-      39535.0,
-      39695.0,
-      40175.0,
-      40175.0,
-      40655.0,
-      40815.0,
-      41055.0,
-      41295.0,
-      41455.0,
-      41935.0,
-      42095.0,
-      42255.0,
-      42735.0
-    ],
-    "elapsed": [
-      37455.0,
-      37775.0,
-      38095.0,
-      38095.0,
-      38255.0,
-      38415.0,
-      38815.0,
-      39535.0,
-      39695.0,
-      40175.0,
-      40175.0,
-      40655.0,
-      40815.0,
-      41055.0,
-      41295.0,
-      41455.0,
-      41935.0,
-      42095.0,
-      42255.0,
-      42735.0
-    ],
-    "recording_end": 6696.0,
-    "_compact_u_start": 685,
-    "_compact_u_end": 705,
-    "_raw_u_start": 685,
-    "_raw_u_end": 705,
-    "_seg_start_ms": 181441.0,
-    "_seg_end_ms": 188137.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 2,
-    "prediction": "語彙に投資したがてテクスの上部と下部の三つの区切りがあります。",
-    "raw_units": [
-      "語彙",
-      "に",
-      "投資",
-      "し",
-      "た",
-      "が",
-      "て",
-      "テクス",
-      "の",
-      "上部",
-      "と",
-      "下部",
-      "の",
-      "三",
-      "つ",
-      "の",
-      "区切り",
-      "が",
-      "あり",
-      "ます"
-    ]
-  },
-  {
-    "index": 27,
-    "doc_id": "2022.acl-long.268.wav",
     "seg_id": 28,
     "source": "Um, and as you can see, there are three spans of texts which are actually English words like bestseller, animal print and patchwork. These are the type of spans that we are interested in extracting and detecting.",
     "reference": "ご覧の通り、3つのスパンの テキスト、つまりベストセラー、アニマルプリント、パッチワークといった英語の単語があります。 これらは、抽出と検出が興味深いスパンのタイプです。",
@@ -2908,7 +2823,7 @@
     ]
   },
   {
-    "index": 28,
+    "index": 27,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 29,
     "source": "There has been previous word on Anglicism detection ah which consists consisted of a CRF model for Anglicism detection on Spanish Newswire.",
@@ -3002,7 +2917,7 @@
     ]
   },
   {
-    "index": 29,
+    "index": 28,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 30,
     "source": "This model achieved an F1 score of eighty six.",
@@ -3129,7 +3044,7 @@
     ]
   },
   {
-    "index": 30,
+    "index": 29,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 31,
     "source": "But there were some limitations both um in the dataset and the modeling approach.",
@@ -3190,7 +3105,7 @@
     ]
   },
   {
-    "index": 31,
+    "index": 30,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 32,
     "source": "So the dataset focused exclusively on one source of news, consisted only of headlines. And also there was an overlap in the borrowings that appear in the training set and the test set.",
@@ -3326,7 +3241,7 @@
     ]
   },
   {
-    "index": 32,
+    "index": 31,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 33,
     "source": "This prevented the assessment of whether the modeling approach could actually generalize to previously unseen borrowings.",
@@ -3447,7 +3362,7 @@
     ]
   },
   {
-    "index": 33,
+    "index": 32,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 34,
     "source": "So what we aim is to tackle some of these limitations in the task.",
@@ -3535,7 +3450,7 @@
     ]
   },
   {
-    "index": 34,
+    "index": 33,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 35,
     "source": "So to begin we, to begin with, we created a new dataset.",
@@ -3587,7 +3502,7 @@
     ]
   },
   {
-    "index": 35,
+    "index": 34,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 36,
     "source": "Ah the aim at a new dataset that was annotated with lexical borrowings and the aim was to create a test set that was as difficult as possible.",
@@ -3702,7 +3617,7 @@
     ]
   },
   {
-    "index": 36,
+    "index": 35,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 37,
     "source": "So there would be minimal overlap in words and topics between the training set and test set. And as a result, well, the test set comes from sources and dates that we're not seeing in the training set.",
@@ -3880,7 +3795,7 @@
     ]
   },
   {
-    "index": 37,
+    "index": 36,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 38,
     "source": "Here you can see that there's no overlap in the in the time.",
@@ -3935,7 +3850,7 @@
     ]
   },
   {
-    "index": 38,
+    "index": 37,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 39,
     "source": "It's also, the test set is also very borrowing-dense.",
@@ -4002,7 +3917,7 @@
     ]
   },
   {
-    "index": 39,
+    "index": 38,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 40,
     "source": "Just to give you some numbers, if the training set contains six borrowings per each thousand tokens, the test set contained twenty borrowings per each thousand tokens. The test set contained as many out of vocabulary words as possible.",
@@ -4174,7 +4089,7 @@
     ]
   },
   {
-    "index": 40,
+    "index": 39,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 41,
     "source": "In fact, ninety two percent of the borrowings in the test set are OOV. So, they were not seen during training.",
@@ -4325,7 +4240,7 @@
     ]
   },
   {
-    "index": 41,
+    "index": 40,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 42,
     "source": "And the corpus consisted basically of a collection of texts that came from different sources of Spanish newspapers.",
@@ -4446,7 +4361,7 @@
     ]
   },
   {
-    "index": 42,
+    "index": 41,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 43,
     "source": "And ah it was annotated by hand ah using two tags.",
@@ -4537,7 +4452,7 @@
     ]
   },
   {
-    "index": 43,
+    "index": 42,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 44,
     "source": "One for English lexical borrowings which is the majority of lexical borrowings in Spanish, and then the label other for borrowings from other languages.",
@@ -4709,50 +4624,7 @@
     ]
   },
   {
-    "index": 44,
-    "doc_id": "2022.acl-long.268.wav",
-    "seg_id": 45,
-    "source": "",
-    "reference": "",
-    "source_length": 7897.0,
-    "delays": [
-      77301.0,
-      77781.0,
-      77941.0,
-      78021.0,
-      78181.0,
-      78821.0
-    ],
-    "elapsed": [
-      77301.0,
-      77781.0,
-      77941.0,
-      78021.0,
-      78181.0,
-      78821.0
-    ],
-    "recording_end": 7897.0,
-    "_compact_u_start": 1203,
-    "_compact_u_end": 1209,
-    "_raw_u_start": 1203,
-    "_raw_u_end": 1209,
-    "_seg_start_ms": 312374.0,
-    "_seg_end_ms": 320271.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 1,
-    "prediction": "付加できるようにした。",
-    "raw_units": [
-      "付加",
-      "できる",
-      "よう",
-      "に",
-      "し",
-      "た"
-    ]
-  },
-  {
-    "index": 45,
+    "index": 43,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 46,
     "source": "We use CONLL formats and we used BIO encoding so that we could encode ah single token borrowings such as app or multi token borrowings such as machine learning.",
@@ -4825,53 +4697,7 @@
     ]
   },
   {
-    "index": 46,
-    "doc_id": "2022.acl-long.268.wav",
-    "seg_id": 47,
-    "source": "",
-    "reference": "",
-    "source_length": 12367.0,
-    "delays": [
-      77304.0,
-      78504.0,
-      78584.0,
-      78744.0,
-      78904.0,
-      78984.0,
-      79384.0
-    ],
-    "elapsed": [
-      77304.0,
-      78504.0,
-      78584.0,
-      78744.0,
-      78904.0,
-      78984.0,
-      79384.0
-    ],
-    "recording_end": 12367.0,
-    "_compact_u_start": 1225,
-    "_compact_u_end": 1232,
-    "_raw_u_start": 1225,
-    "_raw_u_end": 1232,
-    "_seg_start_ms": 320371.0,
-    "_seg_end_ms": 332738.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 2,
-    "prediction": "例えばマチニングというようなもの。",
-    "raw_units": [
-      "例えば",
-      "マチニング",
-      "と",
-      "いう",
-      "よう",
-      "な",
-      "もの"
-    ]
-  },
-  {
-    "index": 47,
+    "index": 44,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 48,
     "source": "These are the numbers of the corpus.",
@@ -4917,7 +4743,7 @@
     ]
   },
   {
-    "index": 48,
+    "index": 45,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 49,
     "source": "As you can see, it amounts to roughly three hundred seventy thousand tokens.",
@@ -4981,7 +4807,7 @@
     ]
   },
   {
-    "index": 49,
+    "index": 46,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 50,
     "source": "And here you have the number of spans that were labeled as English and the spans that were labeled as other borrowings and how many of them were unique.",
@@ -5144,7 +4970,7 @@
     ]
   },
   {
-    "index": 50,
+    "index": 47,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 51,
     "source": "And here you have a couple of examples of the of the set of the dataset.",
@@ -5226,7 +5052,7 @@
     ]
   },
   {
-    "index": 51,
+    "index": 48,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 52,
     "source": "As you can see for instance here, we have ah in the first example, we have the borrowing batch cooking which is a multi word borrowing.",
@@ -5332,7 +5158,7 @@
     ]
   },
   {
-    "index": 52,
+    "index": 49,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 53,
     "source": "And we have annotated it using the BIO um encode.",
@@ -5390,7 +5216,7 @@
     ]
   },
   {
-    "index": 53,
+    "index": 50,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 54,
     "source": "So the BIO was used for words in Spanish so not for words that were not borrowed.",
@@ -5505,7 +5331,7 @@
     ]
   },
   {
-    "index": 54,
+    "index": 51,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 55,
     "source": "And here in this second example, you have benching and crash which are also labeled as borrowings from English.",
@@ -5647,7 +5473,7 @@
     ]
   },
   {
-    "index": 55,
+    "index": 52,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 56,
     "source": "So, once we had the dataset, we explored several models for the task of extracting and detecting these lexical borrowings.",
@@ -5744,7 +5570,7 @@
     ]
   },
   {
-    "index": 56,
+    "index": 53,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 57,
     "source": "The first one that we tried was the conditional random field model.",
@@ -5829,7 +5655,7 @@
     ]
   },
   {
-    "index": 57,
+    "index": 54,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 58,
     "source": "Ah, this was the model that had been used on previous work.",
@@ -5884,7 +5710,7 @@
     ]
   },
   {
-    "index": 58,
+    "index": 55,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 59,
     "source": "And we used the same handcrafted features from that from those from that work.",
@@ -5948,7 +5774,7 @@
     ]
   },
   {
-    "index": 59,
+    "index": 56,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 60,
     "source": "As you can see, these are the features.",
@@ -6006,7 +5832,7 @@
     ]
   },
   {
-    "index": 60,
+    "index": 57,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 61,
     "source": "These are binary features such as the word or the token in upper case?",
@@ -6094,7 +5920,7 @@
     ]
   },
   {
-    "index": 61,
+    "index": 58,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 64,
     "source": "Things like that, which are the type of features that one would expect in a named entity recognition task.",
@@ -6170,7 +5996,7 @@
     ]
   },
   {
-    "index": 62,
+    "index": 59,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 65,
     "source": "These are the results that we got.",
@@ -6225,7 +6051,7 @@
     ]
   },
   {
-    "index": 63,
+    "index": 60,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 66,
     "source": "We obtain fifty five F1 score using the the CRF model with handcrafted features.",
@@ -6274,7 +6100,7 @@
     ]
   },
   {
-    "index": 64,
+    "index": 61,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 67,
     "source": "Which is a huge different difference um compared to the reported F1 score of eighty six, which was the result obtained with the same CRF model, same features but on a different dataset also for Spanish lexical borrowing detection.",
@@ -6452,7 +6278,7 @@
     ]
   },
   {
-    "index": 65,
+    "index": 62,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 68,
     "source": "So, this proves that the dataset that we created is more difficult and that we needed to explore more sophisticated models for these tasks.",
@@ -6630,7 +6456,7 @@
     ]
   },
   {
-    "index": 66,
+    "index": 63,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 69,
     "source": "So, we tested two transformer based models.",
@@ -6751,7 +6577,7 @@
     ]
   },
   {
-    "index": 67,
+    "index": 64,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 70,
     "source": "We used BETO which is a monolingual BERT model trained for Spanish and also multilingual BERT.",
@@ -6824,7 +6650,7 @@
     ]
   },
   {
-    "index": 68,
+    "index": 65,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 71,
     "source": "Both models we use them through the transformers library by HuggingFace. These are the results that we got. As you can see, multilingual BERT performs better than BETO both on the development set and on the test set and across all metrics. Just so we have ah an idea to compare, the CRF model obtained an eighty two.",
@@ -6999,7 +6825,7 @@
     ]
   },
   {
-    "index": 69,
+    "index": 66,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 72,
     "source": "The CRF model obtained a fifty five obtained a fifty five F1 score, whereas the multilingual BERT obtained eighty two, which is a big difference.",
@@ -7156,7 +6982,7 @@
     ]
   },
   {
-    "index": 70,
+    "index": 67,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 73,
     "source": "So, once that we had those results, we asked ourselves another question which is, could we find a BiLSTM-CRF model, feed it with different types of embeddings, embeddings that encode different types of linguistic information and perform outperform the results obtained by transformer based models?",
@@ -7349,7 +7175,7 @@
     ]
   },
   {
-    "index": 71,
+    "index": 68,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 74,
     "source": "So in order to do so, we ran some preliminary experiments, we we run this by BiLSTM-CRF model using flare library.",
@@ -7467,7 +7293,7 @@
     ]
   },
   {
-    "index": 72,
+    "index": 69,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 75,
     "source": "And we tried experimented with different type of embeddings like transformer-based but also fast-text, character embeddings, and so on.",
@@ -7651,7 +7477,7 @@
     ]
   },
   {
-    "index": 73,
+    "index": 70,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 76,
     "source": "What we found out was that transformer-based embeddings performed better than non contextualized embeddings, that the combination of English BERT and Spanish BETO embeddings outperform multilingual BERT embeddings.",
@@ -7751,7 +7577,7 @@
     ]
   },
   {
-    "index": 74,
+    "index": 71,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 77,
     "source": "And that BPE embeddings produced better F1 and character embeddings produce better recall.",
@@ -7869,7 +7695,7 @@
     ]
   },
   {
-    "index": 75,
+    "index": 72,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 78,
     "source": "With that in mind, these were the best performing results that we got. Both models were BiLSTM-CRF models using flare.",
@@ -7966,7 +7792,7 @@
     ]
   },
   {
-    "index": 76,
+    "index": 73,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 79,
     "source": "One was fed with BETO and BERT embeddings and BPE, and the other one BETO and BERT embeddings and BPE and also character embeddings.",
@@ -8066,7 +7892,7 @@
     ]
   },
   {
-    "index": 77,
+    "index": 74,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 80,
     "source": "This last one was the one that produced the highest F1 score on the test set, although the highest score on the development set was obtained by the one without character embeddings.",
@@ -8142,7 +7968,7 @@
     ]
   },
   {
-    "index": 78,
+    "index": 75,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 81,
     "source": "Just ah to bear in mind that the best result that we got with multilingual BERT obtained an F1 of seventy six on the development set and eighty two on the test set.",
@@ -8299,7 +8125,7 @@
     ]
   },
   {
-    "index": 79,
+    "index": 76,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 82,
     "source": "So this is an improvement compared to those results.",
@@ -8393,7 +8219,7 @@
     ]
   },
   {
-    "index": 80,
+    "index": 77,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 83,
     "source": "Finally, we asked ourselves another question which was can lexical borrowing detection be framed as transfer learning from language identification in code switching?",
@@ -8523,7 +8349,7 @@
     ]
   },
   {
-    "index": 81,
+    "index": 78,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 84,
     "source": "So, we run the same BiLSTM-CRF model that we had run using flare, but instead of using these unadapted transformer-based BETO and BERT embeddings, we used code switch embeddings.",
@@ -8707,7 +8533,7 @@
     ]
   },
   {
-    "index": 82,
+    "index": 79,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 85,
     "source": "What are code switch embeddings?",
@@ -8762,7 +8588,7 @@
     ]
   },
   {
-    "index": 83,
+    "index": 80,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 86,
     "source": "Well these are um embeddings that are have been fine tuned transformer-based embeddings that have been pretrained for language identification on the Spanish English section of the LinCE code switching dataset.",
@@ -8814,7 +8640,7 @@
     ]
   },
   {
-    "index": 84,
+    "index": 81,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 87,
     "source": "LinCE is a dataset on code switching that has a section on Spanish English, Spanish English code switching.",
@@ -8983,7 +8809,7 @@
     ]
   },
   {
-    "index": 85,
+    "index": 82,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 88,
     "source": "So we fed our BiLSTM-CRF with code switch embeddings and optionally character embeddings, BPE embeddings and so on.",
@@ -9110,7 +8936,7 @@
     ]
   },
   {
-    "index": 86,
+    "index": 83,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 89,
     "source": "The best result that we got was eighty four point twenty two, which is the highest across all the models that we tried on the test set.",
@@ -9222,7 +9048,7 @@
     ]
   },
   {
-    "index": 87,
+    "index": 84,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 90,
     "source": "Although the best result F1 score that we got on the development set, which was seventy nine, was lower than the best result obtained by the BiLSTM-CRF fed with unadapted embeddings.",
@@ -9364,7 +9190,7 @@
     ]
   },
   {
-    "index": 88,
+    "index": 85,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 91,
     "source": "So, some conclusions from our work.",
@@ -9425,7 +9251,7 @@
     ]
   },
   {
-    "index": 89,
+    "index": 86,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 92,
     "source": "We have ah we have produced a new dataset of Spanish newswire that is annotated with unassimilated lexical borrowings.",
@@ -9543,7 +9369,7 @@
     ]
   },
   {
-    "index": 90,
+    "index": 87,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 93,
     "source": "This dataset is more borrowing dense and OOV-rich than previous resources.",
@@ -9622,7 +9448,7 @@
     ]
   },
   {
-    "index": 91,
+    "index": 88,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 94,
     "source": "We have explored four types of models for lexical borrowing detection.",
@@ -9731,7 +9557,7 @@
     ]
   },
   {
-    "index": 92,
+    "index": 89,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 95,
     "source": "Um. In terms of error analysis, well, recall was a weak point for all models.",
@@ -9807,7 +9633,7 @@
     ]
   },
   {
-    "index": 93,
+    "index": 90,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 96,
     "source": "Ah, as you can see here, some frequent false negatives include uppercase borrowings, words that exist in both English and Spanish, for instance.",
@@ -9943,7 +9769,7 @@
     ]
   },
   {
-    "index": 94,
+    "index": 91,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 97,
     "source": "Also interestingly, BPE embeddings seem to improve F1 score. And character embedding seem to improve recall.",
@@ -10052,7 +9878,7 @@
     ]
   },
   {
-    "index": 95,
+    "index": 92,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 98,
     "source": "Which ah it's an interesting finding that perhaps we can explore on future work.",
@@ -10134,7 +9960,7 @@
     ]
   },
   {
-    "index": 96,
+    "index": 93,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 99,
     "source": "Um. Well, this is everything that I have.",
@@ -10177,7 +10003,7 @@
     ]
   },
   {
-    "index": 97,
+    "index": 94,
     "doc_id": "2022.acl-long.268.wav",
     "seg_id": 100,
     "source": "Thank you so much for listening.",
@@ -10220,7 +10046,7 @@
     ]
   },
   {
-    "index": 98,
+    "index": 95,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 1,
     "source": "My name is Antoine.",
@@ -10263,7 +10089,7 @@
     ]
   },
   {
-    "index": 99,
+    "index": 96,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 2,
     "source": "I'm a PhD student at the University of Massachusetts Amherst.",
@@ -10324,7 +10150,7 @@
     ]
   },
   {
-    "index": 100,
+    "index": 97,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 3,
     "source": "I am presenting our paper KinyaBERT: a Morphology-aware Kinyarwanda Language Model.",
@@ -10367,7 +10193,7 @@
     ]
   },
   {
-    "index": 101,
+    "index": 98,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 4,
     "source": "Today, I'll talk about the motivation for this research.",
@@ -10449,7 +10275,7 @@
     ]
   },
   {
-    "index": 102,
+    "index": 99,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 5,
     "source": "Then I'll present KinyaBERT model architecture in detail.",
@@ -10516,7 +10342,7 @@
     ]
   },
   {
-    "index": 103,
+    "index": 100,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 6,
     "source": "I'll then talk about our experimental results, then finish with some conclusions.",
@@ -10598,7 +10424,7 @@
     ]
   },
   {
-    "index": 104,
+    "index": 101,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 7,
     "source": "We all know that recent natural language processing advances have been made possible by the use of pretrained language models such as BERT.",
@@ -10725,7 +10551,7 @@
     ]
   },
   {
-    "index": 105,
+    "index": 102,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 8,
     "source": "However, there are still a number of limitations.",
@@ -10783,7 +10609,7 @@
     ]
   },
   {
-    "index": 106,
+    "index": 103,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 9,
     "source": "Due to the complex morphology that is expressed by most morphologically rich languages, the ubiquitous byte pair encoding tokenization algorithm that I used cannot extract the exact subword lexical units, meaning the morphemes, which are needed for effective representation.",
@@ -10958,7 +10784,7 @@
     ]
   },
   {
-    "index": 107,
+    "index": 104,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 10,
     "source": "For example, here we have three Kinyarwanda words that have several morphemes in them, but the BPE algorithms cannot extract them.",
@@ -11082,7 +10908,7 @@
     ]
   },
   {
-    "index": 108,
+    "index": 105,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 11,
     "source": "This is because some morphological rules produce different surface forms that hide the exact lexical information, and BPE, which is solely based on the surface forms, does not have access to this lexical model.",
@@ -11269,7 +11095,7 @@
     ]
   },
   {
-    "index": 109,
+    "index": 106,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 12,
     "source": "The second challenge is that even if one had access to an oracle morphological analyzer, replacing BPE tokens with morphemes is not enough to express the morphological compositionality.",
@@ -11423,7 +11249,7 @@
     ]
   },
   {
-    "index": 110,
+    "index": 107,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 13,
     "source": "A third gap in the research is that new pretrained language models are most often evaluated on high resource languages.",
@@ -11541,7 +11367,7 @@
     ]
   },
   {
-    "index": 111,
+    "index": 108,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 14,
     "source": "And we need to assess their applicability on low resources and diverse languages as well.",
@@ -11620,7 +11446,7 @@
     ]
   },
   {
-    "index": 112,
+    "index": 109,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 15,
     "source": "Therefore, we present KinyaBERT, which is a simple but effective adaptation of the BERT architecture that is meant to more effectively handle morphologically rich languages.",
@@ -11780,7 +11606,7 @@
     ]
   },
   {
-    "index": 113,
+    "index": 110,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 16,
     "source": "We evaluate KinyaBERT on Kinyarwanda, a low resource morphologically rich language, which is spoken by more than twelve million people across Eastern and Central Africa.",
@@ -11949,7 +11775,7 @@
     ]
   },
   {
-    "index": 114,
+    "index": 111,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 17,
     "source": "The input to the model is either a sentence or a document.",
@@ -12058,7 +11884,7 @@
     ]
   },
   {
-    "index": 115,
+    "index": 112,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 18,
     "source": "For example here, we have John twarahamubonye biradutangaza, which means we were surprised to find John there.",
@@ -12128,7 +11954,7 @@
     ]
   },
   {
-    "index": 116,
+    "index": 113,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 19,
     "source": "As you can see, Kinyarwanda words contains several morphemes that contain different information in them.",
@@ -12240,7 +12066,7 @@
     ]
   },
   {
-    "index": 117,
+    "index": 114,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 20,
     "source": "Therefore, in our model, we pass this sentence or a document to a morphological analyzer. Which then generates morphemes contained in each of the words.",
@@ -12355,7 +12181,7 @@
     ]
   },
   {
-    "index": 118,
+    "index": 115,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 21,
     "source": "The morphemes usually are made of the stem and zero or more affixes.",
@@ -12428,7 +12254,7 @@
     ]
   },
   {
-    "index": 119,
+    "index": 116,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 22,
     "source": "The affixes may indicate tense, aspect, subject or object in verbs, and more often relates to the Bantu noun class for subjects and objects.",
@@ -12543,7 +12369,7 @@
     ]
   },
   {
-    "index": 120,
+    "index": 117,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 23,
     "source": "The morphological analyzer also produces a part of speech tag for each of the words.",
@@ -12637,7 +12463,7 @@
     ]
   },
   {
-    "index": 121,
+    "index": 118,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 24,
     "source": "After this step, we make embeddings for the spee- for the part of speech tags.",
@@ -12701,7 +12527,7 @@
     ]
   },
   {
-    "index": 122,
+    "index": 119,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 25,
     "source": "Embeddings for the affixes. And embeddings for the stem.",
@@ -12756,7 +12582,7 @@
     ]
   },
   {
-    "index": 123,
+    "index": 120,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 26,
     "source": "These are the morphology level, these are the morphology level embeddings.",
@@ -12805,7 +12631,7 @@
     ]
   },
   {
-    "index": 124,
+    "index": 121,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 27,
     "source": "We then pass these embeddings through a morphology encoder, which is a small transformer encoder that is applied to each word independently.",
@@ -12926,7 +12752,7 @@
     ]
   },
   {
-    "index": 125,
+    "index": 122,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 28,
     "source": "The output of the are the vectors that are contextualized with the morphological information at each word.",
@@ -13041,7 +12867,7 @@
     ]
   },
   {
-    "index": 126,
+    "index": 123,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 29,
     "source": "Now, we perform composition where the morphological embeddings corresponding to part of speech and stem are concatenated together.",
@@ -13108,7 +12934,7 @@
     ]
   },
   {
-    "index": 127,
+    "index": 124,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 30,
     "source": "We further concat we further concatenate them with another stem embedding at the sentence level.",
@@ -13178,7 +13004,7 @@
     ]
   },
   {
-    "index": 128,
+    "index": 125,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 31,
     "source": "Then we form an input to the main sentence or document encoder.",
@@ -13248,7 +13074,7 @@
     ]
   },
   {
-    "index": 129,
+    "index": 126,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 32,
     "source": "The final output are contextualized embeddings that can be used for downstream NLP tasks.",
@@ -13330,7 +13156,7 @@
     ]
   },
   {
-    "index": 130,
+    "index": 127,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 33,
     "source": "For a morphological analyzer, we use finite state two level morphology principles with custom implementation that is tailored to the Kinyarwanda language.",
@@ -13448,7 +13274,7 @@
     ]
   },
   {
-    "index": 131,
+    "index": 128,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 34,
     "source": "We effectively model the morphology of all Kinyarwanda words, including verbals, nouns, demonstrative and possessive pronouns, numerals, and others.",
@@ -13590,7 +13416,7 @@
     ]
   },
   {
-    "index": 132,
+    "index": 129,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 35,
     "source": "We use an unsupervised part of speech tagging algorithm.",
@@ -13702,7 +13528,7 @@
     ]
   },
   {
-    "index": 133,
+    "index": 130,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 36,
     "source": "A first order factored model is used to account for morphology probability, basically the probability that is assigned by the morphological analyzer.",
@@ -13775,7 +13601,7 @@
     ]
   },
   {
-    "index": 134,
+    "index": 131,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 37,
     "source": "We also take into consideration the part of speech tag precedence as well as the syntactic agreements that are present in the in the input words.",
@@ -13875,7 +13701,7 @@
     ]
   },
   {
-    "index": 135,
+    "index": 132,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 38,
     "source": "The part of speech tagger uses a bidi bidirectional inference which improves upon the more often used Viterbi algorithm for decoding.",
@@ -14014,7 +13840,7 @@
     ]
   },
   {
-    "index": 136,
+    "index": 133,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 39,
     "source": "A few remarks here for positional encoding.",
@@ -14096,7 +13922,7 @@
     ]
   },
   {
-    "index": 137,
+    "index": 134,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 40,
     "source": "One, the morphology encoder does not use any positional encoding.",
@@ -14154,7 +13980,7 @@
     ]
   },
   {
-    "index": 138,
+    "index": 135,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 41,
     "source": "This is because each of the morphemes occupies a known slot in the morphological model.",
@@ -14215,7 +14041,7 @@
     ]
   },
   {
-    "index": 139,
+    "index": 136,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 42,
     "source": "Therefore, positional information is inherent when the morphemes are given.",
@@ -14294,7 +14120,7 @@
     ]
   },
   {
-    "index": 140,
+    "index": 137,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 43,
     "source": "Second, the sentence encoder uses the so-called untied relative positional embeddings, which have been recently published at ICLR conference.",
@@ -14403,7 +14229,7 @@
     ]
   },
   {
-    "index": 141,
+    "index": 138,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 44,
     "source": "This positional embeddings essentially disentangles positional correlations from token to token attention computation.",
@@ -14518,7 +14344,7 @@
     ]
   },
   {
-    "index": 142,
+    "index": 139,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 45,
     "source": "Similar to BERT, we use a masked language model pre-training objective.",
@@ -14600,7 +14426,7 @@
     ]
   },
   {
-    "index": 143,
+    "index": 140,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 46,
     "source": "Essentially we have to predict both the stem and the affixes that are associated with the words.",
@@ -14673,7 +14499,7 @@
     ]
   },
   {
-    "index": 144,
+    "index": 141,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 47,
     "source": "During pre-training, fifteen percent of all words are considered for prediction, of which eighty percent are masked, ten percent are swapped with random words, and ten percent are left unchanged. For affix prediction, we face some multi label classification problem. For this, we either group together affixes into a fixed number of sets and predict the set as a class label. The other option is to predict the affix probability vector.",
@@ -14992,7 +14818,7 @@
     ]
   },
   {
-    "index": 145,
+    "index": 142,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 48,
     "source": "We evaluate both of these approaches in our experiments.",
@@ -15059,7 +14885,7 @@
     ]
   },
   {
-    "index": 146,
+    "index": 143,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 49,
     "source": "We pre-train KinyaBERT on about two and half gigabytes of Kinyarwanda text, and compare it to three baseline models.",
@@ -15165,7 +14991,7 @@
     ]
   },
   {
-    "index": 147,
+    "index": 144,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 50,
     "source": "One is a multilingual model called XLM-R, that is trained on a large text corpora that is made of multiple languages.",
@@ -15292,7 +15118,7 @@
     ]
   },
   {
-    "index": 148,
+    "index": 145,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 51,
     "source": "The other two baselines are pretrained on the same Kinyarwanda text using either the byte pair encoding algorithm or using morphological analysis without using the two tier transformer encoder architecture.",
@@ -15404,7 +15230,7 @@
     ]
   },
   {
-    "index": 149,
+    "index": 146,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 52,
     "source": "All models are configured in the base architecture, which is about between a hundred and a hundred and ten million parameters, with Kinyarwanda with KinyaBERT using the least number of parameters.",
@@ -15543,7 +15369,7 @@
     ]
   },
   {
-    "index": 150,
+    "index": 147,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 53,
     "source": "All models except the multilingual are pretrained for thirty two thousand gradient updates with a batch size of two thousand five hundred and sixty sequences in each batch.",
@@ -15664,7 +15490,7 @@
     ]
   },
   {
-    "index": 151,
+    "index": 148,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 54,
     "source": "We evaluate the pretrained models on three sets of tasks.",
@@ -15752,7 +15578,7 @@
     ]
   },
   {
-    "index": 152,
+    "index": 149,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 55,
     "source": "One is the GLUE benchmark which has often been used for evaluating the effectiveness of pretrained language models.",
@@ -15846,7 +15672,7 @@
     ]
   },
   {
-    "index": 153,
+    "index": 150,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 56,
     "source": "We obtain our GLUE benchmark data by translating the original benchmark data into Kinyarwanda using Google Translate.",
@@ -15982,7 +15808,7 @@
     ]
   },
   {
-    "index": 154,
+    "index": 151,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 57,
     "source": "The second task is Kinyarwanda named entity recognition benchmark, which is a high quality dataset that was annotated by trained native speakers.",
@@ -16115,7 +15941,7 @@
     ]
   },
   {
-    "index": 155,
+    "index": 152,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 58,
     "source": "The third one is a news categorization task where we pull news articles from several websites and collecting their categorization tags that were assigned by the authors and then essentially trying to predict the same, the the same categories.",
@@ -16314,7 +16140,7 @@
     ]
   },
   {
-    "index": 156,
+    "index": 153,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 59,
     "source": "And now we go to the results.",
@@ -16360,7 +16186,7 @@
     ]
   },
   {
-    "index": 157,
+    "index": 154,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 60,
     "source": "For the GLUE benchmark, we find that KinyaBERT consistently outperforms baseline models.",
@@ -16469,7 +16295,7 @@
     ]
   },
   {
-    "index": 158,
+    "index": 155,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 61,
     "source": "Here we show the average performance for ten finetuning runs.",
@@ -16530,7 +16356,7 @@
     ]
   },
   {
-    "index": 159,
+    "index": 156,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 62,
     "source": "We also run a user evaluation of the translations that are produced by Google Translate.",
@@ -16609,7 +16435,7 @@
     ]
   },
   {
-    "index": 160,
+    "index": 157,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 63,
     "source": "Essentially, user users rated about six thousand examples, assigning scores on a scale from one to four, assessing the quality of the translations.",
@@ -16736,7 +16562,7 @@
     ]
   },
   {
-    "index": 161,
+    "index": 158,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 64,
     "source": "The result is that many translations were noisy. But, all models had to cope with the same translation noise, and the relative performance between the models is still important to notice.",
@@ -16896,7 +16722,7 @@
     ]
   },
   {
-    "index": 162,
+    "index": 159,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 65,
     "source": "For the named entity recognition task, we also find that KinyaBERT gives the best performance with the affix distribution regression variant performing best.",
@@ -16984,7 +16810,7 @@
     ]
   },
   {
-    "index": 163,
+    "index": 160,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 66,
     "source": "These results are also averages of ten finetuning runs.",
@@ -17090,7 +16916,7 @@
     ]
   },
   {
-    "index": 164,
+    "index": 161,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 67,
     "source": "For the news categorization task, we find mixed results.",
@@ -17157,7 +16983,7 @@
     ]
   },
   {
-    "index": 165,
+    "index": 162,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 68,
     "source": "Previous work on text classification for Kinyarwanda had found that simple keyword detection is mostly enough for solving this specific task.",
@@ -17299,7 +17125,7 @@
     ]
   },
   {
-    "index": 166,
+    "index": 163,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 69,
     "source": "Therefore, there is less gain from using pretrained language models.",
@@ -17570,7 +17396,7 @@
     ]
   },
   {
-    "index": 167,
+    "index": 164,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 70,
     "source": "On this particular task of news categorization.",
@@ -17652,7 +17478,7 @@
     ]
   },
   {
-    "index": 168,
+    "index": 165,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 71,
     "source": "We also conducted an ablation study to see if there are alternative structures that improve performance.",
@@ -17704,7 +17530,7 @@
     ]
   },
   {
-    "index": 169,
+    "index": 166,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 72,
     "source": "For the GLUE benchmark, we find that using affix sets consistently performs better, while affix probability regression objective yields the best performance on named entity recognition.",
@@ -17738,7 +17564,7 @@
     ]
   },
   {
-    "index": 170,
+    "index": 167,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 73,
     "source": "Also by looking at the low scores for finetuning, we find that KinyaBERT has better convergence in most cases.",
@@ -17802,7 +17628,7 @@
     ]
   },
   {
-    "index": 171,
+    "index": 168,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 74,
     "source": "So to conclude, this work has demonstrated the effectiveness of explicitly using morphological information in pretrained language models.",
@@ -17917,7 +17743,7 @@
     ]
   },
   {
-    "index": 172,
+    "index": 169,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 75,
     "source": "The proposed two tier transformer encoder architecture enables capturing morphological complexity morphological compositionality, which is an important aspect of morphologically rich languages.",
@@ -18059,7 +17885,7 @@
     ]
   },
   {
-    "index": 173,
+    "index": 170,
     "doc_id": "2022.acl-long.367.wav",
     "seg_id": 76,
     "source": "These findings should motivate further research into morphology aware language pretrained language models.",
@@ -18189,7 +18015,7 @@
     ]
   },
   {
-    "index": 174,
+    "index": 171,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 1,
     "source": "Hello, my name is Michał Pietruszka and it is my pleasure to present to you the paper titled Sparsifying Transformer Models with Trainable Representation Pooling.",
@@ -18268,7 +18094,7 @@
     ]
   },
   {
-    "index": 175,
+    "index": 172,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 2,
     "source": "A work done at Applica AI in cooperation with Lukasz Borchmann and Lukasz Garncarek.",
@@ -18299,7 +18125,7 @@
     ]
   },
   {
-    "index": 176,
+    "index": 173,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 3,
     "source": "Let me start with the problems our work targets.",
@@ -18393,7 +18219,7 @@
     ]
   },
   {
-    "index": 177,
+    "index": 174,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 4,
     "source": "Our method works well for the cases where long inputs are considered.",
@@ -18466,7 +18292,7 @@
     ]
   },
   {
-    "index": 178,
+    "index": 175,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 5,
     "source": "Roughly speaking, it is meant for the task orders and input of over two thousand tokens and the targets are shorter than the provided inputs.",
@@ -18581,7 +18407,7 @@
     ]
   },
   {
-    "index": 179,
+    "index": 176,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 6,
     "source": "This has some specific applications in NLP.",
@@ -18642,7 +18468,7 @@
     ]
   },
   {
-    "index": 180,
+    "index": 177,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 7,
     "source": "For example, one can imagine that given a long document, there's a need to summarize it, classify, answer the question about it, extract information or some key phrases.",
@@ -18763,7 +18589,7 @@
     ]
   },
   {
-    "index": 181,
+    "index": 178,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 8,
     "source": "Let me recall the vanilla transformer and our and its issue of its attention complexity that depends on the square of the input line.",
@@ -18920,7 +18746,7 @@
     ]
   },
   {
-    "index": 182,
+    "index": 179,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 9,
     "source": "In the vanilla transformer, with full attention connectivity, relations of each token to every other token have to be calculated.",
@@ -19134,7 +18960,7 @@
     ]
   },
   {
-    "index": 183,
+    "index": 180,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 10,
     "source": "The computational complexity of attention, this depends on the number of layers l, sequence length n, another sequence length, and the dimensionality of representations.",
@@ -19189,7 +19015,7 @@
     ]
   },
   {
-    "index": 184,
+    "index": 181,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 11,
     "source": "Similarly, in the decoder's cross attention, to this picture on the right side, the only difference here is that the target tokens are attending to the input tokens in this case.",
@@ -19331,7 +19157,7 @@
     ]
   },
   {
-    "index": 185,
+    "index": 182,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 12,
     "source": "Which can be seen also in this formula.",
@@ -19383,7 +19209,7 @@
     ]
   },
   {
-    "index": 186,
+    "index": 183,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 13,
     "source": "The BLEU score represents relations that have to be calculated.",
@@ -19453,7 +19279,7 @@
     ]
   },
   {
-    "index": 187,
+    "index": 184,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 14,
     "source": "In case of the full attention, we need to calculate every relations within the input sequence.",
@@ -19529,7 +19355,7 @@
     ]
   },
   {
-    "index": 188,
+    "index": 185,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 15,
     "source": "Now, we see what happens when we have a blockwise encoder that works by limiting the tokens connectivity so that they can only see other nearby tokens.",
@@ -19680,7 +19506,7 @@
     ]
   },
   {
-    "index": 189,
+    "index": 186,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 16,
     "source": "The text is read in chunks which can drastically reduce the number of computations on the encoder side, but does not improve the decoder's cross attention as every input token is passed to the decoder anyway.",
@@ -19834,7 +19660,7 @@
     ]
   },
   {
-    "index": 190,
+    "index": 187,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 17,
     "source": "This method is often referred to as fusion in decoder.",
@@ -19904,7 +19730,7 @@
     ]
   },
   {
-    "index": 191,
+    "index": 188,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 18,
     "source": "The improvement here can be interpreted as changing one of the dependencies of n to another constant m representing the block size.",
@@ -20040,7 +19866,7 @@
     ]
   },
   {
-    "index": 192,
+    "index": 189,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 19,
     "source": "Our key observation is that most tokens are irrelevant for a wide variety of tasks and can be almost completely disregarded. This is exemplified on the slide.",
@@ -20194,7 +20020,7 @@
     ]
   },
   {
-    "index": 193,
+    "index": 190,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 20,
     "source": "The only parts of the inputs are relevant to the desired output.",
@@ -20264,7 +20090,7 @@
     ]
   },
   {
-    "index": 194,
+    "index": 191,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 21,
     "source": "For example. One can read an article once marking the most important parts with a highlighter, and then produce a summary based on this part from the middle stage only.",
@@ -20409,7 +20235,7 @@
     ]
   },
   {
-    "index": 195,
+    "index": 192,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 22,
     "source": "The cost of highlighting and deciding if the current token is essential to produce the summary is thus cheap and depends only on the token's representation. The pooling of the highlighted tokens is possible.",
@@ -20542,7 +20368,7 @@
     ]
   },
   {
-    "index": 196,
+    "index": 193,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 23,
     "source": "Thanks to our top k operator and its cost is negligible.",
@@ -20639,7 +20465,7 @@
     ]
   },
   {
-    "index": 197,
+    "index": 194,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 24,
     "source": "The cost of producing a summary from a shortened input is also much lower than in the vanilla model when the whole input is considered. But here's a question.",
@@ -20766,7 +20592,7 @@
     ]
   },
   {
-    "index": 198,
+    "index": 195,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 25,
     "source": "How to select important tokens and backpropagate gradients to that selection?",
@@ -20851,7 +20677,7 @@
     ]
   },
   {
-    "index": 199,
+    "index": 196,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 26,
     "source": "The essential underlying problem that we solve is to propose the trainable selection mechanism.",
@@ -20945,7 +20771,7 @@
     ]
   },
   {
-    "index": 200,
+    "index": 197,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 27,
     "source": "One that can allow for gradient to be back propagated during the training so that the network can learn to select the most important tokens.",
@@ -21078,7 +20904,7 @@
     ]
   },
   {
-    "index": 201,
+    "index": 198,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 28,
     "source": "More precisely Given some embeddings underscore obtained from a simple linear layer, the task is to return the highest scoring embeddings. First, the sequence is permuted and pairs are prepared so that the higher scoring vector is taken with the lower scoring one.",
@@ -21280,7 +21106,7 @@
     ]
   },
   {
-    "index": 202,
+    "index": 199,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 29,
     "source": "Next, weights are calculated using boosted softmax over scores.",
@@ -21353,7 +21179,7 @@
     ]
   },
   {
-    "index": 203,
+    "index": 200,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 30,
     "source": "After each tournament round, new vectors and scores are composed as a linear combination of those pairs with the obtained weights.",
@@ -21477,7 +21303,7 @@
     ]
   },
   {
-    "index": 204,
+    "index": 201,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 31,
     "source": "So in short, we combine them linearly by performing a softmax over their scores.",
@@ -21550,7 +21376,7 @@
     ]
   },
   {
-    "index": 205,
+    "index": 202,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 32,
     "source": "And while combining two tokens, some noise can be produces produced.",
@@ -21629,7 +21455,7 @@
     ]
   },
   {
-    "index": 206,
+    "index": 203,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 33,
     "source": "But it also allows the gradients to be propagated to all input embeddings.",
@@ -21717,7 +21543,7 @@
     ]
   },
   {
-    "index": 207,
+    "index": 204,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 34,
     "source": "In short, a trainable top k we propose is based on performing a tournament like soft selection at each step.",
@@ -21793,7 +21619,7 @@
     ]
   },
   {
-    "index": 208,
+    "index": 205,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 35,
     "source": "And from a different perspective, the representation pooling follows the encoder layer.",
@@ -21830,7 +21656,7 @@
     ]
   },
   {
-    "index": 209,
+    "index": 206,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 36,
     "source": "First, each representation is scored and then only those with the highest scores are passed to the next layer.",
@@ -21996,7 +21822,7 @@
     ]
   },
   {
-    "index": 210,
+    "index": 207,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 37,
     "source": "Encoding can be performed as in standard transformer architecture on the full length input.",
@@ -22165,7 +21991,7 @@
     ]
   },
   {
-    "index": 211,
+    "index": 208,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 38,
     "source": "It is however possible to process text in blocks of fixed length of fixed length and globally select the best representation.",
@@ -22217,7 +22043,7 @@
     ]
   },
   {
-    "index": 212,
+    "index": 209,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 39,
     "source": "Here is an example of the representation pooling introduced after the encoder.",
@@ -22278,7 +22104,7 @@
     ]
   },
   {
-    "index": 213,
+    "index": 210,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 40,
     "source": "This directly influenced the cause of cross attention, which depends not on the input length N, but the constant K, representing the pooled length.",
@@ -22408,7 +22234,7 @@
     ]
   },
   {
-    "index": 214,
+    "index": 211,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 41,
     "source": "This constant informs how many representations are selected and passed to the decoder.",
@@ -22523,7 +22349,7 @@
     ]
   },
   {
-    "index": 215,
+    "index": 212,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 42,
     "source": "Producing a summary from a shorter text is significantly cheaper than previous solution.",
@@ -22599,7 +22425,7 @@
     ]
   },
   {
-    "index": 216,
+    "index": 213,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 43,
     "source": "As the sequence length can be shortened by a large factor. For example, we successfully used k of sixteen or even sixty times four or even sixty four times smaller than the value of n in our experiments.",
@@ -22741,7 +22567,7 @@
     ]
   },
   {
-    "index": 217,
+    "index": 214,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 44,
     "source": "Please note that the beneficial impact of blockwise encoding and self attention is sustained.",
@@ -22883,7 +22709,7 @@
     ]
   },
   {
-    "index": 218,
+    "index": 215,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 45,
     "source": "Remember that the computational cost of attention depend on the square of the input length.",
@@ -22950,56 +22776,7 @@
     ]
   },
   {
-    "index": 219,
-    "doc_id": "2022.acl-long.590.wav",
-    "seg_id": 46,
-    "source": "",
-    "reference": "",
-    "source_length": 5811.0,
-    "delays": [
-      22951.0,
-      23111.0,
-      23111.0,
-      23751.0,
-      23831.0,
-      23991.0,
-      23991.0,
-      24391.0
-    ],
-    "elapsed": [
-      22951.0,
-      23111.0,
-      23111.0,
-      23751.0,
-      23831.0,
-      23991.0,
-      23991.0,
-      24391.0
-    ],
-    "recording_end": 5811.0,
-    "_compact_u_start": 1212,
-    "_compact_u_end": 1220,
-    "_raw_u_start": 1212,
-    "_raw_u_end": 1220,
-    "_seg_start_ms": 406384.0,
-    "_seg_end_ms": 412195.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 2,
-    "prediction": "この可正数としています。",
-    "raw_units": [
-      "この",
-      "可",
-      "正数",
-      "と",
-      "し",
-      "て",
-      "い",
-      "ます"
-    ]
-  },
-  {
-    "index": 220,
+    "index": 216,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 47,
     "source": "Reducing it the input earlier during the encoding process can significantly lower the costs.",
@@ -23057,7 +22834,7 @@
     ]
   },
   {
-    "index": 221,
+    "index": 217,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 48,
     "source": "For the pyramidion model, we narrowed down the size of the representation on the output of each of each chosen layer, leading to the exponential reduction of computational cost as the encoding proceeds.",
@@ -23280,7 +23057,7 @@
     ]
   },
   {
-    "index": 222,
+    "index": 218,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 49,
     "source": "As you can see, the total computational cost of a full encoder here is less than two times the cost of the full-sized first layer.",
@@ -23476,7 +23253,7 @@
     ]
   },
   {
-    "index": 223,
+    "index": 219,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 50,
     "source": "When pooling is introduced earlier, the sum of all purple squares is thus bounded to a constant, not dependent on the number of layers l.",
@@ -23531,7 +23308,7 @@
     ]
   },
   {
-    "index": 224,
+    "index": 220,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 51,
     "source": "But on the constant c, which can be influenced by the placing of the pooling layers within the network.",
@@ -23631,7 +23408,7 @@
     ]
   },
   {
-    "index": 225,
+    "index": 221,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 52,
     "source": "Our improvements were benchmarked on eight thousand tokens long inputs.",
@@ -23719,7 +23496,7 @@
     ]
   },
   {
-    "index": 226,
+    "index": 222,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 53,
     "source": "And the figure shows that when pooling is engaged, the best scalability for the network's depth is achieved.",
@@ -23834,7 +23611,7 @@
     ]
   },
   {
-    "index": 227,
+    "index": 223,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 54,
     "source": "Here one can note that training the pyramidion of twenty four layers can be cheaper than training a two layer vanilla transformer on such long inputs.",
@@ -23970,7 +23747,7 @@
     ]
   },
   {
-    "index": 228,
+    "index": 224,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 55,
     "source": "Not to mention how easily vanilla transformer can go out of memory for such a long input.",
@@ -24067,7 +23844,7 @@
     ]
   },
   {
-    "index": 229,
+    "index": 225,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 56,
     "source": "The qual quality qual qualitative comparison of our trend pyramidion to other baseline is performed on the long document summarization task, or given the body of an article from arXiv or PubMed, the task is to generate its abstract.",
@@ -24305,7 +24082,7 @@
     ]
   },
   {
-    "index": 230,
+    "index": 226,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 57,
     "source": "Thus, one can see blockwise, which is our baseline, performs on the level of the re, recent state-of-the-art models, while the pyramidion retains or improves the performance of this competitive baseline.",
@@ -24474,7 +24251,7 @@
     ]
   },
   {
-    "index": 231,
+    "index": 227,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 58,
     "source": "At the same time, our model is eighty percent faster to train and over four hundred fifty percent faster at inference when compared to the blockwise baseline.",
@@ -24577,7 +24354,7 @@
     ]
   },
   {
-    "index": 232,
+    "index": 228,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 59,
     "source": "Both models have much lower parameter counts and were trained from scratch on the chosen tasks.",
@@ -24704,7 +24481,7 @@
     ]
   },
   {
-    "index": 233,
+    "index": 229,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 60,
     "source": "Previous approaches to to achieve a similar performance had to use more parameters and leverage pretrained foundation foundational models and additional language pretraining objective to achieve similar performance.",
@@ -24927,7 +24704,7 @@
     ]
   },
   {
-    "index": 234,
+    "index": 230,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 61,
     "source": "We invite you to read our full paper and use our GitHub code.",
@@ -25051,7 +24828,7 @@
     ]
   },
   {
-    "index": 235,
+    "index": 231,
     "doc_id": "2022.acl-long.590.wav",
     "seg_id": 62,
     "source": "Thank you for watching.",
@@ -25100,7 +24877,7 @@
     ]
   },
   {
-    "index": 236,
+    "index": 232,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 1,
     "source": "Hello, this is Jiawei Zhou from Harvard University.",
@@ -25152,7 +24929,7 @@
     ]
   },
   {
-    "index": 237,
+    "index": 233,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 2,
     "source": "I am very glad to present our work on Online Semantic Parsing for Latency Reduction in Task-Oriented Dialogue.",
@@ -25264,7 +25041,7 @@
     ]
   },
   {
-    "index": 238,
+    "index": 234,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 3,
     "source": "This is joint work with Jason, Michael, Anthony and Sam from Microsoft Semantic Machines. In task-oriented dialogue, a user interacts with the system that handles requests from user utterances usually in speaking.",
@@ -25385,7 +25162,7 @@
     ]
   },
   {
-    "index": 239,
+    "index": 235,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 4,
     "source": "From the finish of the user utterance to the system response there is often a noticeable delay.",
@@ -25494,7 +25271,7 @@
     ]
   },
   {
-    "index": 240,
+    "index": 236,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 5,
     "source": "Under the hood, the user utterance is translated into an executable program. Which is then executed so that the system can respond properly.",
@@ -25600,7 +25377,7 @@
     ]
   },
   {
-    "index": 241,
+    "index": 237,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 6,
     "source": "Because the program is represented as a semantic graph that outlines the computation, where node represents a function invocation and its children are the arguments.",
@@ -25715,7 +25492,7 @@
     ]
   },
   {
-    "index": 242,
+    "index": 238,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 7,
     "source": "The great nodes mark instantaneous operations, but the others are slow to execute.",
@@ -25800,7 +25577,7 @@
     ]
   },
   {
-    "index": 243,
+    "index": 239,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 8,
     "source": "The simple example here we show, these programs can often be more complicated graphs beyond the tree structures.",
@@ -25930,7 +25707,7 @@
     ]
   },
   {
-    "index": 244,
+    "index": 240,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 9,
     "source": "In this talk, we ask the question, can we start generating the program and executing it before the user even finishes the utterance so that the faster response can be achieved by the system?",
@@ -26123,7 +25900,7 @@
     ]
   },
   {
-    "index": 245,
+    "index": 241,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 10,
     "source": "This is the online prediction and decision problem.",
@@ -26190,7 +25967,7 @@
     ]
   },
   {
-    "index": 246,
+    "index": 242,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 11,
     "source": "There are a lot of others in this realm.",
@@ -26251,7 +26028,7 @@
     ]
   },
   {
-    "index": 247,
+    "index": 243,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 12,
     "source": "Examples include simultaneous translation where a live interpreter translates one language to another in real time, smart text auto completion to guess the user intent, and Uber pool where the drivers are sent to where they might be needed based on the predicted demand.",
@@ -26435,7 +26212,7 @@
     ]
   },
   {
-    "index": 248,
+    "index": 244,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 13,
     "source": "All of these scenarios have one thing in common.",
@@ -26535,7 +26312,7 @@
     ]
   },
   {
-    "index": 249,
+    "index": 245,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 14,
     "source": "That is, it is beneficial to make decisions before seeing all the input.",
@@ -26629,7 +26406,7 @@
     ]
   },
   {
-    "index": 250,
+    "index": 246,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 15,
     "source": "In our case, we are going to deal with online semantic parsing, which could be expected to be challenging as we have to guess what the user might say.",
@@ -26780,7 +26557,7 @@
     ]
   },
   {
-    "index": 251,
+    "index": 247,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 16,
     "source": "And it is also underexplored with no formal evaluation metric.",
@@ -26859,7 +26636,7 @@
     ]
   },
   {
-    "index": 252,
+    "index": 248,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 17,
     "source": "First, let's look at how an ordinary system works.",
@@ -26932,7 +26709,7 @@
     ]
   },
   {
-    "index": 253,
+    "index": 249,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 18,
     "source": "It is operating offline by parsing to the program only at the end of the user utterance.",
@@ -27023,7 +26800,7 @@
     ]
   },
   {
-    "index": 254,
+    "index": 250,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 19,
     "source": "Here, the character graph is predicted after seeing all the information.",
@@ -27102,7 +26879,7 @@
     ]
   },
   {
-    "index": 255,
+    "index": 251,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 20,
     "source": "In contrast, we are proposing an online system that compares at every utterance prefix.",
@@ -27190,7 +26967,7 @@
     ]
   },
   {
-    "index": 256,
+    "index": 252,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 21,
     "source": "For example, each time we see a new token, we predict a new graph.",
@@ -27254,7 +27031,7 @@
     ]
   },
   {
-    "index": 257,
+    "index": 253,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 22,
     "source": "Notice that there could be errors.",
@@ -27312,7 +27089,7 @@
     ]
   },
   {
-    "index": 258,
+    "index": 254,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 23,
     "source": "At the position of at the pool party with Barack Obama, we got a graph with the right nodes on the person and the event subject, but guess the wrong timing information.",
@@ -27439,7 +27216,7 @@
     ]
   },
   {
-    "index": 259,
+    "index": 255,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 24,
     "source": "This process goes on until we receive the full user utterance.",
@@ -27500,7 +27277,7 @@
     ]
   },
   {
-    "index": 260,
+    "index": 256,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 25,
     "source": "How would this affect the execution timeline in the offline system?",
@@ -27567,7 +27344,7 @@
     ]
   },
   {
-    "index": 261,
+    "index": 257,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 26,
     "source": "We'll get the program graph at the end so that the system can start execution at this point.",
@@ -27676,7 +27453,7 @@
     ]
   },
   {
-    "index": 262,
+    "index": 258,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 27,
     "source": "Remember that the great nodes are fast operations, so we only consider the execution timeline of the colored slow functions.",
@@ -27791,7 +27568,7 @@
     ]
   },
   {
-    "index": 263,
+    "index": 259,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 28,
     "source": "First, these two find person functions can be executed in parallel, highlighted in white from the pink box as they have no dependency on other functions.",
@@ -27927,7 +27704,7 @@
     ]
   },
   {
-    "index": 264,
+    "index": 260,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 29,
     "source": "Next, the node create event can then get executed after obtaining results from lower level nodes and then the top function yield so the whole program is finished.",
@@ -28060,7 +27837,7 @@
     ]
   },
   {
-    "index": 265,
+    "index": 261,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 30,
     "source": "The execution process is strict, restricted to the program dependency structure where some operations cannot be parallelized which induces a noticeable delay.",
@@ -28169,7 +27946,7 @@
     ]
   },
   {
-    "index": 266,
+    "index": 262,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 31,
     "source": "In our online system, where we predict as we go, the program execution can start earlier.",
@@ -28275,7 +28052,7 @@
     ]
   },
   {
-    "index": 267,
+    "index": 263,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 32,
     "source": "Here, at the prefix after Obama we predict confidently that the find person function should be in the program, but the rest may contain errors as they are grayed out.",
@@ -28450,7 +28227,7 @@
     ]
   },
   {
-    "index": 268,
+    "index": 264,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 33,
     "source": "The execution of the node can be immediately started as a step.",
@@ -28511,7 +28288,7 @@
     ]
   },
   {
-    "index": 269,
+    "index": 265,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 34,
     "source": "Then, with more tokens, we predict a totally new graph, but part of it has already being executed.",
@@ -28584,7 +28361,7 @@
     ]
   },
   {
-    "index": 270,
+    "index": 266,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 35,
     "source": "So, we only need to consider the rest of the nodes that we are confident about as well.",
@@ -28702,7 +28479,7 @@
     ]
   },
   {
-    "index": 271,
+    "index": 267,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 36,
     "source": "Here, another find person can be executed in parallel.",
@@ -28775,7 +28552,7 @@
     ]
   },
   {
-    "index": 272,
+    "index": 268,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 37,
     "source": "Again, we may have wrong predictions.",
@@ -28848,7 +28625,7 @@
     ]
   },
   {
-    "index": 273,
+    "index": 269,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 38,
     "source": "With more text, we have more ability to make it right.",
@@ -28915,7 +28692,7 @@
     ]
   },
   {
-    "index": 274,
+    "index": 270,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 39,
     "source": "Such as the event time here where AM is also anticipated correctly.",
@@ -29009,7 +28786,7 @@
     ]
   },
   {
-    "index": 275,
+    "index": 271,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 40,
     "source": "Then, we can start executing the rest following the program dependency structure.",
@@ -29091,7 +28868,7 @@
     ]
   },
   {
-    "index": 276,
+    "index": 272,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 41,
     "source": "By overlapping the execution timeline with the utterance timeline, we save a big amount of time.",
@@ -29185,7 +28962,7 @@
     ]
   },
   {
-    "index": 277,
+    "index": 273,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 42,
     "source": "So we proposed the task of online semantic parsing.",
@@ -29255,7 +29032,7 @@
     ]
   },
   {
-    "index": 278,
+    "index": 274,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 43,
     "source": "One underlying assumption is that the execution time dominates the model prediction time.",
@@ -29343,7 +29120,7 @@
     ]
   },
   {
-    "index": 279,
+    "index": 275,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 44,
     "source": "So we could only gain time by predicting earlier.",
@@ -29431,7 +29208,7 @@
     ]
   },
   {
-    "index": 280,
+    "index": 276,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 45,
     "source": "Another assumption is that as the prediction and execution happen in the background, that it is not visible to users.",
@@ -29534,7 +29311,7 @@
     ]
   },
   {
-    "index": 281,
+    "index": 277,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 46,
     "source": "It is not necessary to maintain a consistent parsing history.",
@@ -29601,7 +29378,7 @@
     ]
   },
   {
-    "index": 282,
+    "index": 278,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 47,
     "source": "So, we reparse from scratch after each token.",
@@ -29674,7 +29451,7 @@
     ]
   },
   {
-    "index": 283,
+    "index": 279,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 48,
     "source": "In particular, we propose a two step approach.",
@@ -29732,7 +29509,7 @@
     ]
   },
   {
-    "index": 284,
+    "index": 280,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 49,
     "source": "A proposed step that predicts a graph with complete structure and a select step that selects the nodes that are worth executing at this time.",
@@ -29862,7 +29639,7 @@
     ]
   },
   {
-    "index": 285,
+    "index": 281,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 50,
     "source": "We had two variants of the proposed method.",
@@ -29929,7 +29706,7 @@
     ]
   },
   {
-    "index": 286,
+    "index": 282,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 51,
     "source": "First approach combines a language model completion with full utterance to graph parsing.",
@@ -30017,7 +29794,7 @@
     ]
   },
   {
-    "index": 287,
+    "index": 283,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 52,
     "source": "In particular, the prefix after Obama is first completed through a finetuned BART language model and then translated into a program with full offline parser.",
@@ -30159,7 +29936,7 @@
     ]
   },
   {
-    "index": 288,
+    "index": 284,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 53,
     "source": "The second approach directly predicts the program from user utterance prefixes.",
@@ -30238,7 +30015,7 @@
     ]
   },
   {
-    "index": 289,
+    "index": 285,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 54,
     "source": "This is achieved by training a single online parser to translate to the goal graph from each prefix.",
@@ -30356,7 +30133,7 @@
     ]
   },
   {
-    "index": 290,
+    "index": 286,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 55,
     "source": "This facilitates the model to learn the right anticipation.",
@@ -30420,7 +30197,7 @@
     ]
   },
   {
-    "index": 291,
+    "index": 287,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 56,
     "source": "In a bit more detail, how do we generate these graphs?",
@@ -30508,7 +30285,7 @@
     ]
   },
   {
-    "index": 292,
+    "index": 288,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 57,
     "source": "We formulate the problem by generating a serial version of the graph.",
@@ -30578,7 +30355,7 @@
     ]
   },
   {
-    "index": 293,
+    "index": 289,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 58,
     "source": "Each node or edge is represented by an action.",
@@ -30645,7 +30422,7 @@
     ]
   },
   {
-    "index": 294,
+    "index": 290,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 59,
     "source": "Here, we start from the first node. The number below records the absolute index in action history.",
@@ -30739,7 +30516,7 @@
     ]
   },
   {
-    "index": 295,
+    "index": 291,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 60,
     "source": "Then, we got the second node. Next, is the edge between them.",
@@ -30827,7 +30604,7 @@
     ]
   },
   {
-    "index": 296,
+    "index": 292,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 61,
     "source": "It contains the pointer to the index of the previous node and the edge label.",
@@ -30891,7 +30668,7 @@
     ]
   },
   {
-    "index": 297,
+    "index": 293,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 62,
     "source": "Zero here means connecting the most recent node with the node generated by the zeroth action and next node next edge.",
@@ -31015,7 +30792,7 @@
     ]
   },
   {
-    "index": 298,
+    "index": 294,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 63,
     "source": "This process goes on until we generate the full graph.",
@@ -31100,7 +30877,7 @@
     ]
   },
   {
-    "index": 299,
+    "index": 295,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 64,
     "source": "The underlying model is based on transformer with self pointing mechanism similar to a previous transition based parser. After generating a complete graph, we obtained the action level probabilities that correspond to different parts of the graph.",
@@ -31299,7 +31076,7 @@
     ]
   },
   {
-    "index": 300,
+    "index": 296,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 65,
     "source": "We select confidence subgraphs based on the thresholding heuristic to be executed. Later on, we're going to vary the threshold to achieve different tradeoffs between the latency reduction and the execution cost.",
@@ -31456,7 +31233,7 @@
     ]
   },
   {
-    "index": 301,
+    "index": 297,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 66,
     "source": "For formal evaluation of the online methods, we propose final latency reduction or FLR metric.",
@@ -31559,7 +31336,7 @@
     ]
   },
   {
-    "index": 302,
+    "index": 298,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 67,
     "source": "Here's a recap of how an offline system finishes the execution timeline.",
@@ -31647,7 +31424,7 @@
     ]
   },
   {
-    "index": 303,
+    "index": 299,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 68,
     "source": "In online systems, execution overlaps with the utterance timeline, so it ends earlier.",
@@ -31738,7 +31515,7 @@
     ]
   },
   {
-    "index": 304,
+    "index": 300,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 69,
     "source": "FLR is defined as the reduction time compared to the offline system, marked by the end of the execution.",
@@ -31844,7 +31621,7 @@
     ]
   },
   {
-    "index": 305,
+    "index": 301,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 70,
     "source": "We conduct experiments on two large conversational semantic parsing datasets, SMCalFlow and TreeDST.",
@@ -31950,7 +31727,7 @@
     ]
   },
   {
-    "index": 306,
+    "index": 302,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 71,
     "source": "Our graph based parser when operating offline, achieves state-of-the-art performance on parsing on both datasets.",
@@ -32077,7 +31854,7 @@
     ]
   },
   {
-    "index": 307,
+    "index": 303,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 72,
     "source": "The LM complete model also achieves nontrivial BLEU gain compared with the simple baseline of node completion. Now, let's look at the prediction accuracy of our prefix to graph parser.",
@@ -32219,7 +31996,7 @@
     ]
   },
   {
-    "index": 308,
+    "index": 304,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 73,
     "source": "We test the match F1 score of graph tuples between the generation and the go graph in validation data in y axis for each prefix length in x axis represented by percentages.",
@@ -32379,7 +32156,7 @@
     ]
   },
   {
-    "index": 309,
+    "index": 305,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 74,
     "source": "Each of these curves represents a different model with the only difference in training data.",
@@ -32446,7 +32223,7 @@
     ]
   },
   {
-    "index": 310,
+    "index": 306,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 75,
     "source": "The bottom curve is the offline parser, and we mix in prefix data in different lengths to transition the model to an online parser. For example, the legend prefix eighty percent plus means the model is trained with prefix data with prefix length larger than eighty percent of the full utterance length.",
@@ -32726,7 +32503,7 @@
     ]
   },
   {
-    "index": 311,
+    "index": 307,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 76,
     "source": "The upper left corner is the desired area.",
@@ -32772,7 +32549,7 @@
     ]
   },
   {
-    "index": 312,
+    "index": 308,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 77,
     "source": "As we can see, the offline parser in black curve is not doing well on the prefix data. As we're mixing more prefixes in training, the curve is lifting upper and left, performing better on all the prefix lengths.",
@@ -32944,7 +32721,7 @@
     ]
   },
   {
-    "index": 313,
+    "index": 309,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 78,
     "source": "However, the full utterance parsing performance is not affected in the upper right dot.",
@@ -33053,7 +32830,7 @@
     ]
   },
   {
-    "index": 314,
+    "index": 310,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 79,
     "source": "Based on these strong results, how much latency do we reduce?",
@@ -33135,7 +32912,7 @@
     ]
   },
   {
-    "index": 315,
+    "index": 311,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 80,
     "source": "We measure the time by the number of source tokens and simulate different function execution times.",
@@ -33226,7 +33003,7 @@
     ]
   },
   {
-    "index": 316,
+    "index": 312,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 81,
     "source": "The curves show the tradeoff between the FLR metric and the execution cost, measured by the number of excessive function costs that are not correct.",
@@ -33329,7 +33106,7 @@
     ]
   },
   {
-    "index": 317,
+    "index": 313,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 82,
     "source": "This is achieved by varying the subgraph selection threshold. A higher threshold selects fewer functions of mistake, but obtains a smaller FLR, whereas the lower threshold more aggressively selects and executes programs.",
@@ -33507,7 +33284,7 @@
     ]
   },
   {
-    "index": 318,
+    "index": 314,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 83,
     "source": "We compare the two approaches we propose and a baseline that does nothing but directly applying the offline parser for online use.",
@@ -33655,7 +33432,7 @@
     ]
   },
   {
-    "index": 319,
+    "index": 315,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 84,
     "source": "The upper left region is has the best FLR and cost tradeoff.",
@@ -33734,7 +33511,7 @@
     ]
   },
   {
-    "index": 320,
+    "index": 316,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 85,
     "source": "We see both of our methods beat the baseline by a large margin, and they perform more similarly on TreeDST.",
@@ -33849,7 +33626,7 @@
     ]
   },
   {
-    "index": 321,
+    "index": 317,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 86,
     "source": "While individual function execution is faster, there tends to be more run executions and lower latency reduction room.",
@@ -33964,7 +33741,7 @@
     ]
   },
   {
-    "index": 322,
+    "index": 318,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 87,
     "source": "When individual function execution is slower, there is more room for FLR improvement.",
@@ -34052,7 +33829,7 @@
     ]
   },
   {
-    "index": 323,
+    "index": 319,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 88,
     "source": "Our two approaches achieve better performance in different cost cost regions. Overall, we achieve thirty to sixty three percent relative latency reduction depending on execution time and allowed cost.",
@@ -34215,7 +33992,7 @@
     ]
   },
   {
-    "index": 324,
+    "index": 320,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 89,
     "source": "Finally, we have a breakdown of average latency reduction in tokens for each type of the function node when the allowed cost is three run executions.",
@@ -34363,7 +34140,7 @@
     ]
   },
   {
-    "index": 325,
+    "index": 321,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 90,
     "source": "As we can see, there are gains all over the board.",
@@ -34415,7 +34192,7 @@
     ]
   },
   {
-    "index": 326,
+    "index": 322,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 91,
     "source": "There are also some functions on which we gain impressive latency reduction where the red bar is much longer, such as find manager and recipient.",
@@ -34503,7 +34280,7 @@
     ]
   },
   {
-    "index": 327,
+    "index": 323,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 92,
     "source": "These are low level functions that do not have much dependency on others.",
@@ -34576,7 +34353,7 @@
     ]
   },
   {
-    "index": 328,
+    "index": 324,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 93,
     "source": "In conclusion, we proposed online semantic parsing as new task to explore with the rigorous latency reduction metric.",
@@ -34661,7 +34438,7 @@
     ]
   },
   {
-    "index": 329,
+    "index": 325,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 94,
     "source": "With a strong graph based semantic parser, we achieve relatively good latency reduction either through our pipeline approach with LM completion and a full parser or directly through a learned parser on the prefixes. Moreover, our approach can be a general framework and can be applied to other executable semantic representations in different domains.",
@@ -34911,7 +34688,7 @@
     ]
   },
   {
-    "index": 330,
+    "index": 326,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 95,
     "source": "Future works could explore smarter prediction and execution integration method.",
@@ -35029,7 +34806,7 @@
     ]
   },
   {
-    "index": 331,
+    "index": 327,
     "doc_id": "2022.acl-long.110.wav",
     "seg_id": 96,
     "source": "Thanks for your listening.",
@@ -35060,7 +34837,7 @@
     ]
   },
   {
-    "index": 332,
+    "index": 328,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 1,
     "source": "Hi. I'm going to discuss our work on generating retrieval augmented counterfactuals for question answering tasks.",
@@ -35160,7 +34937,7 @@
     ]
   },
   {
-    "index": 333,
+    "index": 329,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 2,
     "source": "This is work done during my internship at Google Research, where I was mentored by Matthew Lamm and Ian Tenney.",
@@ -35257,7 +35034,7 @@
     ]
   },
   {
-    "index": 334,
+    "index": 330,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 3,
     "source": "To motivate the task, let me begin by defining a counterfactual.",
@@ -35342,7 +35119,7 @@
     ]
   },
   {
-    "index": 335,
+    "index": 331,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 4,
     "source": "In this work, we define a counterfactual as a perturbation of the input text that differs in some meaningful controlled way from the original text.",
@@ -35469,7 +35246,7 @@
     ]
   },
   {
-    "index": 336,
+    "index": 332,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 5,
     "source": "And allows us to reason about the changes in the outcome or the task label.",
@@ -35536,7 +35313,7 @@
     ]
   },
   {
-    "index": 337,
+    "index": 333,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 6,
     "source": "For instance, changing the words fascinating to captivating or expected to mind-numbing changes the sentiment for this movie review.",
@@ -35612,7 +35389,7 @@
     ]
   },
   {
-    "index": 338,
+    "index": 334,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 7,
     "source": "Similarly, adding the qualifier women's to the question changes the answer to the question in the example below.",
@@ -35736,7 +35513,7 @@
     ]
   },
   {
-    "index": 339,
+    "index": 335,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 8,
     "source": "Humans are typically robust to such perturbations compared to NLP models trained on the task. Why is that?",
@@ -35845,7 +35622,7 @@
     ]
   },
   {
-    "index": 340,
+    "index": 336,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 9,
     "source": "The dataset may be sampled with systematic biases that lead to a simple decision boundary that is violated by the counterfactual.",
@@ -35981,7 +35758,7 @@
     ]
   },
   {
-    "index": 341,
+    "index": 337,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 10,
     "source": "As shown in this 2D classification problem.",
@@ -36108,7 +35885,7 @@
     ]
   },
   {
-    "index": 342,
+    "index": 338,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 11,
     "source": "My work has found that adding counterfactual examples to the training data can make the model robust to such perturbations.",
@@ -36175,7 +35952,7 @@
     ]
   },
   {
-    "index": 343,
+    "index": 339,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 13,
     "source": "This task is especially hard for NLP because here are three examples from three different NLP tasks.",
@@ -36383,7 +36160,7 @@
     ]
   },
   {
-    "index": 344,
+    "index": 340,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 14,
     "source": "As you can see, examples that violate the decision boundary between outcomes need to be very carefully crafted by perturbing some attributes of the text that are underlined here.",
@@ -36522,7 +36299,7 @@
     ]
   },
   {
-    "index": 345,
+    "index": 341,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 15,
     "source": "This could be done by human annotation, but this is expensive and biased.",
@@ -36610,7 +36387,7 @@
     ]
   },
   {
-    "index": 346,
+    "index": 342,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 16,
     "source": "Some prior work has focused on using syntax trees or semantic role labeling.",
@@ -36707,7 +36484,7 @@
     ]
   },
   {
-    "index": 347,
+    "index": 343,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 17,
     "source": "But the set of perturbations generated by these techniques are limited by the semantic framework.",
@@ -36819,7 +36596,7 @@
     ]
   },
   {
-    "index": 348,
+    "index": 344,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 18,
     "source": "More recent work has used masked language models to fill in masked portions of the text to change labels. But finding what parts of the text to perturb can be challenging.",
@@ -36994,7 +36771,7 @@
     ]
   },
   {
-    "index": 349,
+    "index": 345,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 19,
     "source": "There are more challenges to generating counterfactuals for question answering specifically.",
@@ -37076,7 +36853,7 @@
     ]
   },
   {
-    "index": 350,
+    "index": 346,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 20,
     "source": "This task requires background knowledge.",
@@ -37125,7 +36902,7 @@
     ]
   },
   {
-    "index": 351,
+    "index": 347,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 21,
     "source": "For instance, to perturb the original question is Indiana Jones Temple of Doom a prequel?",
@@ -37210,7 +36987,7 @@
     ]
   },
   {
-    "index": 352,
+    "index": 348,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 22,
     "source": "We need to be aware of the other movies in the franchise to get to a question like is Indiana Jones Raiders of the Lost Ark a prequel?",
@@ -37337,7 +37114,7 @@
     ]
   },
   {
-    "index": 353,
+    "index": 349,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 23,
     "source": "Furthermore, random perturbations can lead to questions that are not answerable with the available evidence or have false premises.",
@@ -37461,7 +37238,7 @@
     ]
   },
   {
-    "index": 354,
+    "index": 350,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 24,
     "source": "Moreover, some question perturbations can lead to significant semantic drift from the original input.",
@@ -37549,7 +37326,7 @@
     ]
   },
   {
-    "index": 355,
+    "index": 351,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 25,
     "source": "For instance, this question is Indiana Jones practicing child slavery in Temple of Doom?",
@@ -37670,7 +37447,7 @@
     ]
   },
   {
-    "index": 356,
+    "index": 352,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 26,
     "source": "We propose a very simple yet effective technique called retrieve generate filter or RGF, to tackle counterfactual perturbations of questions, and also aims to tackle all the other aforementioned challenges.",
@@ -37773,7 +37550,7 @@
     ]
   },
   {
-    "index": 357,
+    "index": 353,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 27,
     "source": "The core intuition behind RGF is that the necessary background information that is needed to generate perturbations may be present in the near misses made by a question answering model.",
@@ -37993,7 +37770,7 @@
     ]
   },
   {
-    "index": 358,
+    "index": 354,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 28,
     "source": "For instance, the state-of-the-art model REALM produces the following top k answers to the question who is the captain of the Richmond Football Club?",
@@ -38072,7 +37849,7 @@
     ]
   },
   {
-    "index": 359,
+    "index": 355,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 29,
     "source": "While it does recover the original reference passage and answer Trent Cotchin as the top most choice.",
@@ -38184,7 +37961,7 @@
     ]
   },
   {
-    "index": 360,
+    "index": 356,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 30,
     "source": "It also retrieves additional passages and answers which can be used to guide question perturbation.",
@@ -38287,7 +38064,7 @@
     ]
   },
   {
-    "index": 361,
+    "index": 357,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 31,
     "source": "For instance, it recovers two more answers corresponding to the captains of the reserve team and the women's team of the same club, and this can lead to interesting edits.",
@@ -38414,7 +38191,7 @@
     ]
   },
   {
-    "index": 362,
+    "index": 358,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 32,
     "source": "To summarize, RGF first retrieves top k most relevant answers and contexts which don't match the reference answer in context.",
@@ -38532,7 +38309,7 @@
     ]
   },
   {
-    "index": 363,
+    "index": 359,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 33,
     "source": "Following this step, the question generation model conditions on these alternate answers to generate a question that corresponds to them.",
@@ -38641,7 +38418,7 @@
     ]
   },
   {
-    "index": 364,
+    "index": 360,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 34,
     "source": "And finally, we can filter the generated questions based on minimality or based on the type of semantic perturbation we are interested in introducing.",
@@ -38750,7 +38527,7 @@
     ]
   },
   {
-    "index": 365,
+    "index": 361,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 35,
     "source": "Going over each step in greater detail for retrieval, we use a retrieve then read model like REALM that takes as input the original question, and a large corpus like Wikipedia.",
@@ -38895,7 +38672,7 @@
     ]
   },
   {
-    "index": 366,
+    "index": 362,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 36,
     "source": "It consists of two modules.",
@@ -38947,7 +38724,7 @@
     ]
   },
   {
-    "index": 367,
+    "index": 363,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 37,
     "source": "The retriever module performs similarity search over a dense index of passages to retrieve the top k most relevant passages to the question.",
@@ -39083,7 +38860,7 @@
     ]
   },
   {
-    "index": 368,
+    "index": 364,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 38,
     "source": "And a reader module then extracts a span from each passage as a potential answer. REALM retrieves the gold passage and answer in most cases. However, in this work, we are more interested in the answers and context that it retrieves further down the line.",
@@ -39303,7 +39080,7 @@
     ]
   },
   {
-    "index": 369,
+    "index": 365,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 39,
     "source": "In the next step, question generation, we use these alternate answers and contexts to regenerate new questions that correspond to these alternatives.",
@@ -39427,7 +39204,7 @@
     ]
   },
   {
-    "index": 370,
+    "index": 366,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 40,
     "source": "Question generation model is a pre trained text-to-text transformer that is fine-tuned on the NQ data to generate a question for an answer that's marked in context.",
@@ -39584,7 +39361,7 @@
     ]
   },
   {
-    "index": 371,
+    "index": 367,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 41,
     "source": "During inference we supply the question generation model, the alternative answer and context that we retrieved in the previous step.",
@@ -39678,7 +39455,7 @@
     ]
   },
   {
-    "index": 372,
+    "index": 368,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 42,
     "source": "For example, for the query who is the captain of the Richmond Football Club? REALM retrieves passages about the club's women's team, captained by Jess Kennedy, and the question generation model generates the query who captained Richmond Football Club's first ever women's team?",
@@ -39883,7 +39660,7 @@
     ]
   },
   {
-    "index": 373,
+    "index": 369,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 43,
     "source": "Which has a specific semantic perturbation.",
@@ -39950,7 +39727,7 @@
     ]
   },
   {
-    "index": 374,
+    "index": 370,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 44,
     "source": "In a similar fashion, we also get queries like who captained Richmond's VFL Reserve team?",
@@ -40041,7 +39818,7 @@
     ]
   },
   {
-    "index": 375,
+    "index": 371,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 45,
     "source": "Or who did graham negate in the grand final last year?",
@@ -40108,7 +39885,7 @@
     ]
   },
   {
-    "index": 376,
+    "index": 372,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 46,
     "source": "Finally, we filter out a subset of the generated queries based on some desired characteristics.",
@@ -40205,7 +39982,7 @@
     ]
   },
   {
-    "index": 377,
+    "index": 373,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 47,
     "source": "As motivated earlier, we would like to ensure that the new question is still semantically close to the original.",
@@ -40308,7 +40085,7 @@
     ]
   },
   {
-    "index": 378,
+    "index": 374,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 48,
     "source": "For filtering techniques that doesn't require additional supervision, we simply retain new questions that have a small token label edit distance from the original question.",
@@ -40432,7 +40209,7 @@
     ]
   },
   {
-    "index": 379,
+    "index": 375,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 49,
     "source": "For example, we remove the question who did graham negate in the grand final last year?",
@@ -40526,7 +40303,7 @@
     ]
   },
   {
-    "index": 380,
+    "index": 376,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 50,
     "source": "Because it has a longer edit distance from the original question.",
@@ -40581,7 +40358,7 @@
     ]
   },
   {
-    "index": 381,
+    "index": 377,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 51,
     "source": "In our experiments, we demonstrate that this simple heuristic can be used to augment and queue training data.",
@@ -40675,7 +40452,7 @@
     ]
   },
   {
-    "index": 382,
+    "index": 378,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 52,
     "source": "We also experiment with a filtering strategy that is based on the type of semantic perturbation.",
@@ -40760,7 +40537,7 @@
     ]
   },
   {
-    "index": 383,
+    "index": 379,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 53,
     "source": "To this end, we use a general purpose query decomposition framework called QED.",
@@ -40830,7 +40607,7 @@
     ]
   },
   {
-    "index": 384,
+    "index": 380,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 54,
     "source": "QED identifies two parts to the question, a predicate and a reference.",
@@ -40903,7 +40680,7 @@
     ]
   },
   {
-    "index": 385,
+    "index": 381,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 55,
     "source": "References are noun phrases in the question that correspond to entities in the context.",
@@ -40967,7 +40744,7 @@
     ]
   },
   {
-    "index": 386,
+    "index": 382,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 56,
     "source": "A predicate is basically the remaining portion of the question.",
@@ -41016,7 +40793,7 @@
     ]
   },
   {
-    "index": 387,
+    "index": 383,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 57,
     "source": "For example, we are able to decompose the query who captained Richmond's first ever women's team into two references: Richmond Football Club women's team and the predicate who captained X.",
@@ -41236,7 +41013,7 @@
     ]
   },
   {
-    "index": 388,
+    "index": 384,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 58,
     "source": "A model trained on reference predicate annotations for NQ gives us this question decomposition.",
@@ -41297,7 +41074,7 @@
     ]
   },
   {
-    "index": 389,
+    "index": 385,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 59,
     "source": "Decomposing both the original and generated question based on QED allows us to categorize our generated counterfactuals for evaluation.",
@@ -41448,7 +41225,7 @@
     ]
   },
   {
-    "index": 390,
+    "index": 386,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 60,
     "source": "Specifically, we obtain two groups of questions. Those that undergo a reference change while retaining predicates, and those that undergo a predicate change and optionally add references.",
@@ -41575,7 +41352,7 @@
     ]
   },
   {
-    "index": 391,
+    "index": 387,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 61,
     "source": "For instance, who captained Richmond's VFL reserve team is a reference change?",
@@ -41681,7 +41458,7 @@
     ]
   },
   {
-    "index": 392,
+    "index": 388,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 62,
     "source": "While, who wears number nine for the club is a predicate change.",
@@ -41727,87 +41504,7 @@
     ]
   },
   {
-    "index": 393,
-    "doc_id": "2022.acl-long.117.wav",
-    "seg_id": 63,
-    "source": "",
-    "reference": "",
-    "source_length": 3643.0,
-    "delays": [
-      151244.0,
-      151404.0,
-      151644.0,
-      151884.0,
-      152284.0
-    ],
-    "elapsed": [
-      151244.0,
-      151404.0,
-      151644.0,
-      151884.0,
-      152284.0
-    ],
-    "recording_end": 3643.0,
-    "_compact_u_start": 1714,
-    "_compact_u_end": 1719,
-    "_raw_u_start": 1714,
-    "_raw_u_end": 1719,
-    "_seg_start_ms": 431934.0,
-    "_seg_end_ms": 435577.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 2,
-    "prediction": "これは出るものです。",
-    "raw_units": [
-      "これ",
-      "は",
-      "出る",
-      "もの",
-      "です"
-    ]
-  },
-  {
-    "index": 394,
-    "doc_id": "2022.acl-long.117.wav",
-    "seg_id": 64,
-    "source": "",
-    "reference": "",
-    "source_length": 3643.0,
-    "delays": [
-      152844.0,
-      152924.0,
-      153244.0,
-      153484.0,
-      153804.0
-    ],
-    "elapsed": [
-      152844.0,
-      152924.0,
-      153244.0,
-      153484.0,
-      153804.0
-    ],
-    "recording_end": 3643.0,
-    "_compact_u_start": 1719,
-    "_compact_u_end": 1724,
-    "_raw_u_start": 1719,
-    "_raw_u_end": 1724,
-    "_seg_start_ms": 431934.0,
-    "_seg_end_ms": 435577.0,
-    "_match_method": "char_span_from_segale",
-    "_start_offset": 0,
-    "_end_offset": 2,
-    "prediction": "これは出るものです。",
-    "raw_units": [
-      "これ",
-      "は",
-      "出る",
-      "もの",
-      "です"
-    ]
-  },
-  {
-    "index": 395,
+    "index": 389,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 65,
     "source": "We now evaluate the effectiveness of RGF perturbations when augmented to training data.",
@@ -41865,7 +41562,7 @@
     ]
   },
   {
-    "index": 396,
+    "index": 390,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 66,
     "source": "So, to effectively evaluate the effectiveness of counterfactual augmentation in particular, we experiment with two strong data augmentation baselines.",
@@ -42070,7 +41767,7 @@
     ]
   },
   {
-    "index": 397,
+    "index": 391,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 67,
     "source": "The first baseline, called random answer and question generation, adds data that has no relation with the original question.",
@@ -42134,7 +41831,7 @@
     ]
   },
   {
-    "index": 398,
+    "index": 392,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 68,
     "source": "That is, passages and answers are simply randomly sampled from Wikipedia.",
@@ -42216,7 +41913,7 @@
     ]
   },
   {
-    "index": 399,
+    "index": 393,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 69,
     "source": "This baseline basically adds more data that looks like NQ.",
@@ -42322,7 +42019,7 @@
     ]
   },
   {
-    "index": 400,
+    "index": 394,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 70,
     "source": "With the second baseline gold answer and question generation, we specifically update the retrieval portion of our method.",
@@ -42410,7 +42107,7 @@
     ]
   },
   {
-    "index": 401,
+    "index": 395,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 71,
     "source": "Here, alternate answers are just chosen from the same passage that contained the gold answer.",
@@ -42489,7 +42186,7 @@
     ]
   },
   {
-    "index": 402,
+    "index": 396,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 72,
     "source": "How base how do the baselines and RGF ah augmentation perform on reading comprehension where the model has access to question and context?",
@@ -42610,7 +42307,7 @@
     ]
   },
   {
-    "index": 403,
+    "index": 397,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 73,
     "source": "We experiment with six out of domain datasets and present results here, where data is the training data is doubled in augmentation.",
@@ -42725,7 +42422,7 @@
     ]
   },
   {
-    "index": 404,
+    "index": 398,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 74,
     "source": "We find that both data augmentation baselines are not able to improve our domain generalization.",
@@ -42843,7 +42540,7 @@
     ]
   },
   {
-    "index": 405,
+    "index": 399,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 75,
     "source": "In fact, an ensemble of six models trained on the original data seems to be the most competitive baseline. Comparing against that baseline, we find that RGF counterfactuals are able to improve out of domain performance while maintaining in domain performance.",
@@ -43246,7 +42943,7 @@
     ]
   },
   {
-    "index": 406,
+    "index": 400,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 77,
     "source": "Furthermore, we find that using retrieval to sample alternative outcomes or answers is important for effective CDA.",
@@ -43364,7 +43061,7 @@
     ]
   },
   {
-    "index": 407,
+    "index": 401,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 78,
     "source": "We also experiment with open domain QA setting where the model only sees the question and once again we evaluate on four out of domain datasets.",
@@ -43452,7 +43149,7 @@
     ]
   },
   {
-    "index": 408,
+    "index": 402,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 79,
     "source": "We find that baseline models are not as effective for out of domain generalization.",
@@ -43594,7 +43291,7 @@
     ]
   },
   {
-    "index": 409,
+    "index": 403,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 80,
     "source": "However, data augmentation with RGF shows more significant improvements.",
@@ -43664,7 +43361,7 @@
     ]
   },
   {
-    "index": 410,
+    "index": 404,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 81,
     "source": "We even improve in the in domain NQ dataset.",
@@ -43731,7 +43428,7 @@
     ]
   },
   {
-    "index": 411,
+    "index": 405,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 82,
     "source": "We hypothesized that the counterfactual data augmentation aids the model in learning better query encodings for very similar queries.",
@@ -43861,7 +43558,7 @@
     ]
   },
   {
-    "index": 412,
+    "index": 406,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 83,
     "source": "Finally, we also evaluate on the model's ability to improve consistency in the local neighborhood of the original question.",
@@ -43970,7 +43667,7 @@
     ]
   },
   {
-    "index": 413,
+    "index": 407,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 84,
     "source": "Consistency measures the proportion of questions correctly answered by the model where both the original and the counterfactual query are correctly answered.",
@@ -44100,7 +43797,7 @@
     ]
   },
   {
-    "index": 414,
+    "index": 408,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 85,
     "source": "This explicitly helps us to measure the model's robustness to small perturbations in the neighborhood of the original input.",
@@ -44170,7 +43867,7 @@
     ]
   },
   {
-    "index": 415,
+    "index": 409,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 86,
     "source": "We experiment with five datasets which contain pairs of questions that are semantically close to each other.",
@@ -44309,7 +44006,7 @@
     ]
   },
   {
-    "index": 416,
+    "index": 410,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 87,
     "source": "Apart from the three datasets AQA, AmbigQA and QUOREF-Contrast set that are already available, we also evaluate on RGF counterfactuals that are paired with original NQ questions based on whether they underwent a predicate change or reference change.",
@@ -44496,7 +44193,7 @@
     ]
   },
   {
-    "index": 417,
+    "index": 411,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 88,
     "source": "These subsets were annotated in-house to eliminate noise and are provided as a resource.",
@@ -44605,7 +44302,7 @@
     ]
   },
   {
-    "index": 418,
+    "index": 412,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 89,
     "source": "All baselines are unable to significantly improve consistency with the ensemble model improving consistency by a small margin.",
@@ -44735,7 +44432,7 @@
     ]
   },
   {
-    "index": 419,
+    "index": 413,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 90,
     "source": "However, RGF counterfactual augmentation has impressive gains in consistency both on prior datasets and the two subsets we curated for reference and predicate perturbations.",
@@ -44949,7 +44646,7 @@
     ]
   },
   {
-    "index": 420,
+    "index": 414,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 92,
     "source": "In fact, a qualitative inspection of the kinds of counterfactuals generated show that the generated questions contain several diverse perturbations.",
@@ -45124,7 +44821,7 @@
     ]
   },
   {
-    "index": 421,
+    "index": 415,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 93,
     "source": "For instance, this original question on the population of Walnut Grove, Minnesota is perturbed along different dimensions like town, state, country, and along different predicates like location, poverty, number of schools.",
@@ -45272,7 +44969,7 @@
     ]
   },
   {
-    "index": 422,
+    "index": 416,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 94,
     "source": "Audio of perturbations are context specific.",
@@ -45327,7 +45024,7 @@
     ]
   },
   {
-    "index": 423,
+    "index": 417,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 95,
     "source": "For example, for this other question about the Wimbledon ah singles tournament, the perturbation is along type of game, type of tournament, or the game outcome.",
@@ -45490,7 +45187,7 @@
     ]
   },
   {
-    "index": 424,
+    "index": 418,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 96,
     "source": "Final takeaways; we tackle the task of counterfactual data augmentation and perturbations for information seeking queries and tackle its unique challenges via a reversal of the generation approach, over generate using near misses of the model and filter based on perturbation type or minimality.",
@@ -45797,7 +45494,7 @@
     ]
   },
   {
-    "index": 425,
+    "index": 419,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 97,
     "source": "We find that this technique requires no additional supervision and the examples are labeled for augmentation.",
@@ -45873,7 +45570,7 @@
     ]
   },
   {
-    "index": 426,
+    "index": 420,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 98,
     "source": "Augmentation improves out of domain generalization and neighborhood consistency.",
@@ -45943,7 +45640,7 @@
     ]
   },
   {
-    "index": 427,
+    "index": 421,
     "doc_id": "2022.acl-long.117.wav",
     "seg_id": 99,
     "source": "And we find that RGF counterfactuals are semantically diverse without introducing bias during augmentation.",

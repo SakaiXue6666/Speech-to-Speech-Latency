@@ -1,3 +1,0 @@
-mosestokenizer==1.2.1
-PyYAML==6.0.3
-sacrebleu==2.5.1

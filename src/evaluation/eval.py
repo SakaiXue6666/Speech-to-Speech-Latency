@@ -10,27 +10,19 @@ import yaml
 import json
 import os
 
-from pipeline_qwen3_forcealign_tokenizer2 import Qwen3ForceAlignTokenizer
 from .metrics import Instance, SacreBLEUScorer, YAALScorer, EndingOffsetScorer, evaluate_instances
-from .matching import (
-    _compact_span_to_raw_span,
+from .src_matching import (
     _match_src_span_for_seg,
     _match_src_span_for_seg_by_ids,
+)
+from .tgt_matching import (
+    _compact_span_to_raw_span,
     _match_tgt_units_for_seg,
     _match_tgt_units_for_seg_by_raw_char_span,
     _norm_char_stream,
     build_target_matcher_context,
 )
-
-qwen_tok = Qwen3ForceAlignTokenizer()
-
-
-def _norm(s: str) -> str:
-    return unicodedata.normalize("NFKC", s or "")
-
-
-def _qwen_units(text: str, language: str) -> List[str]:
-    return qwen_tok.encode_timestamp(_norm(text), language)
+from .utils import _norm, _qwen_units
 
 
 logger = logging.getLogger(__name__)
