@@ -1,5 +1,0 @@
-{"doc_id": "2022.acl-long.268.wav", "sys_id": null, "src": "As you can see, these are the features.", "ref": "如大家所见，这些都是特征。", "tgt": "", "seg_id": 38}
-{"doc_id": "2022.acl-long.268.wav", "sys_id": null, "src": "These are binary features such as the word or the token in upper case?", "ref": "这些都是二进制特征，例如大写的单词或令牌？", "tgt": "", "seg_id": 39}
-{"doc_id": "2022.acl-long.268.wav", "sys_id": null, "src": "Is it title titlecase?", "ref": "是标题标签吗？", "tgt": "", "seg_id": 40}
-{"doc_id": "2022.acl-long.268.wav", "sys_id": null, "src": "Is it a quotation mark?", "ref": "是引号吗？", "tgt": "", "seg_id": 41}
-{"doc_id": "2022.acl-long.268.wav", "sys_id": null, "src": "Things like that, which are the type of features that one would expect in a named entity recognition task.", "ref": "诸如此类的东西，这是人们在命名实体识别任务中所期望的特征类型。", "tgt": "从这项工作中，你可以看到这些是二进制特征，比如单词或标记是否为大写，是否为小写，是否为引号等，这些都是人们在命名实体识别任务中所期望的特征类型。", "seg_id": 42}

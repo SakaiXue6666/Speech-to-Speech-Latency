@@ -203,4 +203,4 @@ def instances_to_segale(
             f.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
     print("saved:", out_path_ref, out_path_hyp)
-# ============================================================================/
+    

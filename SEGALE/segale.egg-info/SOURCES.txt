@@ -1,0 +1,17 @@
+LICENSE
+README.md
+segale_align.py
+segale_eval.py
+setup.py
+segale.egg-info/PKG-INFO
+segale.egg-info/SOURCES.txt
+segale.egg-info/dependency_links.txt
+segale.egg-info/entry_points.txt
+segale.egg-info/requires.txt
+segale.egg-info/top_level.txt
+vecalign/__init__.py
+vecalign/dp_utils.py
+vecalign/overlap.py
+vecalign/score.py
+vecalign/standalone_document_embedding_demo.py
+vecalign/vecalign.py
