@@ -6,6 +6,8 @@ import unicodedata
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
+from .utils import _norm
+
 
 
 logger = logging.getLogger(__name__)

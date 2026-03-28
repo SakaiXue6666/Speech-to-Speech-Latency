@@ -21,17 +21,35 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 class Qwen3ForceAlignTokenizer():
     def __init__(self):
-        ko_dict_path = os.path.join(os.path.dirname(__file__), "assets", "korean_dict_jieba.dict")
-        ko_scores = {}
+        self.ko_score: Optional[Dict[str, float]] = None
+        self.ko_tokenizer = None
+
+    def _ensure_korean_scores(self) -> Dict[str, float]:
+        if self.ko_score is not None:
+            return self.ko_score
+        ko_dict_path = None
+        d = os.path.dirname(os.path.abspath(__file__))
+        for _ in range(16):
+            cand = os.path.join(d, "assets", "korean_dict_jieba.dict")
+            if os.path.isfile(cand):
+                ko_dict_path = cand
+                break
+            parent = os.path.dirname(d)
+            if parent == d:
+                break
+            d = parent
+        if ko_dict_path is None:
+            raise FileNotFoundError("未找到 assets/korean_dict_jieba.dict（请放在项目根或任意上级目录的 assets/ 下）")
+        scores: Dict[str, float] = {}
         with open(ko_dict_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
                 word = line.split()[0]
-                ko_scores[word] = 1.0
-        self.ko_score = ko_scores
-        self.ko_tokenizer = None
+                scores[word] = 1.0
+        self.ko_score = scores
+        return scores
 
     def is_kept_char(self, ch: str) -> bool:
         if ch == "'":
@@ -200,7 +218,7 @@ class Qwen3ForceAlignTokenizer():
         if language == "korean":
             if self.ko_tokenizer is None:
                 from soynlp.tokenizer import LTokenizer
-                self.ko_tokenizer = LTokenizer(scores=self.ko_score)
+                self.ko_tokenizer = LTokenizer(scores=self._ensure_korean_scores())
             word_list = self.tokenize_korean(self.ko_tokenizer, text)
             pos = 0
             out = []
@@ -221,7 +239,7 @@ class Qwen3ForceAlignTokenizer():
         elif language.lower() == "korean":
             if self.ko_tokenizer is None:
                 from soynlp.tokenizer import LTokenizer
-                self.ko_tokenizer = LTokenizer(scores=self.ko_score)
+                self.ko_tokenizer = LTokenizer(scores=self._ensure_korean_scores())
             word_list = self.tokenize_korean(self.ko_tokenizer, text)
         else:
             word_list = self.tokenize_space_lang(text)
