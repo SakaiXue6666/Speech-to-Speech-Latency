@@ -1,0 +1,52 @@
+# ── core pipeline (main.py) ──
+qwen-asr>=0.0.6
+torch>=2.7
+transformers>=4.45
+sentence-transformers>=3.0
+spacy>=3.7
+numpy>=1.26
+tqdm>=4.66
+soundfile>=0.12
+Cython>=3.0
+
+# ── 中间过程 / LongYAAL ──
+PyYAML>=6.0
+sacrebleu>=2.5
+nagisa                         # 仅日语目标语言时实际用到（懒加载），但建议提前安装
+matplotlib>=3.8
+
+# ── SEGALE + vecalign ──
+# vecalign 已包含在项目的 SEGALE/ 子目录中，需本地编译并安装：
+# 1. 编译 vecalign 的 Cython 扩展：
+#    cd SEGALE/vecalign
+#    python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
+#    若 --inplace 报路径错误，手动拷贝: cp build/lib.*/vecalign/dp_core.*.pyd .
+# 2. 安装 SEGALE（自动注册 vecalign 命令行工具）：
+#    pip install --no-deps -e ./SEGALE
+
+# ── spaCy 语言模型（按目标语言选择，运行 pip install 后执行）──
+# 中文（默认）:  python -m spacy download zh_core_web_sm
+# 德文:          python -m spacy download de_core_news_sm
+# 日文:          pip install ginza ja_ginza
+# 英文:          python -m spacy download en_core_web_sm
+
+# ── GPU：RTX 30 系及以上建议使用 CUDA 12.8 版 PyTorch ──
+# pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128
+# RTX 50 系（Blackwell, sm_120）必须使用 torch>=2.7 + cu128，否则推理极慢
+
+# ── 模型权重（首次运行前下载，之后可设 HF_HUB_OFFLINE=1）──
+# export HF_ENDPOINT=https://hf-mirror.com   # 国内镜像
+# huggingface-cli download Qwen/Qwen3-ASR-1.7B
+# huggingface-cli download Qwen/Qwen3-ForcedAligner-0.6B
+# huggingface-cli download sentence-transformers/LaBSE
+
+# ── 快速安装（完整步骤）──
+# conda create -n s2s_latency python=3.10 -y
+# conda activate s2s_latency
+# pip install -r requirements.txt
+# cd SEGALE/vecalign
+# python -c "from setuptools import setup, Extension; from Cython.Build import cythonize; import numpy; setup(ext_modules=cythonize('dp_core.pyx'), include_dirs=[numpy.get_include()], script_args=['build_ext', '--inplace'])"
+# cd ../..
+# pip install --no-deps -e ./SEGALE
+# python -m spacy download zh_core_web_sm
+# 如需 GPU（推荐）：pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128

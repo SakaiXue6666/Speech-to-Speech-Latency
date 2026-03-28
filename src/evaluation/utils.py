@@ -3,7 +3,7 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import nagisa
+# nagisa 仅日语分词时使用，懒加载避免非日语场景强制依赖
 # import torch
 # from qwen_asr.core.transformers_backend import (
 #     Qwen3ASRConfig,
@@ -84,6 +84,7 @@ class Qwen3ForceAlignTokenizer():
         return tokens
 
     def tokenize_japanese(self, text: str) -> List[str]:
+        import nagisa
         words = nagisa.tagging(text).words
         tokens: List[str] = []
         for w in words:
