@@ -1,8 +1,9 @@
 import gc
 import os
 
-os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
-os.environ.setdefault("HF_HUB_OFFLINE", "1")  # 让 HuggingFace 完全跳过网络请求，直接读本地缓存
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+os.environ["HF_HUB_OFFLINE"] = "1"  # 让 HuggingFace 完全跳过网络请求，直接读本地缓存
+# os.environ.setdefault("CUDA_LAUNCH_BLOCKING", "1")  # 仅调试用，正常运行时关闭
 
 import torch
 
@@ -20,8 +21,13 @@ from src.plot.plot import (
 
 
 def main():
+    print("[DEBUG] 环境变量确认:", "HF_HUB_OFFLINE =", os.environ.get("HF_HUB_OFFLINE"), "| HF_ENDPOINT =", os.environ.get("HF_ENDPOINT"))
+    print("[DEBUG] 开始 build_manifest...")
     cfg = PipelineConfig()
+    cfg.build_manifest()   # 自动扫目录生成 manifest.jsonl（已存在时覆盖）
+    print("[DEBUG] build_manifest 完成，开始 build_paths...")
     paths = cfg.build_paths()
+    print("[DEBUG] build_paths 完成")
 
     # ================================================================
     # 想单独跑某 step：注释其他 steps 就好

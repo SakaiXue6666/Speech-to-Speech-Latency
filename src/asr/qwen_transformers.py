@@ -272,6 +272,9 @@ def step1_asr(
     batch_size: int = 10,
     max_new_tokens: int = 1024,
 ):
+    print(f"[DEBUG] 开始加载 ASR 模型: {ASR_MODEL_PATH}")
+    print(f"[DEBUG] FORCED_ALIGNER: {FORCED_ALIGNER_PATH}")
+    print(f"[DEBUG] HF_HUB_OFFLINE={os.environ.get('HF_HUB_OFFLINE')} | HF_ENDPOINT={os.environ.get('HF_ENDPOINT')}")
     asr = Qwen3ASRModel.from_pretrained(
         ASR_MODEL_PATH,
         dtype=torch.bfloat16,
@@ -284,6 +287,7 @@ def step1_asr(
         max_inference_batch_size=batch_size,
         max_new_tokens=max_new_tokens,
     )
+    print("[DEBUG] ASR 模型加载完成，开始推理...")
     run_tgt_asr_from_manifest_batch(
         manifest,
         asr,
