@@ -25,15 +25,15 @@ class PipelineConfig:
     # ── 系统标识 ──────────────────────────────────────────────────────
     model_name: str = "seed"
     src_lang: str = "en"
-    tgt_lang: str = "zh"
+    tgt_lang: str = "ja"  # "zh" or "de" or "ja"
     output_version: str = ""
 
     # ── 输入路径（改这里换数据集或待评估系统）────────────────────────
     src_dir: str = "input/acl_6060_dev/full_wavs"
-    tgt_dir: str = "input/acl_6060_dev_tgt_seed/en_zh"
+    tgt_dir: str = "input/acl_6060_dev_tgt_seed/en_ja"  # "en_zh" or "en_de" or "en_ja"
     src_segments_yaml: str = "input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     src_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.zh.txt"
+    tgt_ref_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.ja.txt"  # "zh.txt" or "de.txt" or "ja.txt"
     output_dir: str = "output"
 
     # ── 运行参数 ───────────────────────────────────────────────────────
