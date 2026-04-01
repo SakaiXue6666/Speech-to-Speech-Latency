@@ -38,7 +38,7 @@ class PipelineConfig:
 
     # ── 运行参数 ───────────────────────────────────────────────────────
     asr_backend: str = "transformers"   # "transformers" 或 "vllm"
-    batch_size: int = 1
+    batch_size: int = 2
     max_new_tokens: int = 1024
     embedding_model: str = "sentence-transformers/LaBSE"
     proc_device: str = "cuda"
@@ -74,8 +74,8 @@ class PipelineConfig:
         return os.path.join(self.output_dir_segale, "hyp/aligned_spacy_hyp.jsonl")
 
     @property
-    def output_dir_longyaal(self) -> str:
-        return f"{self._output_base}/output_longyaal{self.output_version}"
+    def output_dir_evaluation(self) -> str:
+        return f"{self._output_base}/output_evaluation{self.output_version}"
 
     def build_manifest(self, manifest_path: str = None) -> str:
         """
