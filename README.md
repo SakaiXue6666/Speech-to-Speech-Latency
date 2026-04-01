@@ -39,7 +39,7 @@ pip install --no-deps -e ./SEGALE
 # 7. spaCy 语言模型（按需安装）
 python -m spacy download zh_core_web_sm   # 中文
 python -m spacy download de_core_news_sm  # 德文
-pip install ginza ja_ginza                # 日文
+pip install "ginza==5.2.0" "ja-ginza==5.2.0" "confection==0.1.5"  # 日文（confection 1.x 有 breaking change）
 
 # 8. 下载 HuggingFace 模型权重（首次运行需要，之后自动离线）
 export HF_ENDPOINT=https://hf-mirror.com  # 国内镜像加速
