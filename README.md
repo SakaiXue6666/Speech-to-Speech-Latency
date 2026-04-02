@@ -9,7 +9,7 @@ Evaluation pipeline for measuring latency in speech-to-speech translation system
 source /etc/network_turbo
 
 # 1. 拉代码
-cd ~/autodl-tmp
+cd <base_path>
 git clone https://github.com/SakaiXue6666/Speech-to-Speech-Latency.git
 cd Speech-to-Speech-Latency
 
