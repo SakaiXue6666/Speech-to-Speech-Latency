@@ -15,5 +15,10 @@ sacrebleu[ja]>=2.5
 nagisa                         # 仅日语目标语言时实际用到（懒加载），但建议提前安装
 matplotlib>=3.8
 
+# ── API server ──
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.0
+
 # ── ASR-vllm ──
 # qwen-asr[vllm]
