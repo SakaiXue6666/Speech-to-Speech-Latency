@@ -1,7 +1,7 @@
 """
-Speech-to-Speech Latency Evaluation Pipeline — FastAPI 服务
+Speech-to-Speech Latency Evaluation Pipeline — FastAPI Service
 
-启动方式:
+Start:
     uvicorn api:app --host 0.0.0.0 --port 8000 --workers 1
 
 Swagger UI:  http://localhost:8000/docs
@@ -40,7 +40,7 @@ logging.basicConfig(level=logging.INFO)
 # ── FastAPI app ──────────────────────────────────────────────
 app = FastAPI(
     title="S2S Latency Evaluation API",
-    description="语音到语音翻译延迟评估流水线 API",
+    description="Speech-to-Speech Translation Latency Evaluation Pipeline API",
     version="1.0.0",
     swagger_ui_parameters={"defaultModelsExpandDepth": -1},
     docs_url=None,
@@ -50,7 +50,7 @@ _SWAGGER_CUSTOM_HTML = """
 <script>
 (function() {
     function patch() {
-        // 隐藏: curl, request-url, 静态 responses 文档, Responses 标题, Code/Details 表头
+        // Hide: curl, request-url, static responses docs, Responses header, Code/Details header
         var hideSelectors = [
             '.curl-command',
             '.request-url',
@@ -63,14 +63,14 @@ _SWAGGER_CUSTOM_HTML = """
             });
         });
 
-        // 隐藏静态文档 table（保留 live 的）
+        // Hide static doc tables (keep live ones)
         document.querySelectorAll('.responses-inner > table').forEach(function(t) {
             if (!t.classList.contains('live-responses-table')) {
                 t.style.display = 'none';
             }
         });
 
-        // 隐藏所有 "Responses" 标题和 Response headers
+        // Hide all "Responses" headings and Response headers
         document.querySelectorAll('.responses-wrapper h4, .responses-wrapper h5').forEach(function(el) {
             var t = el.textContent.trim();
             if (t === 'Responses' || t === 'Response headers') {
@@ -78,7 +78,7 @@ _SWAGGER_CUSTOM_HTML = """
             }
         });
 
-        // 添加成功/失败 banner
+        // Add success/failure banner
         document.querySelectorAll('table.live-responses-table').forEach(function(table) {
             var parent = table.parentElement;
             if (!parent || parent.querySelector('.s2s-banner')) return;
@@ -132,19 +132,19 @@ _executor = ThreadPoolExecutor(max_workers=1)
 
 
 def _check_cancelled(task_id: str):
-    """在流水线的每个步骤之间调用，如果任务被取消则抛异常"""
+    """Called between pipeline steps; raises if the task has been cancelled."""
     if task_id in _cancel_requested:
         _cancel_requested.discard(task_id)
         raise InterruptedError("task cancelled by user")
 
 
 def _register_thread(task_id: str):
-    """任务开始时记录线程 ID，用于 force kill"""
+    """Record thread ID when a task starts, used for force kill."""
     _task_thread_ids[task_id] = threading.current_thread().ident
 
 
 def _force_kill_thread(task_id: str) -> bool:
-    """向目标线程注入 KeyboardInterrupt，强制终止"""
+    """Inject KeyboardInterrupt into the target thread to force-terminate it."""
     tid = _task_thread_ids.get(task_id)
     if tid is None:
         return False
@@ -170,7 +170,7 @@ class TaskStatus(str, Enum):
 
 
 class PipelineRequest(BaseModel):
-    """全流水线请求参数，字段含义同 config.py 中的 PipelineConfig"""
+    """Full pipeline request parameters. Fields correspond to PipelineConfig in config.py."""
     model_name: str = "seed"
     src_lang: str = "en"
     tgt_lang: str = "ja"
@@ -191,7 +191,7 @@ class PipelineRequest(BaseModel):
 
 
 class ASRRequest(BaseModel):
-    """单独运行 ASR 步骤"""
+    """Run the ASR step only."""
     model_name: str = "seed"
     src_lang: str = "en"
     tgt_lang: str = "ja"
@@ -205,7 +205,7 @@ class ASRRequest(BaseModel):
 
 
 class AlignRequest(BaseModel):
-    """单独运行 SEGALE 对齐步骤（需要 ASR 产物已存在）"""
+    """Run the SEGALE alignment step only (requires ASR output to exist)."""
     model_name: str = "seed"
     src_lang: str = "en"
     tgt_lang: str = "ja"
@@ -221,7 +221,7 @@ class AlignRequest(BaseModel):
 
 
 class EvalRequest(BaseModel):
-    """单独运行评估步骤（需要对齐产物已存在）"""
+    """Run the evaluation step only (requires alignment output to exist)."""
     model_name: str = "seed"
     src_lang: str = "en"
     tgt_lang: str = "ja"
@@ -518,7 +518,7 @@ def _create_task(step_label: str) -> str:
     return task_id
 
 
-# ── Graceful shutdown: Ctrl+C 时强制退出整个进程 ─────────────
+# ── Graceful shutdown: force exit on Ctrl+C ──────────────────
 def _force_exit(*args):
     logger.info("Received shutdown signal, force exiting...")
     os._exit(0)
@@ -537,11 +537,11 @@ def health():
     }
 
 
-@app.post("/pipeline/run", response_model=TaskInfo, summary="启动全流水线")
+@app.post("/pipeline/run", response_model=TaskInfo, summary="Run full pipeline")
 def run_pipeline(req: PipelineRequest):
     """
-    提交全流水线任务（ASR → SEGALE → Evaluation），
-    返回 task_id，用 /pipeline/{task_id}/status 轮询进度。
+    Submit a full pipeline task (ASR → SEGALE → Evaluation).
+    Returns a task_id; poll progress via /pipeline/{task_id}/status.
     """
     cfg = _cfg_from_dict(req.model_dump())
     task_id = _create_task("queued")
@@ -549,7 +549,7 @@ def run_pipeline(req: PipelineRequest):
     return _tasks[task_id]
 
 
-@app.post("/asr/run", response_model=TaskInfo, summary="仅运行 ASR")
+@app.post("/asr/run", response_model=TaskInfo, summary="Run ASR only")
 def run_asr(req: ASRRequest):
     cfg = _cfg_from_dict(req.model_dump())
     task_id = _create_task("queued_asr")
@@ -557,27 +557,27 @@ def run_asr(req: ASRRequest):
     return _tasks[task_id]
 
 
-@app.post("/align/run", response_model=TaskInfo, summary="仅运行 SEGALE 对齐")
+@app.post("/align/run", response_model=TaskInfo, summary="Run SEGALE alignment only")
 def run_align(req: AlignRequest):
-    """需要 ASR 产物已存在于 output 目录。"""
+    """Requires ASR output to already exist in the output directory."""
     cfg = _cfg_from_dict(req.model_dump())
     task_id = _create_task("queued_align")
     _executor.submit(_run_align_only, task_id, cfg)
     return _tasks[task_id]
 
 
-@app.post("/eval/run", response_model=TaskInfo, summary="仅运行评估")
+@app.post("/eval/run", response_model=TaskInfo, summary="Run evaluation only")
 def run_eval(req: EvalRequest):
-    """需要 SEGALE 对齐产物已存在于 output 目录。"""
+    """Requires SEGALE alignment output to already exist in the output directory."""
     cfg = _cfg_from_dict(req.model_dump())
     task_id = _create_task("queued_eval")
     _executor.submit(_run_eval_only, task_id, cfg)
     return _tasks[task_id]
 
 
-@app.post("/pipeline/{task_id}/cancel", summary="取消/终止任务")
+@app.post("/pipeline/{task_id}/cancel", summary="Cancel / terminate a task")
 def cancel_task(task_id: str):
-    """排队中的直接取消，运行中的强制终止（类似 Ctrl+C）。"""
+    """Queued tasks are cancelled immediately; running tasks are force-terminated."""
     if task_id not in _tasks:
         raise HTTPException(status_code=404, detail="task not found")
     t = _tasks[task_id]
@@ -591,14 +591,14 @@ def cancel_task(task_id: str):
     return {"message": "terminating", "task": t}
 
 
-@app.get("/pipeline/{task_id}/status", response_model=TaskInfo, summary="查询任务状态")
+@app.get("/pipeline/{task_id}/status", response_model=TaskInfo, summary="Query task status")
 def get_task_status(task_id: str):
     if task_id not in _tasks:
         raise HTTPException(status_code=404, detail="task not found")
     return _tasks[task_id]
 
 
-@app.get("/pipeline/{task_id}/result", summary="获取任务结果")
+@app.get("/pipeline/{task_id}/result", summary="Get task result")
 def get_task_result(task_id: str):
     if task_id not in _tasks:
         raise HTTPException(status_code=404, detail="task not found")
@@ -616,11 +616,11 @@ def get_task_result(task_id: str):
 
 @app.get(
     "/pipeline/{task_id}/download/{filename}",
-    summary="下载评估产物文件",
+    summary="Download evaluation artifact",
 )
 def download_artifact(task_id: str, filename: str):
     """
-    下载任务产生的评估文件，如:
+    Download an evaluation output file, e.g.:
     - instances.resegmented.json
     - scores.resegmented.csv
     """
@@ -637,6 +637,6 @@ def download_artifact(task_id: str, filename: str):
     return FileResponse(filepath, filename=filename)
 
 
-@app.get("/tasks", response_model=List[TaskInfo], summary="列出所有任务")
+@app.get("/tasks", response_model=List[TaskInfo], summary="List all tasks")
 def list_tasks():
     return list(_tasks.values())
