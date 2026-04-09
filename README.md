@@ -100,6 +100,12 @@ uvicorn api:app --host 0.0.0.0 --port 8000 --workers 1
 
 Once started, visit http://localhost:8000/docs for the interactive API documentation.
 
+<p align="center">
+  <img src="assets/api1.png" alt="API Documentation Overview" width="800">
+  <br>
+  <img src="assets/api2.png" alt="API Documentation Detail" width="800">
+</p>
+
 ### 2. API endpoints
 
 | Method | Path | Description |
