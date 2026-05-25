@@ -81,16 +81,14 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
     print("ASR finished.")
 
     # ---------------------------------------------------------------
-    # 中间过程，算 asr 的 unit 索引
-    add_char_spans_for_dir(
-        cfg.output_dir_asr,
-        cfg.output_dir_asr_enriched,
-    )
-    # 中间过程，生成 instances.log
+    # 中间过程：in-place 给 *_asr.json 加 char span
+    add_char_spans_for_dir(cfg.output_dir_asr)
+
+    # 中间过程：生成 instances.log
     asr_to_instances(
         s2s=True,
         yaml_file=cfg.src_segments_yaml,
-        asr_dir=cfg.output_dir_asr_enriched,
+        asr_dir=cfg.output_dir_asr,
         output_file=cfg.output_path_instances,
     )
     # 中间过程，生成 segale 需要的 hyp.jsonl 和 ref.jsonl

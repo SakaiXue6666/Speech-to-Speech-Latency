@@ -46,7 +46,17 @@ def norm_unit_text(text: str) -> str:
 
 
 def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
-    context_chars = 80  ###
+    """给 ASR JSON 里的每个 time_stamp 计算并加上 ``char_start`` / ``char_end``。
+
+    Args:
+        infile: 输入的 ``*_asr.json``。
+        outfile: 输出路径。``None`` 表示 **in-place** 覆写 ``infile``（用临时
+            文件 + ``os.replace`` 原子替换，char_span 中途失败不会破坏原文件）。
+
+    Returns:
+        实际写出的文件路径。
+    """
+    context_chars = 80
 
     with open(infile, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -59,13 +69,11 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
     norm_cursor = 0
     new_ts_list: List[Dict] = []
 
-    # ++++++++++++++++++++++++++++++++++++++++++++++
     last_ok_idx = -1
     last_ok_raw_span = (-1, -1)
     last_ok_unit_text = ""
 
     basename = os.path.basename(infile)
-    # ++++++++++++++++++++++++++++++++++++++++++++++
 
     for idx, ts in enumerate(ts_list):
         unit_text = ts.get("text", "") or ""
@@ -77,12 +85,10 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             new_ts["char_start"] = -1
             new_ts["char_end"] = -1
             new_ts_list.append(new_ts)
-            # ++++++++++++++++++++++++++++++++++++++++++++++
             print(
-                    f"[empty-unit] file={basename} idx={idx} "
-                    f"unit_text={unit_text!r}"
-                )
-            # ++++++++++++++++++++++++++++++++++++++++++++++
+                f"[empty-unit] file={basename} idx={idx} "
+                f"unit_text={unit_text!r}"
+            )
             continue
 
         pos = full_norm.find(unit_norm, norm_cursor)
@@ -91,7 +97,6 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             new_ts["char_start"] = -1
             new_ts["char_end"] = -1
             new_ts_list.append(new_ts)
-            # ++++++++++++++++++++++++++++++++++++++++++++++
             # norm 全文上下文
             norm_left = max(0, norm_cursor - context_chars)
             norm_right = min(len(full_norm), norm_cursor + context_chars)
@@ -120,7 +125,7 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             print(f"norm_ctx       = {_clip(norm_ctx, 200)!r}")
             print(f"raw_ctx        = {_clip(raw_ctx, 200)!r}")
 
-            # 再给一个“从头搜”的参考，看看是不是 cursor 走偏了
+            # 再给一个“从头搜”的参考，看 cursor 是否走偏
             global_pos = full_norm.find(unit_norm)
             print(f"global_find_pos= {global_pos}")
 
@@ -131,7 +136,6 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
                 print(f"global_raw_txt = {_clip(full_text[g_start:g_end], 200)!r}")
 
             print("=" * 80)
-            # ++++++++++++++++++++++++++++++++++++++++++++++
             continue
 
         norm_start = pos
@@ -144,35 +148,40 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
         new_ts["char_end"] = raw_end
         new_ts_list.append(new_ts)
 
-        # ++++++++++++++++++++++++++++++++++++++++++++++
         last_ok_idx = idx
         last_ok_raw_span = (raw_start, raw_end)
         last_ok_unit_text = unit_text
-        # ++++++++++++++++++++++++++++++++++++++++++++++
 
         norm_cursor = norm_end
 
     data["text"] = full_text
     data["time_stamps"] = new_ts_list
 
+    # 默认 in-place 覆写。先写临时文件再 os.replace 原子替换，
+    # 这样 char_span 计算挂在写入阶段时，原文件依然完好。
     if outfile is None:
-        base, ext = os.path.splitext(infile)
-        outfile = base + "_charspan" + ext
+        outfile = infile
 
-    with open(outfile, "w", encoding="utf-8") as f:
+    tmpfile = outfile + ".tmp"
+    with open(tmpfile, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmpfile, outfile)
 
     return outfile
 
-def add_char_spans_for_dir(input_dir: str, out_dir: str):
-    os.makedirs(out_dir, exist_ok=True)
 
-    for fn in os.listdir(input_dir):
+def add_char_spans_for_dir(asr_dir: str) -> None:
+    """对 ``asr_dir`` 下所有 ``*_asr.json`` in-place 加 char span。
+
+    原子替换写入：每个文件先写 ``*.tmp``，再 ``os.replace`` 覆盖原文件；
+    若 char_span 计算或写入阶段抛异常，对应 ``*_asr.json`` 不受影响。
+    """
+    if not os.path.isdir(asr_dir):
+        raise FileNotFoundError(f"asr_dir not found: {asr_dir}")
+
+    for fn in sorted(os.listdir(asr_dir)):
         if not fn.endswith("_asr.json"):
             continue
-
-        infile = os.path.join(input_dir, fn)
-        outfile = os.path.join(out_dir, fn)
-
-        out = add_char_spans_to_asr_json(infile, outfile)
-        print("saved:", out)
+        infile = os.path.join(asr_dir, fn)
+        out = add_char_spans_to_asr_json(infile)  # in-place
+        print("enriched (in-place):", out)
