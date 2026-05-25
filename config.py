@@ -48,12 +48,9 @@ class PipelineConfig:
         return os.path.join(self.output_dir, "output_asr")
 
     @property
-    def output_dir_asr_enriched(self) -> str:
-        return self.output_dir_asr + "_"
-
-    @property
     def output_path_instances(self) -> str:
-        return os.path.join(self.output_dir_asr_enriched, "instances.log")
+        # char_span 是 in-place 加到 output_asr 里的 *_asr.json，无单独 enriched 目录
+        return os.path.join(self.output_dir_asr, "instances.log")
 
     @property
     def output_dir_segale(self) -> str:
