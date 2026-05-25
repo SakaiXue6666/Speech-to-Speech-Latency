@@ -277,10 +277,11 @@ def step3_longyaal(
         doc_sent_list = sent_by_doc[doc_id]
 
 
-        '''
-        src=""/src_ref_ids=[]出现时不算letency和quality，因为是over-translation；而tgt=""也会存在，这时也不算letency和quality因为是under-translation
-        下一步，默认我现在不再使用_match_src_span_for_seg和 _match_tgt_units_for_seg，默认_match_src_span_for_seg_by_ids和_match_tgt_units_for_seg_by_raw_char_spa处理不好的他们也处理不好，要怎么改，不影响原有计算
-        '''
+        # 跳过策略：
+        #   - seg_src 为空 / src_ref_ids 为空 -> over-translation，不计 latency/quality
+        #   - seg_tgt 为空                 -> under-translation，不计 latency/quality
+        # 主匹配仅用 _match_src_span_for_seg_by_ids + _match_tgt_units_for_seg_by_raw_char_span，
+        # 这两个失败时不再走文本兜底匹配（因为兜底通常也救不回来）。
         for seg_idx, seg in enumerate(segs):
             seg_src = seg.get("src", "")
             seg_tgt = seg.get("tgt", "")
