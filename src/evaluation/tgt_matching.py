@@ -197,10 +197,6 @@ def _find_sublist_loose(
     return None
 
 
-# def _concat_norm(tokens: List[str]) -> str:
-#     return "".join(_normalize_token_for_match(t) for t in tokens if t is not None)
-
-
 def _try_align_from_start(
     hay_norm: List[str],
     needle_norm: List[str],
@@ -523,51 +519,6 @@ def _unit_cursor_to_char_cursor(index: CompactCharIndex, unit_i: int) -> int:
     if unit_i >= len(index.unit_start_global):
         return len(index.global_norm)
     return index.unit_start_global[unit_i]
-
-
-# ------------------------------------------------------------
-# # optional original char-span helper
-# ------------------------------------------------------------
-
-# def _build_units_with_offsets_cached(full_doc_tgt_norm: str, asr_units: List[str]):
-#     """
-#     这里输入的是 compact asr_units。
-#     只有当整段 tokenize 后和 compact units 完全一致时，才启用这个“原文字符跨度 -> unit”快速映射。
-#     注意：这不再是唯一 char 通道。即使这里失败，也可以走 compact-unit char-stream。
-#     """
-#     units_with_offsets = qwen_tok.encode_timestamp_with_offsets(full_doc_tgt_norm, "chinese")
-#     if len(units_with_offsets) != len(asr_units):
-#         return units_with_offsets, False
-#     if not all(u[0] == a for u, a in zip(units_with_offsets, asr_units)):
-#         return units_with_offsets, False
-#     return units_with_offsets, True
-
-
-# def _match_tgt_units_for_seg_by_char_span(
-#     units_with_offsets,
-#     seg_char_start: int,
-#     seg_char_end: int,
-#     cursor_unit: int,
-# ) -> Optional[Tuple[int, int]]:
-#     if seg_char_start < 0 or seg_char_end <= seg_char_start:
-#         return None
-#     if not units_with_offsets:
-#         return None
-
-#     i_start_found = next(
-#         (i for i in range(len(units_with_offsets)) if units_with_offsets[i][2] > seg_char_start),
-#         None,
-#     )
-#     i_end_found = next(
-#         (i for i in range(len(units_with_offsets) - 1, -1, -1) if units_with_offsets[i][1] < seg_char_end),
-#         None,
-#     )
-#     if i_start_found is None or i_end_found is None:
-#         return None
-
-#     i_start = max(i_start_found, max(0, cursor_unit - 1))
-#     i_end = max(i_end_found, i_start)
-#     return i_start, i_end + 1
 
 
 # ------------------------------------------------------------

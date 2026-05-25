@@ -3,12 +3,8 @@ from dataclasses import dataclass
 from typing import ClassVar, Dict, Optional, Tuple
 
 
-# ================================================================
-# 配置（改这里）
-# ================================================================
 @dataclass
 class PipelineConfig:
-    # 类级常量：不属于 __init__ 参数，也不随实例复制一份
     LANGUAGE_NAME_MAP: ClassVar[Dict[str, str]] = {
         "en": "English",
         "zh": "Chinese",
@@ -22,40 +18,34 @@ class PipelineConfig:
         "ja": "ja-mecab",
     }
 
-    # ── 系统标识 ──────────────────────────────────────────────────────
-    model_name: str = "seed"
+    # ── 语言 ───────────────────────────────────────────────────────
     src_lang: str = "en"
-    tgt_lang: str = "ja"  # "zh" or "de" or "ja"
-    output_version: str = ""
+    tgt_lang: str = "ja"
 
-    # ── 输入路径（改这里换数据集或待评估系统）────────────────────────
-    src_dir: str = "input/acl_6060_dev/full_wavs"
-    tgt_dir: str = "input/acl_6060_dev_tgt_seed/en_ja"  # "en_zh" or "en_de" or "en_ja"
+    # ── 输入路径 ───────────────────────────────────────────────────
+    src_audio_dir: str = "input/acl_6060_dev/full_wavs"
+    tgt_audio_dir: str = "input/acl_6060_dev_tgt_seed/en_ja"
     src_segments_yaml: str = "input/ACL.ACLdev2023.en-xx.gold_segments.yaml"
     src_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.en.txt"
-    tgt_ref_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.ja.txt"  # "zh.txt" or "de.txt" or "ja.txt"
+    tgt_ref_txt: str = "input/acl_6060_dev/text/txt/ACL.6060.dev.en-xx.ja.txt"
     output_dir: str = "output"
 
-    # ── 运行参数 ───────────────────────────────────────────────────────
-    asr_backend: str = "transformers"   # "transformers" 或 "vllm"
+    # ── 运行参数 ───────────────────────────────────────────────────
+    asr_backend: str = "transformers"
     batch_size: int = 2
     max_new_tokens: int = 1024
     embedding_model: str = "sentence-transformers/LaBSE"
     proc_device: str = "cuda"
-    only_doc_ids: Optional[Tuple[str, ...]] = None  # 画图时仅看这几个 doc；None = 全部
+    only_doc_ids: Optional[Tuple[str, ...]] = None
 
-    # ── 派生输出路径（随 model_name / 语言对 / output_version 变化）────
-    @property
-    def _output_base(self) -> str:
-        return f"{self.output_dir}/{self.model_name}/{self.src_lang}_{self.tgt_lang}"
-
+    # ── 派生输出路径 ───────────────────────────────────────────────
     @property
     def manifest(self) -> str:
-        return f"{self._output_base}/output_asr{self.output_version}/manifest.jsonl"
+        return os.path.join(self.output_dir, "output_asr", "manifest.jsonl")
 
     @property
     def output_dir_asr(self) -> str:
-        return f"{self._output_base}/output_asr{self.output_version}"
+        return os.path.join(self.output_dir, "output_asr")
 
     @property
     def output_dir_asr_enriched(self) -> str:
@@ -67,7 +57,7 @@ class PipelineConfig:
 
     @property
     def output_dir_segale(self) -> str:
-        return f"{self._output_base}/output_segale{self.output_version}"
+        return os.path.join(self.output_dir, "output_segmentation")
 
     @property
     def segale_file(self) -> str:
@@ -75,13 +65,12 @@ class PipelineConfig:
 
     @property
     def output_dir_evaluation(self) -> str:
-        return f"{self._output_base}/output_evaluation{self.output_version}"
+        return os.path.join(self.output_dir, "output_evaluation")
 
     def build_manifest(self, manifest_path: str = None) -> str:
         """
-        从 src_dir / tgt_dir 自动配对 src/tgt wav，生成 manifest.jsonl。
+        从 src_audio_dir / tgt_audio_dir 自动配对 src/tgt wav，生成 manifest.jsonl。
         按 basename 配对，找不到对应 tgt 的 src 跳过。
-        返回写出的 manifest 路径。
         """
         import json
 
@@ -89,20 +78,20 @@ class PipelineConfig:
             manifest_path = self.manifest
 
         tgt_wavs = {
-            os.path.splitext(f)[0]: os.path.join(self.tgt_dir, f)
-            for f in os.listdir(self.tgt_dir)
+            os.path.splitext(f)[0]: os.path.join(self.tgt_audio_dir, f)
+            for f in os.listdir(self.tgt_audio_dir)
             if f.endswith(".wav")
         }
 
         records = []
-        for src_file in sorted(os.listdir(self.src_dir)):
+        for src_file in sorted(os.listdir(self.src_audio_dir)):
             if not src_file.endswith(".wav"):
                 continue
             stem = os.path.splitext(src_file)[0]
             if stem not in tgt_wavs:
                 continue
             records.append({
-                "src": os.path.join(self.src_dir, src_file).replace("\\", "/"),
+                "src": os.path.join(self.src_audio_dir, src_file).replace("\\", "/"),
                 "tgt": tgt_wavs[stem].replace("\\", "/"),
             })
 

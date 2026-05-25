@@ -86,19 +86,6 @@ def segment_sentences_by_ersatz(text: str) -> list:
     return sentences
 
 
-# def segment_sentences_by_spacy(text: str) -> list:
-#     """
-#     Segment sentences using spaCy.
-#     """
-#     segmented_sentences = []
-#     paragraphs = text.split("\n")
-#     for paragraph in paragraphs:
-#         if paragraph.strip():
-#             doc = mt_seg(paragraph)
-#             for sent in doc.sents:
-#                 segmented_sentences.append(sent.text.strip())
-#     return segmented_sentences
-
 def segment_sentences_by_spacy(text: str) -> list:
     """
     Segment sentences using spaCy.
@@ -139,15 +126,6 @@ def segment_sentences_by_spacy(text: str) -> list:
 # Overlap and Embedding Functions
 # -----------------------------------------------------------------------------
 
-# def compute_embedding_api(input_file: str, output_file: str):
-#     """
-#     Compute embedding for an input file using the LASER embed.sh script.
-#     """
-#     # Use the embed.sh script as in the original code
-#     subprocess.run(" ".join(["$LASER/tasks/embed/embed.sh", input_file, output_file]),
-#                   shell=True, check=True)
-
-
 def compute_embedding_api(overlaps: list[str], model=None, tokenizer=None) -> bytes:
     """
     Compute embedding for an input file (e.g. overlaps file). If a transformer model is provided,
@@ -155,9 +133,7 @@ def compute_embedding_api(overlaps: list[str], model=None, tokenizer=None) -> by
     """
 
     if tokenizer is not None:
-        # --- [MODIFIED] 原版一次性把所有 overlap 送入模型，显存不够会 OOM。
-        # --- 改为分批处理（batch_size=64），逐批计算 embedding 再拼接。
-        # --- 原版代码保留在下方注释中，方便对比。
+        # 分批计算 embedding 再拼接，避免一次性送入大批量时 OOM
         device = next(model.parameters()).device
         expected_dim = getattr(model.config, "hidden_size", 1024)
         all_embeddings = []
@@ -189,34 +165,6 @@ def compute_embedding_api(overlaps: list[str], model=None, tokenizer=None) -> by
 
         all_embeddings = torch.cat(all_embeddings, dim=0)
         return [emb.numpy().astype(np.float32) for emb in all_embeddings]
-
-        # --- [ORIGINAL] 原版代码（一次性处理所有 overlap，大数据量时会 OOM）：
-        # tokens = tokenizer(
-        #     overlaps,
-        #     padding="max_length",
-        #     truncation=True,
-        #     max_length=512,
-        #     add_special_tokens=True,
-        #     return_tensors="pt",
-        # )
-        # device = next(model.parameters()).device
-        # tokens = {k: v.to(device) for k, v in tokens.items()}
-        #
-        # with torch.no_grad():
-        #     outputs = model(**tokens)
-        #     if hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
-        #         embeddings = outputs.pooler_output
-        #     else:
-        #         embeddings = outputs.last_hidden_state[:, 0, :]
-        #
-        #     normalized_embeddings = F.normalize(embeddings, p=2)
-        #
-        #     expected_dim = getattr(model.config, "hidden_size", 1024)
-        #     if normalized_embeddings.shape[-1] != expected_dim:
-        #         normalized_embeddings = normalized_embeddings[:, :expected_dim]
-        #     normalized_embeddings = normalized_embeddings.cpu()
-        #
-        # return [emb.numpy().astype(np.float32) for emb in normalized_embeddings]
     else:
         return [model.encode_sentences([overlap])[0] for overlap in overlaps]
 
@@ -237,24 +185,10 @@ def generate_overlap_and_embedding(
     tuple: (overlap_content (str), embeddings_content (bytes))
     """
 
-    # # Generate overlap data
-    # overlaps = []
-    # for text in texts:
-    #     lines = text.split('\n')
-    #     output = set()
-    #     for out_line in yield_overlaps(lines, max_size):
-    #         output.add(out_line)
-    #     output = list(output)
-    #     output.sort()
-    #     overlaps.append(output)
-
-    # Generate embedding data using the external function
     overlaps_content = sorted(
-        list(set([overlap for overlap in yield_overlaps(texts, max_size)]))
+        list(set(yield_overlaps(texts, max_size)))
     )
     embeddings = compute_embedding_api(overlaps_content, model, tokenizer)
-    # overlaps_content = ['\n'.join(overlap) for overlap in overlaps]
-
     return overlaps_content, embeddings
 
 
@@ -655,26 +589,6 @@ def aggregate_doc_id(doc_windows_list, window_key):
     return aggregated_lines, mapping
 
 
-# def clean_lists(primary_list, secondary_list, doc_id):
-#     if len(primary_list) != len(secondary_list):
-#         raise ValueError("Both lists must have the same length.")
-#     indices_to_remove = [index for index, item in enumerate(primary_list) if item == ""]
-#     if indices_to_remove:
-#         print(f"WARNING: Empty string detected in source, doc_id = {doc_id}. dropped.")
-#     # Remove items from both lists based on identified indices
-#     primary_list = [
-#         item
-#         for index, item in enumerate(primary_list)
-#         if index not in indices_to_remove
-#     ]
-#     secondary_list = [
-#         item
-#         for index, item in enumerate(secondary_list)
-#         if index not in indices_to_remove
-#     ]
-#     return primary_list, secondary_list
-
-
 def clean_lists(primary_list, secondary_list, src_ref_ids, doc_id):
     if len(primary_list) != len(secondary_list):
         raise ValueError("Both lists must have the same length.")
@@ -705,19 +619,18 @@ def clean_lists(primary_list, secondary_list, src_ref_ids, doc_id):
 # -----------------------------------------------------------------------------
 
 def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8):
-    """
-    Process a single merged document to prepare alignment windows.
-    """
-    src_ref_ids = doc["src_ref_ids"]  ##
-
+    """Process a single merged document to prepare alignment windows."""
     doc_id = doc["doc_id"]
-    # 首文档 embedding 计算量大且 GPU 首次推理会触发 CUDA 初始化，易被误认为卡住
+    # 首文档 embedding 计算量大且 GPU 首次推理会触发 CUDA 初始化，避免被误认为卡住
     print(f"  [doc] {doc_id} ...", flush=True)
+
+    src_ref_ids = doc["src_ref_ids"]
     src_sentences = doc["src_list"]
     ref_sentences = doc["ref_list"]
-    src_sentences, ref_sentences, src_ref_ids = clean_lists(src_sentences, ref_sentences, src_ref_ids, doc_id)  ##
+    src_sentences, ref_sentences, src_ref_ids = clean_lists(
+        src_sentences, ref_sentences, src_ref_ids, doc_id
+    )
     tgt_text = doc["tgt"]
-
 
     if SPACY != "spacy":
         mt_sentences = segment_sentences_by_ersatz(tgt_text)
@@ -758,7 +671,7 @@ def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8
             " ".join([mt_sentences[i]["text"] for i in mt_indices]) if mt_indices else ""
         )
 
-        aligned_src_ref_ids = [src_ref_ids[i] for i in src_indices] if src_indices else []  ##
+        aligned_src_ref_ids = [src_ref_ids[i] for i in src_indices] if src_indices else []
 
         mt_char_start = mt_sentences[mt_indices[0]]["char_start"] if mt_indices else -1
         mt_char_end = mt_sentences[mt_indices[-1]]["char_end"] if mt_indices else -1
@@ -812,7 +725,7 @@ def save_align_info(data, filename):
                     "ref": aligned_ref,
                     "tgt": aligned_mt,
                     "seg_id": i + 1,
-                    "src_ref_ids": aligned_src_ref_ids,  ##
+                    "src_ref_ids": aligned_src_ref_ids,
                     "mt_indices": mt_indices,
                     "mt_char_start": mt_char_start,
                     "mt_char_end": mt_char_end,
@@ -839,79 +752,44 @@ def init_config(task_lang):
 
 
 # -----------------------------------------------------------------------------
-# Main Function
+# Main entry point
 # -----------------------------------------------------------------------------
-# ref_segments.yaml: ✅ (第 i 个 对应的是第 i 个句子) src speech 的时间信息 {duration: xxx, offset: xxx, speaker_id: xxx, wav: xxx}
-# references.txt: ✅ (第 i 行 对应的是第 i 个句子，行和ref_segments.yaml的行绑定) tgt1 sentence1 \n tgt1 sentence2 \n tgt1 sentence3... tgtN sentence2
-# instances.log: ✅ (第 n 个 对应的是第 n 个 音频) {index: xxx, prediction: xxx, delays: xxx, elapsed: xxx, prediction_length: xxx, reference: xxx, source: xxx, source_length: xxx, ...}
+# 输入 jsonl (ref & hyp) schema:
+#   src     (str)   源语言文本
+#   tgt     (str)   目标语言文本（ref 文件里是 ref，hyp 文件里是 hyp）
+#   sys_id  (str)   系统 ID（ref_A 表示参考，模型名等）
+#   doc_id  (str)   文档 ID，同一长文档的所有 segment 共用
+#   seg_id  (int)   同一 jsonl 内从 1 开始递增
+# 输出 jsonl schema:
+#   src     (str)   对齐后的源句（可能由多段 src 拼成一句）
+#   ref     (str)   与 src 对应的 ref 译文
+#   tgt     (str)   与 src 对齐的 hyp 译文（Vecalign 对齐结果）
+#   sys_id  (str)
+#   doc_id  (str)
+#   seg_id  (int)   同一 doc_id 内从 1 开始递增
+# 对齐策略：src/ref 文件中一一对应；vecalign 用于对齐 src 与 hyp。
 # -----------------------------------------------------------------------------
-# 输入 jsonl (ref & hyp)：
-# src	(string)	该段的源语言文本（日语，一句或一段）
-# tgt	(string)	该段的目标语言文本（中文）：在 ref 里是ref，在系统文件里是hyp
-# sys_id	(string)	系统ID：ref_A 表示参考，GPT-4、Claude-3.5 等表示模型名
-# doc_id	(string)	文档 ID，jsonl 中有很多 doc_id；同一篇长文档的所有 segment 共用同一个 doc_id
-# seg_id	(int)	段ID，在同一 jsonl 内从 1 开始递增（第 1 条通常不是正文）；一个 segment 有一到多 sentences
-
-# 输出 jsonl：
-# src	(string)	对齐后的源句（可能由多段 src 拼成一句）
-# ref	(string)	与 src 对应的ref译文（按 src 的索引从 ref 取出的句/段）
-# tgt	(string)	与 src 对齐的hyp译文（Vecalign 对齐到的 hyp 句/段）
-# sys_id	(string)	系统 ID
-# doc_id	(string)	文档 ID，与输入一致
-# seg_id	(int)	对齐对 ID，在同一 doc_id 内从 1 开始递增
-
-# 对齐：
-# src 和 ref 在文件里一一对应
-# Vecalign：对齐 src 和 hyp
-# -----------------------------------------------------------------------------
-# 输入文件：
-# src text.txt
-# tgt ref text.txt
-# ref_segments.yaml
-# instances.log
-
-# -----------------------------------------------------------------------------
-
-'''
-cd d:\Li_Lab\Speech-to-Speech-Latency
-
-# 先把 SEGALE 加到路径，否则 import vecalign 会报错
-$env:PYTHONPATH = "d:\Li_Lab\Speech-to-Speech-Latency;d:\Li_Lab\Speech-to-Speech-Latency\SEGALE"
-
-python segale_align.py `
-  --system_file  data/output_segale3/hyp.jsonl `
-  --ref_file     data/output_segale3/ref.jsonl `
-  --segmenter    spacy `
-  --task_lang    zh `
-  --embedding_model  BAAI/bge-m3 `
-  --proc_device  cuda
-'''
-
 def step2_segale(
-    system_file: str = "data/output_segale/hyp.jsonl", 
-    ref_file: str = "data/output_segale/ref.jsonl", 
-    segmenter: str = "spacy", 
-    task_lang: str = "zh", 
-    proc_device: str = "cpu",          # "cpu" or "cuda"
-    verbose: int = 0,            # 0 / 1 / 2 ... (对应 -v / -vv)
+    system_file: str = "data/output_segale/hyp.jsonl",
+    ref_file: str = "data/output_segale/ref.jsonl",
+    segmenter: str = "spacy",
+    task_lang: str = "zh",
+    proc_device: str = "cpu",
+    verbose: int = 0,
     max_size: int = 8,
     embedding_model: Optional[str] = None,
 ):
-    # ✅ 1) 轻量校验（保持和 argparse choices 一致）
     if segmenter not in {"spacy", "ersatz"}:
         raise ValueError("segmenter must be 'spacy' or 'ersatz'")
-    
-    # 1. 随机种子
+
     set_seed(42)
 
-    # 3. 全局与保存目录
     global VERBOSE
     VERBOSE = verbose
 
     SAVE_FOLDER = os.path.abspath(init_save_folder(system_file))
     print(f"Save folder: {SAVE_FOLDER}")
 
-    # 4. 句切分与对齐参数
     global SPACY, STOP_JUMP, COST_MAX, COST_MIN
     SPACY = segmenter
     if SPACY == "spacy":
@@ -926,8 +804,6 @@ def step2_segale(
     align_paras = load_alignment_summary(
         os.path.join(ref_dir_path, ref_name_without_ext)
     )
-    # Uncomment to use the pre-defined parameters
-    # align_paras = load_alignment_summary(None)
 
     print("align_paras: ", align_paras, flush=True)
     STOP_JUMP = align_paras["min_jump"]
@@ -935,7 +811,6 @@ def step2_segale(
     COST_MIN = align_paras["cost_min"]
     MAX_OVERLAP = align_paras["overlap"]
 
-    # 5. 读入并合并数据
     print("Segale: reading jsonl and merging docs...", flush=True)
     system_entries = read_jsonl(system_file)
     ref_entries = read_jsonl(ref_file)
@@ -944,10 +819,8 @@ def step2_segale(
     ref_merged = merge_ref_entries(ref_entries)
 
     combined_docs = combine_system_ref(system_merged, ref_merged)
-    
     print(f"Segale: {len(combined_docs)} docs.", flush=True)
 
-    # 6. 加载 Embedding 模型
     print("Loading embedding model...", flush=True)
     if embedding_model is None:
         try:
@@ -966,7 +839,6 @@ def step2_segale(
         )
     print("Embedding model ready.", flush=True)
 
-    # 7. 逐文档对齐
     sequential_results = []
     failed_doc_ids = []
 
@@ -979,7 +851,6 @@ def step2_segale(
         else:
             failed_doc_ids.append(doc_id)
 
-    # 8. 写失败列表
     if failed_doc_ids:
         failure_file = os.path.join(
             SAVE_FOLDER,
@@ -990,7 +861,6 @@ def step2_segale(
                 f_fail.write(json.dumps(doc_id, ensure_ascii=False) + "\n")
         print(f"Failed doc_id record: {failure_file}")
 
-    # 9. 写对齐结果
     if sequential_results:
         aligned_file = os.path.join(
             SAVE_FOLDER,
@@ -998,6 +868,5 @@ def step2_segale(
         )
         save_align_info(sequential_results, aligned_file)
 
-    # 10. 结束
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Alignment completed at: {timestamp}.")
