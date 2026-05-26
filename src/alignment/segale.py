@@ -18,7 +18,6 @@ import json
 import spacy
 import torch
 import random
-import argparse
 import numpy as np
 import tempfile
 import subprocess
@@ -778,11 +777,12 @@ def step2_segale(
     verbose: int = 0,
     max_size: int = 8,
     embedding_model: Optional[str] = None,
+    seed: int = 42,
 ):
     if segmenter not in {"spacy", "ersatz"}:
         raise ValueError("segmenter must be 'spacy' or 'ersatz'")
 
-    set_seed(42)
+    set_seed(seed)
 
     global VERBOSE
     VERBOSE = verbose

@@ -110,6 +110,7 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
         task_lang=cfg.tgt_lang,
         proc_device=cfg.proc_device,
         embedding_model=cfg.embedding_model,
+        seed=cfg.seed,
     )
     print("Segale finished.")
 

@@ -104,7 +104,11 @@ def _load_yaml_and_source_sentences(
     with open(source_txt, "r", encoding="utf-8") as f:
         src_lines = [x.rstrip("\n") for x in f]
 
-    assert len(segs) == len(src_lines), "ref_segments.yaml ????? == source.txt ???"
+    if len(segs) != len(src_lines):
+        raise ValueError(
+            f"segments yaml length ({len(segs)}) must equal source.txt lines "
+            f"({len(src_lines)}); each yaml entry must map 1:1 to a source line."
+        )
 
     mp: Dict[str, List[Tuple[int, float, float, List[str]]]] = {}
     for i, (seg, sline) in enumerate(zip(segs, src_lines)):
