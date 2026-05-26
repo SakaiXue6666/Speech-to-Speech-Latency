@@ -37,6 +37,8 @@ class PipelineConfig:
     embedding_model: str = "sentence-transformers/LaBSE"
     proc_device: str = "cuda"
     only_doc_ids: Optional[Tuple[str, ...]] = None
+    # 复现性种子，传给 step2_segale 的 torch / numpy / random / cudnn
+    seed: int = 42
 
     # ── 派生输出路径 ───────────────────────────────────────────────
     @property
