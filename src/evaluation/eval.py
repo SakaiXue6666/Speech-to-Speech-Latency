@@ -26,7 +26,8 @@ from .utils import _norm, _qwen_units
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+# 注意：不在 library code 中调用 logging.basicConfig()，否则会污染上层调用方
+# 的 root logger。日志配置由入口（main.py）统一负责。
 
 INF = float("inf")
 

@@ -32,7 +32,7 @@ class PipelineConfig:
 
     # ── 运行参数 ───────────────────────────────────────────────────
     asr_backend: str = "transformers"
-    batch_size: int = 2
+    batch_size: int = 5
     max_new_tokens: int = 1024
     embedding_model: str = "sentence-transformers/LaBSE"
     proc_device: str = "cuda"
