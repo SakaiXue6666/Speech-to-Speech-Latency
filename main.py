@@ -1,5 +1,6 @@
 import argparse
 import gc
+import logging
 import os
 from datetime import datetime
 
@@ -12,6 +13,22 @@ from src.alignment import step2_segale
 from src.evaluation import step3_longyaal
 from src.intermediate.prepare_artifacts import asr_to_instances, instances_to_segale
 from src.runtime import write_run_meta
+
+
+logger = logging.getLogger(__name__)
+
+
+def _setup_logging(level: str = "INFO") -> None:
+    """全局唯一的 logging 配置入口。
+
+    - 只在 ``main()`` 调用一次，不要放到 library module 顶部，否则会污染调用方。
+    - 带时间戳，方便在长流水线里看每步耗时。
+    """
+    logging.basicConfig(
+        level=getattr(logging, level.upper(), logging.INFO),
+        format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s",
+        datefmt="%H:%M:%S",
+    )
 
 
 def get_tgt_language(tgt_lang: str) -> str:
@@ -56,8 +73,9 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
     # ================================================================
 
     # step1 asr -------------------------------------------------------
-    print("\n" + "=" * 60)
-    print("Starting ASR...")
+    logger.info("=" * 60)
+    logger.info("Starting ASR (backend=%s, batch_size=%d)...",
+                cfg.asr_backend, cfg.batch_size)
     if cfg.asr_backend == "vllm":
         step1_asr_vllm(
             manifest=cfg.manifest,
@@ -78,7 +96,7 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    print("ASR finished.")
+    logger.info("ASR finished.")
 
     # ---------------------------------------------------------------
     # 中间过程：in-place 给 *_asr.json 加 char span
@@ -101,8 +119,9 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
     )
 
     # step2 segale ---------------------------------------------------------------
-    print("\n" + "=" * 60)
-    print("Starting Segale...")
+    logger.info("=" * 60)
+    logger.info("Starting Segale (task_lang=%s, embedding_model=%s, seed=%d)...",
+                cfg.tgt_lang, cfg.embedding_model, cfg.seed)
     step2_segale(
         system_file=os.path.join(cfg.output_dir_segale, "hyp.jsonl"),
         ref_file=os.path.join(cfg.output_dir_segale, "ref.jsonl"),
@@ -112,11 +131,12 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
         embedding_model=cfg.embedding_model,
         seed=cfg.seed,
     )
-    print("Segale finished.")
+    logger.info("Segale finished.")
 
     # step3 evaluation ---------------------------------------------------------------
-    print("\n" + "=" * 60)
-    print("Starting Evaluation...")
+    logger.info("=" * 60)
+    logger.info("Starting Evaluation (bleu_tokenizer=%s)...",
+                get_bleu_tokenizer(cfg.tgt_lang))
     step3_longyaal(
         yaml_file=cfg.src_segments_yaml,
         source_sentences_file=cfg.src_txt,
@@ -125,10 +145,11 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
         output_folder=cfg.output_dir_evaluation,
         bleu_tokenizer=get_bleu_tokenizer(cfg.tgt_lang),
     )
-    print("Evaluation finished.")
+    logger.info("Evaluation finished.")
 
 
 def main() -> None:
+    _setup_logging()
     args = parse_args()
     cfg = PipelineConfig(
         src_lang=args.src_lang,
@@ -158,7 +179,7 @@ def main() -> None:
             status=status,
             error=error,
         )
-        print(f"[meta] wrote {meta_path}")
+        logger.info("Wrote run meta to %s (status=%s)", meta_path, status)
 
 
 if __name__ == "__main__":
