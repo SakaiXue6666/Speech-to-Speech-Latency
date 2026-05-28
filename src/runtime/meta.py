@@ -1,11 +1,11 @@
-"""收集并写出 ``run_meta.json``，记录每次跑流水线时的环境信息。
+"""Collect and write ``run_meta.json`` to record environment information for each pipeline run.
 
-用法::
+Usage::
 
     from src.runtime.meta import write_run_meta
     started_at = datetime.now().astimezone()
     try:
-        ...  # 跑流水线
+        ...  # run pipeline
     finally:
         write_run_meta(cfg.output_dir, cfg, started_at=started_at)
 """
@@ -24,7 +24,7 @@ from importlib import metadata as importlib_metadata
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 
-# 仅在 PipelineConfig.embedding_model 等场景使用；非强依赖
+# Packages to track; used in scenarios such as PipelineConfig.embedding_model; not hard dependencies
 _PACKAGES_OF_INTEREST = (
     "torch",
     "transformers",
@@ -127,7 +127,24 @@ def collect_run_meta(
     error: Optional[BaseException] = None,
     repo_dir: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """组装一份完整的 meta 字典（不写文件）。"""
+    """Assemble a full run-meta dictionary in memory (no disk I/O).
+
+    Args:
+        config: A :class:`PipelineConfig` (or any dataclass/dict/object) that
+            will be serialised under the ``config`` key.
+        started_at: When the pipeline started (timezone-aware preferred).
+        finished_at: When the pipeline finished; defaults to "now".
+        status: ``"success"`` or ``"failed"`` (free-form string).
+        error: Exception raised by the pipeline, if any; recorded under the
+            ``error`` key.
+        repo_dir: Repo root used to query git info; defaults to two levels
+            above this file.
+
+    Returns:
+        A JSON-serialisable dict with keys ``status``, ``started_at``,
+        ``finished_at``, ``elapsed_sec``, ``host``, ``git``, ``packages``,
+        ``cuda``, ``config``, ``argv`` (and ``error`` when ``error`` is set).
+    """
     if finished_at is None:
         finished_at = datetime.now().astimezone()
     if repo_dir is None:
@@ -169,7 +186,20 @@ def write_run_meta(
     error: Optional[BaseException] = None,
     filename: str = "run_meta.json",
 ) -> Path:
-    """收集 meta 并写出到 ``output_dir/run_meta.json``。"""
+    """Collect run-meta via :func:`collect_run_meta` and write it as JSON.
+
+    Args:
+        output_dir: Directory the meta file will be written to; created if missing.
+        config: Passed through to :func:`collect_run_meta`.
+        started_at: Passed through to :func:`collect_run_meta`.
+        finished_at: Passed through to :func:`collect_run_meta`.
+        status: Passed through to :func:`collect_run_meta`.
+        error: Passed through to :func:`collect_run_meta`.
+        filename: File name within ``output_dir`` (default ``run_meta.json``).
+
+    Returns:
+        Absolute :class:`pathlib.Path` of the written file.
+    """
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / filename

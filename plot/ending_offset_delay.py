@@ -17,10 +17,10 @@ def ending_offset_delay(
     out_csv: Optional[str] = None,
 ):
     """
-    网格图：行 = tgt_langs，列 = doc_ids。
-    instances 与 tgt_langs 一一对应，各自是 instances.resegmented.json 的路径。
+    Grid plot: rows = tgt_langs, columns = doc_ids.
+    instances and tgt_langs correspond one-to-one; each element is a path to instances.resegmented.json.
     """
-    assert len(instances) == len(tgt_langs), "instances 和 tgt_langs 长度必须一致"
+    assert len(instances) == len(tgt_langs), "instances and tgt_langs must have the same length"
 
     plt.rcParams.update({
         "font.family": "serif",

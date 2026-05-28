@@ -130,13 +130,13 @@ class YAALScorer:
 
 class EndingOffsetScorer:
     """
-    比较句子最后一个输出 unit 的时间 和 句子结束时间 的偏差。
-    
-    默认返回:
+    Measures the offset between the time of the last output unit and the sentence end time.
+
+    Default return value:
         last_delay - source_length
-    含义:
-        > 0  说明最后输出晚于句子结束
-        < 0  说明最后输出早于句子结束
+    Interpretation:
+        > 0  last output is later than the sentence end
+        < 0  last output is earlier than the sentence end
     """
 
     def __init__(self, computation_aware: bool = False, use_absolute: bool = False):
@@ -169,7 +169,22 @@ class EndingOffsetScorer:
 def evaluate_instances(
     resegmented_instances: List[Instance], tokenizer: str
 ) -> Dict[str, float]:
-    # 防线：空 source 或空 prediction 的 instance 不参与 latency/quality 计分
+    """Compute LongYAAL latency/quality metrics over re-segmented instances.
+
+    Instances with empty source or prediction are excluded before scoring.
+    Returns sacreBLEU + computation-aware/unaware YAAL + ending-offset metrics.
+
+    Args:
+        resegmented_instances: Per-segment :class:`Instance` list produced by
+            :func:`step3_longyaal`.
+        tokenizer: sacreBLEU tokenizer name (e.g. ``"13a"``, ``"zh"``,
+            ``"ja-mecab"``).
+
+    Returns:
+        Ordered dict from metric name to scalar score (``float('nan')`` when
+        the metric is undefined for the given input).
+    """
+    # Guard: instances with empty source or prediction are excluded from latency/quality scoring
     resegmented_instances = [
         ins
         for ins in resegmented_instances
@@ -184,11 +199,11 @@ def evaluate_instances(
     bleu_scorer = SacreBLEUScorer(tokenizer)
 
     ending_offset_scorer = EndingOffsetScorer(
-        computation_aware=False,   # 用 delays
-        use_absolute=False         # 是否取绝对值，看你需求
+        computation_aware=False,   # use delays
+        use_absolute=False         # set True to return absolute offset
     )
     ca_ending_offset_scorer = EndingOffsetScorer(
-        computation_aware=True,    # 用 elapsed
+        computation_aware=True,    # use elapsed
         use_absolute=False
     )
 

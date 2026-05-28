@@ -3,7 +3,7 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# nagisa 仅日语分词时使用，懒加载避免非日语场景强制依赖
+# nagisa is only used for Japanese tokenisation; lazy-loaded to avoid a hard dependency in non-Japanese pipelines
 # import torch
 # from qwen_asr.core.transformers_backend import (
 #     Qwen3ASRConfig,
@@ -39,7 +39,7 @@ class Qwen3ForceAlignTokenizer():
                 break
             d = parent
         if ko_dict_path is None:
-            raise FileNotFoundError("未找到 assets/korean_dict_jieba.dict（请放在项目根或任意上级目录的 assets/ 下）")
+            raise FileNotFoundError("assets/korean_dict_jieba.dict not found (place it under an assets/ directory in the project root or any ancestor directory)")
         scores: Dict[str, float] = {}
         with open(ko_dict_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -149,12 +149,12 @@ class Qwen3ForceAlignTokenizer():
         return tokens
 
     # ------------------------------------------------------------------
-    # 带字符偏移的版本：每个 token 附带 (start_char, end_char) 在原文中的位置
-    # 用于「整段 tokenize + 字符跨度」与 ASR units 对齐
+    # Offset-aware variants: each token carries (start_char, end_char) in the original text.
+    # Used for whole-segment tokenisation + char-span alignment with ASR units.
     # ------------------------------------------------------------------
 
     def split_segment_with_chinese_with_offsets(self, seg: str, base: int = 0) -> List[Tuple[str, int, int]]:
-        """与 split_segment_with_chinese 行为一致，但每个 token 带 (start_char, end_char)。"""
+        """Identical behaviour to split_segment_with_chinese, but each token carries (start_char, end_char)."""
         out: List[Tuple[str, int, int]] = []
         buf: List[str] = []
         buf_start = base
@@ -185,7 +185,7 @@ class Qwen3ForceAlignTokenizer():
         return out
 
     def tokenize_space_lang_with_offsets(self, text: str) -> List[Tuple[str, int, int]]:
-        """与 tokenize_space_lang 行为一致，但每个 token 带 (start_char, end_char) 在 text 中的绝对坐标。"""
+        """Identical behaviour to tokenize_space_lang, but each token carries absolute (start_char, end_char) in text."""
         result: List[Tuple[str, int, int]] = []
         pos = 0
         for seg in text.split():
@@ -200,8 +200,10 @@ class Qwen3ForceAlignTokenizer():
 
     def encode_timestamp_with_offsets(self, text: str, language: str) -> List[Tuple[str, int, int]]:
         """
-        与 encode_timestamp 行为完全一致，但每个 token 附带 (start_char, end_char) 在 text 中的字符跨度。
-        用于「整段 tokenize + 字符跨度」确定 segment 对应的 unit 区间，避免按句分词导致边界不一致。
+        Identical behaviour to ``encode_timestamp``, but each token also carries
+        ``(start_char, end_char)`` character spans within ``text``.
+        Used for whole-segment tokenisation to determine the unit interval for a segment
+        and avoid boundary inconsistencies caused by per-sentence tokenisation.
         """
         language = language.lower()
         if language == "japanese":

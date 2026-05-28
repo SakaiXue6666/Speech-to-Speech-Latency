@@ -1,8 +1,9 @@
-"""ASR 跑批通用逻辑：被 ``qwen_transformers`` 和 ``qwen_vllm`` 两个后端共享。
+"""Shared ASR batch-processing logic used by both ``qwen_transformers`` and ``qwen_vllm`` backends.
 
-两个后端唯一的区别是模型加载方式（``from_pretrained`` vs ``LLM``），加载完得到
-的 ``asr`` 对象都暴露相同的 ``transcribe(audio, language, return_time_stamps)``
-接口，因此可以共用同一份 manifest 读取 / batch 推理 / 结果保存逻辑。
+The only difference between the two backends is how the model is loaded
+(``from_pretrained`` vs ``LLM``). Both resulting ``asr`` objects expose the
+same ``transcribe(audio, language, return_time_stamps)`` interface, so manifest
+reading, batch inference, and result saving can all be shared here.
 """
 
 import gc
@@ -24,13 +25,26 @@ def run_tgt_asr_from_manifest_batch(
     out_dir: str = "data/output_qwen_asr",
     batch_size: int = 10,
 ) -> None:
-    """对 manifest 中每条 tgt wav 跑 ASR（带词级时间戳），分 batch 处理。
+    """Run ASR with word-level timestamps on every tgt WAV in the manifest.
 
-    输出：``out_dir/{basename}_asr.json``。
+    Dispatches the WAVs in fixed-size batches to ``asr.transcribe`` and
+    writes one ``{basename}_asr.json`` per WAV under ``out_dir``. Malformed
+    manifest lines, missing files, and per-batch inference errors are logged
+    and skipped without raising.
 
-    长音频说明：Qwen3 ASR 内部按 chunk 处理，结果有时会少最后几秒（最后一
-    chunk 未返回）。如出现「ASR 比 wav 短约 Xs」的提示，可考虑将长音频按
-    静音切分后再分别识别拼接。
+    Args:
+        manifest_path: Path to a JSONL manifest produced by
+            :meth:`PipelineConfig.build_manifest`; each line must contain at
+            least a ``tgt`` field.
+        asr: ASR model exposing
+            ``transcribe(audio, language, return_time_stamps) -> List[Result]``.
+            Both the Transformers and vLLM backends in this package satisfy
+            this contract.
+        tgt_language: Target language name passed to the model
+            (e.g. ``"Chinese"``, ``"Japanese"``); broadcast to every WAV in
+            the batch.
+        out_dir: Directory where ``{basename}_asr.json`` files are written.
+        batch_size: Number of WAVs sent to ``asr.transcribe`` per call.
     """
     with open(manifest_path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
@@ -40,16 +54,16 @@ def run_tgt_asr_from_manifest_batch(
         try:
             rec = json.loads(line)
         except json.JSONDecodeError as e:
-            print(f"[{i+1}/{len(lines)}] 跳过：无效 JSON - {e}")
+            print(f"[{i+1}/{len(lines)}] Skipping: invalid JSON - {e}")
             continue
 
         tgt_wav = rec.get("tgt")
         if not tgt_wav:
-            print(f"[{i+1}/{len(lines)}] 跳过：无 tgt 路径")
+            print(f"[{i+1}/{len(lines)}] Skipping: no tgt path")
             continue
         tgt_wav = os.path.normpath(tgt_wav)
         if not os.path.isfile(tgt_wav):
-            print(f"[{i+1}/{len(lines)}] 跳过：文件不存在 {tgt_wav}")
+            print(f"[{i+1}/{len(lines)}] Skipping: file not found {tgt_wav}")
             continue
 
         rec["_index"] = i + 1
@@ -64,7 +78,7 @@ def run_tgt_asr_from_manifest_batch(
         batch_audio = [r["_tgt_wav_norm"] for r in batch_recs]
         batch_lang = [tgt_language] * len(batch_recs)
 
-        print(f"\n处理 batch {start // batch_size + 1}: {len(batch_recs)} 条")
+        print(f"\nProcessing batch {start // batch_size + 1}: {len(batch_recs)} items")
 
         try:
             results = asr.transcribe(
@@ -73,11 +87,11 @@ def run_tgt_asr_from_manifest_batch(
                 return_time_stamps=True,
             )
         except Exception as e:
-            print(f"  batch 推理失败：{e}")
+            print(f"  Batch inference failed: {e}")
             continue
 
         if not results or len(results) != len(batch_recs):
-            print(f"  警告：结果数 {len(results)} != 输入数 {len(batch_recs)}，跳过该 batch")
+            print(f"  Warning: result count {len(results)} != input count {len(batch_recs)}, skipping batch")
             continue
 
         for rec, r in zip(batch_recs, results):
@@ -106,11 +120,16 @@ def run_tgt_asr_from_manifest_batch(
             out_path = os.path.join(out_dir, base_name + "_asr.json")
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(out, f, ensure_ascii=False, indent=2)
-            print(f"  已保存: {out_path}")
+            print(f"  Saved: {out_path}")
 
 
 def release_asr(asr: Any) -> None:
-    """释放 ASR 模型显存。两个后端跑完后都需要做。"""
+    """Delete the ASR model and free GPU memory (``gc.collect`` + ``empty_cache``).
+
+    Args:
+        asr: The ASR model returned by either ``Qwen3ASRModel.from_pretrained``
+            or ``Qwen3ASRModel.LLM``.
+    """
     del asr
     gc.collect()
     if torch.cuda.is_available():

@@ -22,10 +22,10 @@ def is_kept_char(ch: str) -> bool:
 
 def norm_char_stream_with_mapping(text: str) -> Tuple[str, List[int]]:
     """
-    把原文 text 转成规范化字符流，并记录：
-    norm_text[i] 对应原文 raw_text 的哪个字符下标。
+    Convert raw text into a normalised character stream and record the mapping:
+    norm_text[i] corresponds to which character index in the original raw_text.
 
-    返回:
+    Returns:
         norm_text, norm_to_raw
     """
     raw = unicodedata.normalize("NFKC", text or "")
@@ -46,15 +46,19 @@ def norm_unit_text(text: str) -> str:
 
 
 def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
-    """给 ASR JSON 里的每个 time_stamp 计算并加上 ``char_start`` / ``char_end``。
+    """Compute and attach ``char_start`` / ``char_end`` to every time_stamp.
+
+    ``char_start``/``char_end`` index into the original (NFKC-normalised)
+    ``text`` field; ``char_end`` is exclusive. Both are set to ``-1`` when
+    the unit could not be located in ``text``.
 
     Args:
-        infile: 输入的 ``*_asr.json``。
-        outfile: 输出路径。``None`` 表示 **in-place** 覆写 ``infile``（用临时
-            文件 + ``os.replace`` 原子替换，char_span 中途失败不会破坏原文件）。
+        infile: Path to the input ``*_asr.json``.
+        outfile: Output path. ``None`` means in-place overwrite of ``infile``
+            via a temporary file + ``os.replace`` atomic swap.
 
     Returns:
-        实际写出的文件路径。
+        Path of the file that was actually written.
     """
     context_chars = 80
 
@@ -97,12 +101,12 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             new_ts["char_start"] = -1
             new_ts["char_end"] = -1
             new_ts_list.append(new_ts)
-            # norm 全文上下文
+            # normalised full-text context window
             norm_left = max(0, norm_cursor - context_chars)
             norm_right = min(len(full_norm), norm_cursor + context_chars)
             norm_ctx = full_norm[norm_left:norm_right]
 
-            # raw 全文上下文（通过 norm_cursor 尽量映射到 raw）
+            # raw full-text context window (mapped from norm_cursor)
             if 0 <= norm_cursor < len(norm_to_raw):
                 raw_cursor = norm_to_raw[norm_cursor]
             elif norm_to_raw:
@@ -125,7 +129,7 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             print(f"norm_ctx       = {_clip(norm_ctx, 200)!r}")
             print(f"raw_ctx        = {_clip(raw_ctx, 200)!r}")
 
-            # 再给一个“从头搜”的参考，看 cursor 是否走偏
+            # Global search from position 0 for reference; helps detect cursor drift
             global_pos = full_norm.find(unit_norm)
             print(f"global_find_pos= {global_pos}")
 
@@ -139,10 +143,10 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
             continue
 
         norm_start = pos
-        norm_end = pos + len(unit_norm)   # 开区间
+        norm_end = pos + len(unit_norm)   # exclusive
 
         raw_start = norm_to_raw[norm_start]
-        raw_end = norm_to_raw[norm_end - 1] + 1   # 开区间
+        raw_end = norm_to_raw[norm_end - 1] + 1   # exclusive
 
         new_ts["char_start"] = raw_start
         new_ts["char_end"] = raw_end
@@ -157,8 +161,8 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
     data["text"] = full_text
     data["time_stamps"] = new_ts_list
 
-    # 默认 in-place 覆写。先写临时文件再 os.replace 原子替换，
-    # 这样 char_span 计算挂在写入阶段时，原文件依然完好。
+    # Default: in-place overwrite via a temp file + os.replace atomic swap,
+    # so a failure during char-span computation or writing leaves the original intact.
     if outfile is None:
         outfile = infile
 
@@ -171,10 +175,14 @@ def add_char_spans_to_asr_json(infile: str, outfile: str = None) -> str:
 
 
 def add_char_spans_for_dir(asr_dir: str) -> None:
-    """对 ``asr_dir`` 下所有 ``*_asr.json`` in-place 加 char span。
+    """Add char spans in-place to every ``*_asr.json`` under ``asr_dir``.
 
-    原子替换写入：每个文件先写 ``*.tmp``，再 ``os.replace`` 覆盖原文件；
-    若 char_span 计算或写入阶段抛异常，对应 ``*_asr.json`` 不受影响。
+    Each file is updated with an atomic temp-file + ``os.replace`` swap, so
+    an exception during char-span computation or writing leaves the original
+    file unmodified.
+
+    Args:
+        asr_dir: Directory containing ``*_asr.json`` files produced by ASR.
     """
     if not os.path.isdir(asr_dir):
         raise FileNotFoundError(f"asr_dir not found: {asr_dir}")
