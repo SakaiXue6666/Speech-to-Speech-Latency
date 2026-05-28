@@ -88,7 +88,7 @@ def segment_sentences_by_ersatz(text: str) -> list:
 def segment_sentences_by_spacy(text: str) -> list:
     """
     Segment sentences using spaCy.
-    返回:
+    Returns:
     [
         {
             "text": ...,
@@ -98,7 +98,7 @@ def segment_sentences_by_spacy(text: str) -> list:
         ...
     ]
 
-    其中 char_start / char_end 是相对整篇 text 的字符区间，char_end 为开区间。
+    char_start / char_end are character offsets relative to the full text; char_end is exclusive.
     """
     segmented_sentences = []
     paragraphs = text.split("\n")
@@ -115,7 +115,7 @@ def segment_sentences_by_spacy(text: str) -> list:
                         "char_end": base_offset + sent.end_char,
                     }
                 )
-        # split("\n") 会吃掉换行，这里补回 1 个字符偏移
+        # split("\n") consumes the newline, so add 1 char offset to compensate
         base_offset += len(paragraph) + 1
 
     return segmented_sentences
@@ -132,7 +132,7 @@ def compute_embedding_api(overlaps: list[str], model=None, tokenizer=None) -> by
     """
 
     if tokenizer is not None:
-        # 分批计算 embedding 再拼接，避免一次性送入大批量时 OOM
+        # Compute embeddings in batches and concatenate to avoid OOM on large inputs
         device = next(model.parameters()).device
         expected_dim = getattr(model.config, "hidden_size", 1024)
         all_embeddings = []
@@ -546,7 +546,7 @@ def merge_ref_entries(entries):
         info["ref"] = "\n".join([info["ref_list"][i] for i in sorted_indices])
         info["src"] = "\n".join([info["src_list"][i] for i in sorted_indices])
 
-        # 新增：保留排序后的原始 seg_id 顺序
+        # Preserve original seg_id order after sorting
         info["src_ref_ids"] = [info["seg_ids"][i] for i in sorted_indices]
     return merged
 
@@ -566,7 +566,7 @@ def combine_system_ref(system_merged, ref_merged):
                 "ref": ref_merged.get(doc_id, {}).get("ref", ""),
                 "src_list": ref_merged.get(doc_id, {}).get("src_list", ""),
                 "ref_list": ref_merged.get(doc_id, {}).get("ref_list", ""),
-                "src_ref_ids": ref_merged.get(doc_id, {}).get("src_ref_ids", ""),  # 新增：保留排序后的原始 seg_id 顺序
+                "src_ref_ids": ref_merged.get(doc_id, {}).get("src_ref_ids", ""),  # preserve original seg_id order after sorting
             }
         )
     return combined
@@ -620,7 +620,7 @@ def clean_lists(primary_list, secondary_list, src_ref_ids, doc_id):
 def prepare_doc_windows(doc, save_folder, tokenizer=None, model=None, max_size=8):
     """Process a single merged document to prepare alignment windows."""
     doc_id = doc["doc_id"]
-    # 首文档 embedding 计算量大且 GPU 首次推理会触发 CUDA 初始化，避免被误认为卡住
+    # The first document's embedding is expensive and may trigger CUDA init; log it to avoid appearing stuck
     print(f"  [doc] {doc_id} ...", flush=True)
 
     src_ref_ids = doc["src_ref_ids"]
@@ -753,20 +753,20 @@ def init_config(task_lang):
 # -----------------------------------------------------------------------------
 # Main entry point
 # -----------------------------------------------------------------------------
-# 输入 jsonl (ref & hyp) schema:
-#   src     (str)   源语言文本
-#   tgt     (str)   目标语言文本（ref 文件里是 ref，hyp 文件里是 hyp）
-#   sys_id  (str)   系统 ID（ref_A 表示参考，模型名等）
-#   doc_id  (str)   文档 ID，同一长文档的所有 segment 共用
-#   seg_id  (int)   同一 jsonl 内从 1 开始递增
-# 输出 jsonl schema:
-#   src     (str)   对齐后的源句（可能由多段 src 拼成一句）
-#   ref     (str)   与 src 对应的 ref 译文
-#   tgt     (str)   与 src 对齐的 hyp 译文（Vecalign 对齐结果）
+# Input jsonl (ref & hyp) schema:
+#   src     (str)   source language text
+#   tgt     (str)   target language text (ref in ref file, hyp in hyp file)
+#   sys_id  (str)   system ID (e.g. ref_A for reference, model name for hypothesis)
+#   doc_id  (str)   document ID shared by all segments of the same long document
+#   seg_id  (int)   1-indexed within the jsonl file
+# Output jsonl schema:
+#   src     (str)   aligned source sentence (may be a concatenation of multiple src segments)
+#   ref     (str)   reference translation corresponding to src
+#   tgt     (str)   hypothesis translation aligned to src (Vecalign output)
 #   sys_id  (str)
 #   doc_id  (str)
-#   seg_id  (int)   同一 doc_id 内从 1 开始递增
-# 对齐策略：src/ref 文件中一一对应；vecalign 用于对齐 src 与 hyp。
+#   seg_id  (int)   1-indexed within the same doc_id
+# Alignment strategy: src/ref files are in 1-to-1 correspondence; Vecalign aligns src with hyp.
 # -----------------------------------------------------------------------------
 def step2_segale(
     system_file: str = "data/output_segale/hyp.jsonl",
@@ -779,6 +779,30 @@ def step2_segale(
     embedding_model: Optional[str] = None,
     seed: int = 42,
 ):
+    """Run the SEGALE sentence-alignment step over a pair of JSONL files.
+
+    For each document shared between ``system_file`` and ``ref_file``, the
+    target side is sentence-segmented (spaCy or ersatz), then aligned to the
+    source side with Vecalign over multilingual sentence embeddings. The
+    aligned segments are written to
+    ``<save_folder>/aligned_<segmenter>_<system_basename>.jsonl``; failed
+    doc_ids go to a sibling ``failed_*.jsonl``.
+
+    Args:
+        system_file: Hypothesis JSONL (one segment per line) produced by
+            :func:`instances_to_segale`.
+        ref_file: Reference JSONL with the same schema.
+        segmenter: Sentence segmenter, ``"spacy"`` or ``"ersatz"``.
+        task_lang: Target language code (e.g. ``"zh"``, ``"ja"``); required
+            when ``segmenter == "spacy"``.
+        proc_device: Torch device string for the embedding model.
+        verbose: Verbosity level (``0`` for silent, higher for more logs).
+        max_size: Maximum size of the alignment search window.
+        embedding_model: HuggingFace model id for sentence embeddings; when
+            ``None`` falls back to LASER2 via ``laser_encoders``.
+        seed: Random seed propagated to ``torch`` / ``numpy`` / ``random``
+            / cuDNN for reproducibility.
+    """
     if segmenter not in {"spacy", "ersatz"}:
         raise ValueError("segmenter must be 'spacy' or 'ersatz'")
 

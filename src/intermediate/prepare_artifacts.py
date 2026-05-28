@@ -1,6 +1,6 @@
-"""中间产物生成：把 ASR 输出 + segments yaml + 原文/参考译文，整理成
-后续 SEGALE 对齐和 LongYAAL 评测要消费的 ``instances.log`` / ``hyp.jsonl`` /
-``ref.jsonl``。
+"""Intermediate artifact generation: combines ASR output, segments YAML, and
+source/reference text into the ``instances.log`` / ``hyp.jsonl`` / ``ref.jsonl``
+files consumed by the downstream SEGALE alignment and LongYAAL evaluation steps.
 """
 
 import json
@@ -12,7 +12,7 @@ import yaml
 
 
 def _get_wav_duration_sec(wav_path: str) -> float:
-    """读 wav 文件时长（秒）。失败返回 0.0。"""
+    """Return WAV file duration in seconds; returns 0.0 on any error."""
     try:
         with wave.open(wav_path, "r") as w:
             return w.getnframes() / w.getframerate()
@@ -23,9 +23,10 @@ def _get_wav_duration_sec(wav_path: str) -> float:
 def _build_instances_log_s2s(
     ref_segments_yaml: str, asr_dir: str, output_file: str
 ) -> None:
-    """从 ref_segments.yaml + asr_dir/*_asr.json 生成 s2s 格式 instances.log。
+    """Generate a speech-to-speech instances.log from ref_segments.yaml and asr_dir/*_asr.json.
 
-    yaml 的 wav 与 asr 的 src 按 basename 匹配；每条记录对应一个 src wav。
+    YAML wav entries are matched to ASR src fields by basename; each record
+    corresponds to one source WAV file.
     """
     with open(ref_segments_yaml, "r", encoding="utf-8") as f:
         segments = yaml.safe_load(f) or []
@@ -94,7 +95,7 @@ def _build_instances_log_s2s(
             "prediction_unit_char_starts_ends": prediction_unit_char_starts_ends,
         })
 
-    # 行间用 \n 分隔，最后一行后不写 \n，避免多出一行
+    # Records separated by newline; no trailing newline after the last record
     out_dir = os.path.dirname(output_file)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
@@ -111,14 +112,24 @@ def asr_to_instances(
     asr_dir: str,
     output_file: str,
 ) -> None:
-    """把 ASR 结果转成 instances.log。
+    """Convert ASR JSON outputs to a SimulEval-style ``instances.log``.
 
-    当前仅支持 ``s2s=True``（speech-to-speech）。其它模式留作扩展位。
+    Currently only ``s2s=True`` (speech-to-speech) is supported; other modes
+    are reserved for future use.
+
+    Args:
+        s2s: Must be ``True``; otherwise :class:`NotImplementedError` is raised.
+        yaml_file: Reference segments YAML; the per-segment ``wav`` field is
+            used to enumerate documents in order.
+        asr_dir: Directory containing ``*_asr.json`` (already enriched with
+            char spans).
+        output_file: Destination path of ``instances.log`` (one JSON record
+            per line, no trailing newline).
     """
     if not s2s:
-        raise NotImplementedError("当前只支持 s2s=True 模式")
+        raise NotImplementedError("only s2s=True mode is currently supported")
     if not (yaml_file and asr_dir and output_file):
-        raise ValueError("yaml_file / asr_dir / output_file 都必须提供")
+        raise ValueError("yaml_file, asr_dir, and output_file are all required")
     _build_instances_log_s2s(yaml_file, asr_dir, output_file)
 
 
@@ -128,10 +139,10 @@ def get_jsonl(
     src_segments_yaml: str,
     instances: str,
 ) -> Tuple[List[dict], List[dict]]:
-    """根据原文/参考译文/segments yaml/instances.log，构造 ref/hyp 两份 dict 列表。
+    """Build ref and hyp dict lists from source text, reference translation, segments YAML, and instances.log.
 
-    返回:
-        (ref_dicts, hyp_dicts)，分别供 ref.jsonl 和 hyp.jsonl 写出。
+    Returns:
+        (ref_dicts, hyp_dicts), to be written as ref.jsonl and hyp.jsonl respectively.
     """
     with open(src_txt, "r", encoding="utf-8") as f:
         src_text_lines = [line.rstrip("\n") for line in f]
@@ -153,7 +164,7 @@ def get_jsonl(
             "seg_id": i + 1,
         })
 
-        # 同一 doc_id 的 src 拼到一起，给 hyp.jsonl 用
+        # Concatenate src sentences of the same doc_id for hyp.jsonl
         if src_yaml_lines[i]["wav"] != curr_doc:
             src_for_hyp_docs.append({"doc_id": src_yaml_lines[i]["wav"], "src": ""})
             curr_doc = src_yaml_lines[i]["wav"]
@@ -190,7 +201,17 @@ def instances_to_segale(
     instances: str,
     out_dir: str,
 ) -> None:
-    """生成 SEGALE 阶段需要的 ``ref.jsonl`` 和 ``hyp.jsonl``。"""
+    """Generate ``ref.jsonl`` and ``hyp.jsonl`` for the SEGALE alignment step.
+
+    Args:
+        src_txt: Source-language transcript file (one sentence per line).
+        tgt_ref_txt: Target-language reference translation file (aligned line
+            by line with ``src_txt``).
+        src_segments_yaml: Per-sentence segments YAML (provides the ``wav``
+            field that defines doc grouping).
+        instances: Path to ``instances.log`` produced by :func:`asr_to_instances`.
+        out_dir: Directory where ``ref.jsonl`` and ``hyp.jsonl`` are written.
+    """
     ref_dicts, hyp_dicts = get_jsonl(
         src_txt, tgt_ref_txt, src_segments_yaml, instances
     )
@@ -207,4 +228,4 @@ def instances_to_segale(
         for obj in hyp_dicts:
             f.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
-    print("saved:", out_path_ref, out_path_hyp)
+    print("Saved:", out_path_ref, out_path_hyp)

@@ -10,7 +10,7 @@ from plot import load_instances, build_rows, doc_id_matches
 
 
 def _collect_diff_s(grouped, only_doc_ids: Optional[Sequence[str]] = None):
-    """收集 (delay_span − recording_end) 并转为秒。"""
+    """Collect (delay_span - recording_end) values and convert to seconds."""
     values = []
     for doc_id, rows in grouped.items():
         if only_doc_ids is not None:
@@ -31,10 +31,10 @@ def tgt_minus_src_length_histogram(
     out_png: str = "tgt_minus_src_length_histogram.png",
 ):
     """
-    1 行 N 列直方图，每列对应一个 tgt_lang。
-    instances 与 tgt_langs 一一对应，各自是 instances.resegmented.json 的路径。
+    1-row N-column histogram; each column corresponds to one tgt_lang.
+    instances and tgt_langs correspond one-to-one; each element is a path to instances.resegmented.json.
     """
-    assert len(instances) == len(tgt_langs), "instances 和 tgt_langs 长度必须一致"
+    assert len(instances) == len(tgt_langs), "instances and tgt_langs must have the same length"
 
     plt.rcParams.update({
         "font.family": "serif",

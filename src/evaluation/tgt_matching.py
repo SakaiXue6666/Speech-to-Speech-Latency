@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# Segale tgt 和 ASR unit 的匹配
+# Matching between SEGALE tgt segments and ASR units
 # ============================================================
-# 优先的匹配方法：基于 Segale tgt 与 ASR units 在原文字符区间的匹配
+# Preferred matching method: match by character span overlap in the original text
 def _match_tgt_units_for_seg_by_raw_char_span(
     raw_starts_ends: List[Tuple[int, int]],
     compact_to_raw: List[int],
@@ -25,11 +25,10 @@ def _match_tgt_units_for_seg_by_raw_char_span(
     cursor_unit: int,
 ) -> Optional[Tuple[int, int]]:
     """
-    根据 seg 的字符区间 [seg_char_start, seg_char_end)，
-    在 raw unit char spans 里找所有“有重叠”的 unit，
-    再映射回 compact unit span [c_start, c_end)。
+    Find all raw ASR units whose character span overlaps [seg_char_start, seg_char_end),
+    then map the result back to a compact unit span [c_start, c_end).
 
-    判定重叠条件：
+    Overlap condition:
         unit_s < seg_char_end AND unit_e > seg_char_start
     """
     if seg_char_start < 0 or seg_char_end <= seg_char_start:
@@ -37,7 +36,7 @@ def _match_tgt_units_for_seg_by_raw_char_span(
     if not raw_starts_ends or not compact_to_raw:
         return None
 
-    # 从当前 compact cursor 对应的 raw 下标开始往后找
+    # Search forward from the raw index corresponding to the current compact cursor
     raw_cursor = (
         compact_to_raw[cursor_unit]
         if 0 <= cursor_unit < len(compact_to_raw)
@@ -49,15 +48,15 @@ def _match_tgt_units_for_seg_by_raw_char_span(
     for raw_i in range(raw_cursor, len(raw_starts_ends)):
         unit_s, unit_e = raw_starts_ends[raw_i]
 
-        # 跳过无效 span
+        # Skip invalid spans
         if unit_s < 0 or unit_e <= unit_s:
             continue
 
-        # 若 unit 已经完全在 seg 后面了，可以停
+        # If unit is entirely after seg_char_end, we can stop
         if unit_s >= seg_char_end:
             break
 
-        # 区间相交：这个 unit 属于当前 seg
+        # Overlap: this unit belongs to the current segment
         if unit_s < seg_char_end and unit_e > seg_char_start:
             matched_raw.append(raw_i)
 
@@ -89,7 +88,7 @@ def _match_tgt_units_for_seg_by_raw_char_span(
     if c_start is None or c_end_inclusive is None or c_end_inclusive < c_start:
         return None
 
-    # 不允许回退
+    # No backtracking allowed
     c_start = max(c_start, cursor_unit)
     if c_end_inclusive < c_start:
         return None
@@ -98,7 +97,7 @@ def _match_tgt_units_for_seg_by_raw_char_span(
 
 
 # ---------------------------------------------------
-# 兜底的匹配方法：基于 Segale tgt 与 ASR units 的文本内容做匹配
+# Fallback matching method: match SEGALE tgt against ASR units by text content
 def _fix_decimal_for_segale_text(s: str) -> str:
     """
     "84. 22" / "84 .22" / "84 . 22" -> "84.22"
@@ -109,10 +108,10 @@ def _fix_decimal_for_segale_text(s: str) -> str:
 
 def _normalize_token_for_match(tok: str) -> str:
     """
-    用于匹配时的 token 归一化：
+    Token normalisation for matching:
     - NFKC
     - lower
-    - 去掉标点 / 空白 / 控制字符
+    - remove punctuation / whitespace / control characters
     """
     s = _norm(tok).lower().strip()
     out = []
@@ -133,11 +132,11 @@ def _is_latin_token(tok: str) -> bool:
 
 def _token_match_loose(n_tok: str, h_tok: str) -> bool:
     """
-    更保守的 loose match：
-    - 优先 exact / normalized exact
-    - 对一般 token 不再随便用 startswith，避免把
-      'transformer' 和 'transformerbased' 提前误判成 1:1
-    - 只给 very short latin token 保留一点前缀容错（如 QED vs QEDQED）
+    More conservative loose match:
+    - prefer exact / normalized exact
+    - avoid startswith for general tokens to prevent premature 1:1 matches
+      (e.g. 'transformer' vs 'transformerbased')
+    - allow prefix tolerance only for very short latin tokens (e.g. QED vs QEDQED)
     """
     n = (n_tok or "").strip()
     h = (h_tok or "").strip()
@@ -155,7 +154,7 @@ def _token_match_loose(n_tok: str, h_tok: str) -> bool:
     if n_norm == h_norm:
         return True
 
-    # 只对很短的拉丁 token 允许前缀容错，避免误吞 merge 场景
+    # Allow prefix tolerance only for short latin tokens to avoid erroneous merge absorption
     if _is_latin_token(n) and _is_latin_token(h):
         if len(n_norm) <= 4 and len(h_norm) <= 12:
             if h_norm.startswith(n_norm) or n_norm.startswith(h_norm):
@@ -205,13 +204,13 @@ def _try_align_from_start(
     max_needle_skip: int = 2,
 ) -> Optional[Tuple[int, int, float, int, int]]:
     """
-    从 hay[start_i] 开始，做顺序受限对齐：
-    优先级：
+    Ordered constrained alignment starting at hay[start_i]:
+    Priority:
       1) exact 1:1
       2) 2 needle -> 1 hay
       3) 1 needle -> 2 hay
       4) loose/prefix 1:1
-      5) 少量 skip
+      5) limited skips
     """
     j = start_i
     k = 0
@@ -264,10 +263,10 @@ def _try_align_from_start(
 
         # --------------------------------------------------
         # 4) loose/prefix 1:1
-        #    放到 merge/split 后面，避免误吞
+        #    placed after merge/split to avoid erroneous absorption
         # --------------------------------------------------
         if hn.startswith(nn) or nn.startswith(hn):
-            # 对很长 token，prefix 太危险，限制一下长度差
+            # For long tokens, prefix matching is risky; restrict the length gap
             if abs(len(hn) - len(nn)) <= 2:
                 j += 1
                 k += 1
@@ -275,7 +274,7 @@ def _try_align_from_start(
                 continue
 
         # --------------------------------------------------
-        # 5) 更宽一点的 merge/split
+        # 5) slightly more relaxed merge/split
         # --------------------------------------------------
         if k + 1 < len(needle_norm):
             nn2 = needle_norm[k] + needle_norm[k + 1]
@@ -340,11 +339,11 @@ def _find_sublist_merge_split_window(
     max_start_drift=180,
 ) -> Optional[Tuple[int, int, float]]:
     """
-    在 hay[start : start+window_size] 内，找一个更稳的局部对齐：
-    - 顺序匹配
-    - 支持 1:1 / 2:1 / 1:2
-    - 允许少量 skip
-    - 必须把 needle 基本吃完
+    Find a stable local alignment within hay[start : start+window_size]:
+    - sequential matching
+    - supports 1:1 / 2:1 / 1:2 alignments
+    - allows limited skips
+    - needle must be substantially consumed
     """
     if not hay or not needle or start >= len(hay):
         return None
@@ -371,7 +370,7 @@ def _find_sublist_merge_split_window(
 
         s, e, score, matched_needle, consumed_hay = res
 
-        # 再加一些安全阀
+        # Additional safety checks
         non_empty_needle = len([x for x in needle_norm if x])
         if matched_needle < max(1, non_empty_needle - max_needle_skip):
             continue
@@ -384,7 +383,7 @@ def _find_sublist_merge_split_window(
         if best is None:
             best = cand
         else:
-            # 先看分数，再看离 cursor 近不近
+            # Prefer higher score; break ties by proximity to cursor
             if (score > best[2]) or (score == best[2] and s < best[0]):
                 best = cand
 
@@ -401,19 +400,19 @@ def _find_sublist_merge_split_window(
 # ------------------------------------------------------------
 
 def _is_kept_char(ch: str) -> bool:
-    if ch == "'":  # 单引号
+    if ch == "'":  # apostrophe
         return True
     cat = unicodedata.category(ch)
-    return cat.startswith("L") or cat.startswith("N")  # 字母或数字
+    return cat.startswith("L") or cat.startswith("N")  # letter or digit
 
 
 def _norm_char_stream(text: str) -> str:
     """
-    把一段文本转成一个适合做字符流匹配的“规范串”："hello world!" -> "helloworld"
+    Convert text to a normalised string for character-stream matching: "hello world!" -> "helloworld"
     - NFKC
-    - 仅保留字母/数字/单引号
-    - 英文转小写
-    """
+    - keep only letters / digits / apostrophes
+    - lowercase
+    """"
     text = _norm(text)
     return "".join(ch.lower() for ch in text if _is_kept_char(ch))
 
@@ -425,20 +424,20 @@ def _norm_char_stream(text: str) -> str:
 @dataclass
 class CompactCharIndex:
     """
-    基于 compact units 构建的字符流索引。
+    Character-stream index built over compact ASR units.
 
     norm_units:
-        每个 compact unit 规范化后的字符串
+        Normalised string for each compact unit
     global_norm:
-        全部 norm_units 直接拼接后的全局串
+        Concatenation of all norm_units into a single global string
     global_pos_to_unit:
-        global_norm 的每个字符对应哪个 compact unit
+        Maps each character position in global_norm to the corresponding compact unit index
     global_pos_to_char_in_unit:
-        global_norm 的每个字符在对应 compact unit 里的偏移
+        Offset of each global_norm character within its compact unit
     unit_start_global:
-        每个 compact unit 在 global_norm 中的起始位置
+        Start position of each compact unit in global_norm
     unit_end_global:
-        每个 compact unit 在 global_norm 中的结束位置（开区间）
+        End position of each compact unit in global_norm (exclusive)
     """
     norm_units: List[str]
     global_norm: str
@@ -451,20 +450,20 @@ class CompactCharIndex:
 @dataclass
 class UnitMatchResult:
     """
-    统一的匹配结果。
+    Unified match result.
 
     new_cursor_unit:
-        下一个 segment 从哪个 compact unit 开始继续找
+        Compact unit index where the next segment should resume searching
     u_start, u_end:
-        命中的 compact unit span，开区间 [u_start, u_end)
+        Matched compact unit span, exclusive: [u_start, u_end)
     start_offset:
-        在 u_start 这个 unit 的 norm token 内起始偏移
+        Start offset within the norm token of unit u_start
     end_offset:
-        在 u_end-1 这个 unit 的 norm token 内结束偏移（开区间）
+        End offset within the norm token of unit u_end-1 (exclusive)
     method:
         strict / loose / skip_latin / char_exact / merge_split / empty / not_found
     score:
-        对 strict/loose/char_exact 可固定为 1.0；fuzzy 用真实分数
+        Fixed at 1.0 for strict/loose/char_exact; actual score for fuzzy matches
     """
     new_cursor_unit: int
     u_start: int
@@ -531,15 +530,15 @@ def _find_by_char_stream_exact(
     unit_i: int,
 ) -> Optional[Tuple[int, int, int, int]]:
     """
-    在 compact units 构建出的 global normalized char stream 里做 exact match。
+    Exact match in the global normalised character stream built over compact units.
 
-    返回:
+    Returns:
         (u_start, u_end, start_offset, end_offset)
 
-    其中:
-    - unit span 是 [u_start, u_end)
-    - start_offset 是 u_start 这个 unit 内的起始偏移
-    - end_offset 是 u_end-1 这个 unit 内的结束偏移（开区间）
+    Where:
+    - unit span is [u_start, u_end)
+    - start_offset is the start offset within unit u_start
+    - end_offset is the end offset within unit u_end-1 (exclusive)
     """
     needle_norm = _norm_char_stream(seg_text)
     if not needle_norm:
@@ -554,14 +553,14 @@ def _find_by_char_stream_exact(
         return None
 
     start = pos
-    end = pos + len(needle_norm)  # 开区间
+    end = pos + len(needle_norm)  # exclusive
 
     start_unit = char_index.global_pos_to_unit[start]
     start_offset = char_index.global_pos_to_char_in_unit[start]
 
     last = end - 1
     end_unit_inclusive = char_index.global_pos_to_unit[last]
-    end_offset = char_index.global_pos_to_char_in_unit[last] + 1  # 开区间
+    end_offset = char_index.global_pos_to_char_in_unit[last] + 1  # exclusive
 
     return start_unit, end_unit_inclusive + 1, start_offset, end_offset
 
@@ -576,8 +575,8 @@ def _compact_span_to_raw_span(
     c_end: int,
 ) -> Tuple[int, int]:
     """
-    compact [c_start, c_end) -> raw [r_start, r_end)
-    用于切 delays_all / elapsed_all
+    Map compact span [c_start, c_end) to raw span [r_start, r_end).
+    Used to slice delays_all / elapsed_all.
     """
     if c_start >= c_end or not compact_to_raw:
         return 0, 0
@@ -591,8 +590,8 @@ def _compact_span_to_raw_span(
 
 
 # ------------------------------------------------------------
-# # main matcher
-# 依赖以下外部函数/对象已经在你的工程里存在：
+# main matcher
+# Assumes the following helpers are defined in this module:
 #   _fix_decimal_for_segale_text
 #   _find_sublist
 #   _find_sublist_loose
@@ -610,9 +609,9 @@ def _match_tgt_units_for_seg(
     char_index: Optional[CompactCharIndex] = None,
 ) -> UnitMatchResult:
     """
-    返回 compact unit 空间下的匹配结果。
+    Return the match result in compact unit space.
 
-    优先级：
+    Priority:
     1) strict
     2) loose
     3) skip leading latin tokens
@@ -806,7 +805,7 @@ def _match_tgt_units_for_seg(
 
 def build_target_matcher_context(tgt_asr_units: List[str]) -> CompactCharIndex:
     """
-    在处理整篇文档前调用一次即可。
+    Call once before processing an entire document.
     """
     return _build_compact_char_index(tgt_asr_units)
 
@@ -821,8 +820,8 @@ def match_segment_and_map_raw(
     char_index: Optional[CompactCharIndex] = None,
 ):
     """
-    一个方便上层直接调用的包装函数。
-    返回:
+    Convenience wrapper for callers.
+    Returns:
         match_result, raw_span
     """
     mr = _match_tgt_units_for_seg(

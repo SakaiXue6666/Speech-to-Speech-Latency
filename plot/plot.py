@@ -103,5 +103,5 @@ def save_csv(grouped, out_csv: str):
 
 
 def doc_id_matches(doc_id: str, short_id: str) -> bool:
-    """判断 doc_id（如 '2022.acl-long.110.wav'）是否匹配简写 id（如 '110'）。"""
+    """Return True if doc_id (e.g. '2022.acl-long.110.wav') matches the abbreviated id (e.g. '110')."""
     return doc_id == short_id or f"acl-long.{short_id}." in doc_id

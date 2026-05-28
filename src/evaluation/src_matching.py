@@ -4,9 +4,9 @@ from .utils import _qwen_units
 
 
 # ============================================================
-# # Segale src 和 yaml 的匹配
+# Matching between SEGALE src and YAML segments
 # ============================================================
-# 优先的匹配方法：基于 src_ref_ids 的匹配
+# Preferred matching method: match by src_ref_ids
 def _match_src_span_for_seg_by_ids(
     src_ref_ids: List[int],
     src_sent_list: List[Tuple[int, float, float, List[str]]],
@@ -37,7 +37,7 @@ def _match_src_span_for_seg_by_ids(
 
 
 # ---------------------------------------------------
-# 兜底的匹配方法：基于文本内容的匹配
+# Fallback matching method: match by text content
 def _match_src_span_for_seg(
     segale_src_seg: str,
     src_sent_list: List[Tuple[int, float, float, List[str]]],

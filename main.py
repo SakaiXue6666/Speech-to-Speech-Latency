@@ -19,10 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def _setup_logging(level: str = "INFO") -> None:
-    """全局唯一的 logging 配置入口。
+    """Configure the root logger once at the application entry point.
 
-    - 只在 ``main()`` 调用一次，不要放到 library module 顶部，否则会污染调用方。
-    - 带时间戳，方便在长流水线里看每步耗时。
+    - Call only from ``main()``; never call from library modules to avoid
+      polluting the caller's logging configuration.
+    - Timestamps are included so per-step wall-clock time is visible in logs.
     """
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
@@ -65,11 +66,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def _run_pipeline(cfg: PipelineConfig) -> None:
-    """实际跑三步流水线。抽出来方便 main() 用 try/finally 包元信息写出。"""
-    cfg.build_manifest()   # 自动扫目录生成 manifest.jsonl
+    """Execute the three-step pipeline. Extracted so main() can wrap it in try/finally for meta logging."""
+    cfg.build_manifest()   # scan audio dirs and write manifest.jsonl
 
     # ================================================================
-    # 想单独跑某 step：注释其他 steps 就好
+    # To run a single step in isolation, comment out the other steps.
     # ================================================================
 
     # step1 asr -------------------------------------------------------
@@ -99,17 +100,17 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
     logger.info("ASR finished.")
 
     # ---------------------------------------------------------------
-    # 中间过程：in-place 给 *_asr.json 加 char span
+    # Intermediate: enrich *_asr.json with char spans in-place
     add_char_spans_for_dir(cfg.output_dir_asr)
 
-    # 中间过程：生成 instances.log
+    # Intermediate: generate instances.log
     asr_to_instances(
         s2s=True,
         yaml_file=cfg.src_segments_yaml,
         asr_dir=cfg.output_dir_asr,
         output_file=cfg.output_path_instances,
     )
-    # 中间过程，生成 segale 需要的 hyp.jsonl 和 ref.jsonl
+    # Intermediate: generate hyp.jsonl and ref.jsonl required by SEGALE
     instances_to_segale(
         src_txt=cfg.src_txt,
         tgt_ref_txt=cfg.tgt_ref_txt,
@@ -149,6 +150,12 @@ def _run_pipeline(cfg: PipelineConfig) -> None:
 
 
 def main() -> None:
+    """Entry point: parse CLI args, build the config, run the three-step pipeline.
+
+    A ``run_meta.json`` snapshot of git commit, package versions, hardware and
+    the resolved config is always written to ``output_dir``, even when the
+    pipeline raises.
+    """
     _setup_logging()
     args = parse_args()
     cfg = PipelineConfig(

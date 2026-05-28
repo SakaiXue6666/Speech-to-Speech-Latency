@@ -1,14 +1,16 @@
 """Qwen3 ASR vLLM backend.
 
-更高吞吐、适合大批量。使用前安装::
+Higher throughput; recommended for large batches. Install before use::
 
     pip install -U qwen-asr[vllm]
-    # 需 timestamps 时建议再装（给 ForcedAligner 加速）
+    # Also recommended for timestamp acceleration (ForcedAligner)
     pip install -U flash-attn --no-build-isolation
 
-加载模型部分；读 manifest / 推理 / 保存的通用流程在 ``_runner.py`` 里。
+Handles model loading only; manifest reading, inference, and result saving
+are handled by the shared logic in ``_runner.py``.
 
-注意：vLLM 要求主逻辑在 ``if __name__ == '__main__'`` 下执行，避免 spawn 报错。
+Note: vLLM requires the main logic to run under ``if __name__ == '__main__'``
+to avoid multiprocessing spawn errors.
 """
 
 import argparse
@@ -35,7 +37,25 @@ def step1_asr_vllm(
     asr_model: str = None,
     forced_aligner: str = None,
 ):
-    """vLLM 后端：用 ``Qwen3ASRModel.LLM`` 加载，transcribe 接口与 transformers 版一致。"""
+    """Run Qwen3 ASR via the vLLM backend over a manifest.
+
+    Loads :data:`ASR_MODEL_PATH` (with the Qwen3 ForcedAligner attached) via
+    ``Qwen3ASRModel.LLM``, transcribes every tgt WAV in the manifest via
+    :func:`run_tgt_asr_from_manifest_batch`, and releases the model afterwards.
+
+    Args:
+        manifest: Path to a JSONL manifest with one ``{"src": ..., "tgt": ...}``
+            record per line.
+        tgt_language: Target language name passed to the ASR model
+            (e.g. ``"Chinese"``, ``"Japanese"``).
+        out_dir: Directory where ``{basename}_asr.json`` files are written.
+        batch_size: Both the manifest dispatch batch size and the model's
+            ``max_inference_batch_size``.
+        max_new_tokens: Maximum generated tokens per sample.
+        gpu_memory_utilization: Fraction of GPU memory reserved by vLLM.
+        asr_model: Override for :data:`ASR_MODEL_PATH`; ``None`` uses the default.
+        forced_aligner: Override for :data:`FORCED_ALIGNER_PATH`; ``None`` uses the default.
+    """
     asr = Qwen3ASRModel.LLM(
         model=asr_model or ASR_MODEL_PATH,
         gpu_memory_utilization=gpu_memory_utilization,

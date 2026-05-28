@@ -26,8 +26,8 @@ from .utils import _norm, _qwen_units
 
 
 logger = logging.getLogger(__name__)
-# 注意：不在 library code 中调用 logging.basicConfig()，否则会污染上层调用方
-# 的 root logger。日志配置由入口（main.py）统一负责。
+# Do NOT call logging.basicConfig() in library code; doing so would pollute the
+# root logger of any caller. Logging configuration is handled solely by main.py.
 
 INF = float("inf")
 
@@ -127,7 +127,7 @@ def _load_instances_log(instances_log: str) -> Dict[str, Dict[str, Any]]:
     return:
     {
         "2022.acl-long.268.wav": {
-            ...原始日志字段...,
+            ...original log fields...,
             "_doc_id": "2022.acl-long.268.wav",
             "_source_length_ms": 737440.0,
             "_delays": [...],
@@ -136,8 +136,8 @@ def _load_instances_log(instances_log: str) -> Dict[str, Dict[str, Any]]:
             "_intervals": [...],
             "_raw_units": [...],
             "_raw_starts_ends": [(s0, e0), (s1, e1), ...],
-            "_asr_units": [...],              # compact 后，去掉空 token
-            "_compact_to_raw": [0, 1, 3, 4], # compact 索引 -> raw 索引
+            "_asr_units": [...],              # after compaction: empty tokens removed
+            "_compact_to_raw": [0, 1, 3, 4], # compact index -> raw index
             "_compact_starts_ends": [...]
         },
         "<next doc_id>": ...
@@ -217,6 +217,24 @@ def step3_longyaal(
     output_folder: str,
     bleu_tokenizer: str,
 ):
+    """Run the LongYAAL evaluation step and write resegmented scores.
+
+    Combines SEGALE alignment output, the source segments YAML, source text,
+    and the ASR-side ``instances.log`` to build re-segmented :class:`Instance`
+    objects, then scores them with sacreBLEU + YAAL. Two files are written to
+    ``output_folder``: ``instances.resegmented.json`` (per-segment payload)
+    and ``scores.resegmented.csv`` (tab-separated, two lines).
+
+    Args:
+        yaml_file: Reference segments YAML (source side).
+        source_sentences_file: Source-language transcript text file.
+        instances_log: Path to ``instances.log`` produced by
+            :func:`asr_to_instances`.
+        segale_file: SEGALE alignment output JSONL.
+        output_folder: Destination directory; created if missing.
+        bleu_tokenizer: sacreBLEU tokenizer name (e.g. ``"13a"``, ``"zh"``,
+            ``"ja-mecab"``).
+    """
     os.makedirs(output_folder, exist_ok=True)
 
     segale_by_doc = _load_segale(segale_file)
@@ -251,15 +269,15 @@ def step3_longyaal(
         durations_all = inst["_durations"]
         elapsed_all = inst["_elapsed"]
 
-        # compact 空间和 raw 时间空间长度本来就不必相等；
-        # 这里只检查 raw delays / elapsed
+        # compact space and raw time space do not need to be equal in length;
+        # here we only validate raw delays / elapsed
         m_raw = min(len(delays_all), len(elapsed_all))
         delays_all = delays_all[:m_raw]
         elapsed_all = elapsed_all[:m_raw]
         if durations_all:
             durations_all = durations_all[:m_raw]
 
-        # compact_to_raw 的最后一个 raw 索引不能超出 raw 时间长度
+        # The last raw index in compact_to_raw must not exceed the raw time array length
         valid_compact_len = 0
         for ridx in compact_to_raw:
             if 0 <= ridx < m_raw:
@@ -282,11 +300,12 @@ def step3_longyaal(
         doc_sent_list = sent_by_doc[doc_id]
 
 
-        # 跳过策略：
-        #   - seg_src 为空 / src_ref_ids 为空 -> over-translation，不计 latency/quality
-        #   - seg_tgt 为空                 -> under-translation，不计 latency/quality
-        # 主匹配仅用 _match_src_span_for_seg_by_ids + _match_tgt_units_for_seg_by_raw_char_span，
-        # 这两个失败时不再走文本兜底匹配（因为兜底通常也救不回来）。
+        # Skip strategy:
+        #   - seg_src empty / src_ref_ids empty -> over-translation; skip latency/quality scoring
+        #   - seg_tgt empty                     -> under-translation; skip latency/quality scoring
+        # Primary matching uses only _match_src_span_for_seg_by_ids +
+        # _match_tgt_units_for_seg_by_raw_char_span; fallback text matching is not
+        # attempted when these fail (fallback rarely recovers the situation).
         for seg_idx, seg in enumerate(segs):
             seg_src = seg.get("src", "")
             seg_tgt = seg.get("tgt", "")
@@ -358,10 +377,10 @@ def step3_longyaal(
                 continue
 
 
-            # 3.1 segale 与 src yaml, src, ref 对应
+            # 3.1 align SEGALE segment with src YAML, src text, and ref text
             if src_ref_ids:
                 try:
-                    # 优先使用
+                    # preferred path
                     cursor_sent, _, seg_start_ms, seg_end_ms = _match_src_span_for_seg_by_ids(
                         src_ref_ids, doc_sent_list
                     )
@@ -382,10 +401,10 @@ def step3_longyaal(
 
             seg_source_len_ms = max(1.0, seg_end_ms - seg_start_ms)
 
-            # 3.2 segale 与 tgt units 对应
+            # 3.2 align SEGALE segment with tgt ASR units
             cursor_unit_before = cursor_unit
 
-            # 优先使用
+            # preferred path
             hit = _match_tgt_units_for_seg_by_raw_char_span(
                 raw_starts_ends=raw_starts_ends,
                 compact_to_raw=compact_to_raw,
@@ -402,9 +421,9 @@ def step3_longyaal(
                 end_offset = len(_norm_char_stream(asr_units[c_end - 1])) if c_end > c_start else 0
 
             else:
-                # char_span 未命中则不再做 _match_tgt_units_for_seg，直接视为无匹配
+                # char_span miss: skip _match_tgt_units_for_seg and treat as no match
                 logger.warning(
-                    "[char_span_miss] doc=%s seg_id=%s char_start=%s char_end=%s cursor_unit=%d -> 无匹配，跳过",
+                    "[char_span_miss] doc=%s seg_id=%s char_start=%s char_end=%s cursor_unit=%d -> no match, skipping",
                     doc_id, seg.get("seg_id"), char_start, char_end, cursor_unit_before,
                 )
                 mr = _match_tgt_units_for_seg(
@@ -446,7 +465,7 @@ def step3_longyaal(
                 )
                 continue
 
-            # 3.3 转成 segment 相对时间
+            # 3.3 convert to segment-relative timestamps
             seg_delays_rel = [max(0.0, float(d) - seg_start_ms) for d in seg_delays]
             seg_elapsed_rel = [max(0.0, float(e) - seg_start_ms) for e in seg_elapsed]
 

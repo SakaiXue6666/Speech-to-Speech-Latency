@@ -1,6 +1,7 @@
 """Qwen3 ASR Transformers backend.
 
-加载模型部分；读 manifest / 推理 / 保存的通用流程在 ``_runner.py`` 里。
+Handles model loading only; manifest reading, inference, and result saving
+are handled by the shared logic in ``_runner.py``.
 """
 
 import argparse
@@ -25,6 +26,22 @@ def step1_asr(
     batch_size: int = 10,
     max_new_tokens: int = 1024,
 ):
+    """Run Qwen3 ASR via the HuggingFace Transformers backend over a manifest.
+
+    Loads :data:`ASR_MODEL_PATH` (with the Qwen3 ForcedAligner attached) onto
+    ``cuda:0`` in bfloat16, transcribes every tgt WAV in the manifest via
+    :func:`run_tgt_asr_from_manifest_batch`, and releases the model afterwards.
+
+    Args:
+        manifest: Path to a JSONL manifest with one ``{"src": ..., "tgt": ...}``
+            record per line.
+        tgt_language: Target language name passed to the ASR model
+            (e.g. ``"Chinese"``, ``"Japanese"``).
+        out_dir: Directory where ``{basename}_asr.json`` files are written.
+        batch_size: Both the manifest dispatch batch size and the model's
+            ``max_inference_batch_size``.
+        max_new_tokens: Maximum generated tokens per sample.
+    """
     print(f"[ASR] loading model: {ASR_MODEL_PATH}")
     print(f"[ASR] forced aligner: {FORCED_ALIGNER_PATH}")
     print(
