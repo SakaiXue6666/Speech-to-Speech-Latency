@@ -401,6 +401,14 @@ def step3_longyaal(
 
             seg_source_len_ms = max(1.0, seg_end_ms - seg_start_ms)
 
+            # LongYAAL: recording_end must be the FULL recording end relative to
+            # the segment start (recording_length - seg_offset), matching the
+            # reference SoftSegmenter implementation. Using seg_source_len_ms here
+            # would collapse LongYAAL back to per-segment YAAL and wrongly exclude
+            # any segment whose first output token appears after its own end.
+            doc_total_len_ms = inst.get("_source_length_ms", INF)
+            seg_recording_end_ms = doc_total_len_ms - seg_start_ms
+
             # 3.2 align SEGALE segment with tgt ASR units
             cursor_unit_before = cursor_unit
 
@@ -480,7 +488,7 @@ def step3_longyaal(
                 "source_length": seg_source_len_ms,
                 "delays": seg_delays_rel,
                 "elapsed": seg_elapsed_rel,
-                "recording_end": seg_source_len_ms,
+                "recording_end": seg_recording_end_ms,
 
                 "_compact_u_start": c_start,
                 "_compact_u_end": c_end,
