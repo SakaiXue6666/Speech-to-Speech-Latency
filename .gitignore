@@ -1,6 +1,9 @@
 # 运行产生的中间结果和输出（不提交）
 output/
 
+# 输入样本数据（音频/文本，不提交）
+input/
+
 # Python
 __pycache__/
 *.py[cod]
