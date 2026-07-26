@@ -121,7 +121,44 @@ python plot/tgt_minus_src_length_histogram.py
 {output_dir}/
 ├── output_asr/          # ASR results
 ├── output_segmentation/ # Segmentation results
-└── output_evaluation/   # Evaluation results + plots
+└── output_evaluation/
+    ├── instances.resegmented.json
+    ├── scores.resegmented.csv
+    ├── alignment_summary.json
+    ├── quality_inputs.jsonl
+    └── sentence_details.html
+```
+
+## Structural null-alignment policy
+
+SEGALE can produce two structural null alignments:
+
+- **Under-translation**: a non-empty source/reference span is aligned to an
+  empty hypothesis span.
+- **Over-translation**: a non-empty hypothesis span is aligned without a source
+  span.
+
+Both cases are retained in quality evaluation. Corpus BLEU receives the empty
+side instead of silently dropping the pair. `quality_inputs.jsonl` also marks
+these rows with `score_override: 0.0`, so sentence-level or reference-free QE
+consumers can apply the same zero-score policy. The main score CSV reports
+`segments`, `valid_segments`, `latency_segments`,
+`under_translation_alignments`, `over_translation_alignments`, and
+`null_alignments`.
+
+Latency is undefined for structural null alignments, so LongYAAL and ending
+offset use only non-null rows with matched target-speech timestamps. A non-null
+row whose target timing could not be matched remains in BLEU as a quality-only
+row and is excluded only from latency.
+
+Open `output_evaluation/sentence_details.html` to inspect every aligned group.
+The static page has `All`, `Normal`, `Under-translation`, and
+`Over-translation` filters.
+
+## Tests
+
+```bash
+python -m unittest discover -s tests
 ```
 
 ## Acknowledgements
