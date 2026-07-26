@@ -11,6 +11,7 @@ import json
 import os
 
 from .metrics import Instance, SacreBLEUScorer, YAALScorer, EndingOffsetScorer, evaluate_instances
+from .report import write_evaluation_report
 from .src_matching import (
     _match_src_span_for_seg,
     _match_src_span_for_seg_by_ids,
@@ -541,6 +542,7 @@ def step3_longyaal(
     ) as f:
         f.write(json.dumps(instances_dict, ensure_ascii=False, indent=2) + "\n")
 
+    alignment_summary = write_evaluation_report(instances_dict, output_folder)
     scores = evaluate_instances(instances, bleu_tokenizer)
     with open(
         os.path.join(output_folder, "scores.resegmented.csv"),
@@ -550,7 +552,13 @@ def step3_longyaal(
         f.write("\t".join(scores.keys()) + "\n")
         f.write("\t".join([f"{v:.4f}" for v in scores.values()]) + "\n")
 
-    logger.info(f"Done. segments={len(instances)}. Output -> {output_folder}")
+    logger.info(
+        "Done. segments=%d valid=%d null=%d. Output -> %s",
+        alignment_summary["segments"],
+        alignment_summary["valid_segments"],
+        alignment_summary["null_alignments"],
+        output_folder,
+    )
 
 
 # ============================================================
