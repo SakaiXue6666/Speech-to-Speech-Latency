@@ -171,8 +171,9 @@ def evaluate_instances(
 ) -> Dict[str, float]:
     """Compute LongYAAL latency/quality metrics over re-segmented instances.
 
-    Instances with empty source or prediction are excluded before scoring.
-    Returns sacreBLEU + computation-aware/unaware YAAL + ending-offset metrics.
+    Quality scoring retains structural null alignments so empty hypotheses and
+    source-free hypotheses affect corpus BLEU. Latency metrics use only
+    non-null instances with a valid target-speech timeline.
 
     Args:
         resegmented_instances: Per-segment :class:`Instance` list produced by
@@ -184,14 +185,19 @@ def evaluate_instances(
         Ordered dict from metric name to scalar score (``float('nan')`` when
         the metric is undefined for the given input).
     """
-    # Guard: instances with empty source or prediction are excluded from latency/quality scoring
-    resegmented_instances = [
+    quality_instances = list(resegmented_instances)
+    valid_quality_instances = [
         ins
-        for ins in resegmented_instances
-        if (getattr(ins, "source", "") or "").strip()
-        and (getattr(ins, "prediction", "") or "").strip()
+        for ins in quality_instances
+        if not (getattr(ins, "null_alignment_type", "") or "").strip()
     ]
-    
+    latency_instances = [
+        ins
+        for ins in valid_quality_instances
+        if getattr(ins, "delays", None)
+        and getattr(ins, "elapsed", None)
+    ]
+
     ca_unaware_yaal_scorer = YAALScorer(is_longform=True, force_unit_target_len=True)
     ca_aware_yaal_scorer = YAALScorer(
         computation_aware=True, is_longform=True, force_unit_target_len=True
@@ -207,12 +213,21 @@ def evaluate_instances(
         use_absolute=False
     )
 
-    resegmented_instances_dict = {i: ins for i, ins in enumerate(resegmented_instances)}
-    ca_unaware_yaal_score = ca_unaware_yaal_scorer(resegmented_instances_dict)
-    ca_aware_yaal_score = ca_aware_yaal_scorer(resegmented_instances_dict)
-    bleu_score = bleu_scorer(resegmented_instances_dict)
-    ending_offset_score = ending_offset_scorer(resegmented_instances_dict)
-    ca_ending_offset_score = ca_ending_offset_scorer(resegmented_instances_dict)
+    quality_instances_dict = {i: ins for i, ins in enumerate(quality_instances)}
+    latency_instances_dict = {i: ins for i, ins in enumerate(latency_instances)}
+    ca_unaware_yaal_score = ca_unaware_yaal_scorer(latency_instances_dict)
+    ca_aware_yaal_score = ca_aware_yaal_scorer(latency_instances_dict)
+    bleu_score = bleu_scorer(quality_instances_dict)
+    ending_offset_score = ending_offset_scorer(latency_instances_dict)
+    ca_ending_offset_score = ca_ending_offset_scorer(latency_instances_dict)
+    over_count = sum(
+        getattr(ins, "null_alignment_type", "") == "over_translation"
+        for ins in quality_instances
+    )
+    under_count = sum(
+        getattr(ins, "null_alignment_type", "") == "under_translation"
+        for ins in quality_instances
+    )
 
     return {
         "ca_unaware_yaal": ca_unaware_yaal_score,
@@ -220,4 +235,10 @@ def evaluate_instances(
         "bleu": bleu_score,
         "ending_offset": ending_offset_score,
         "ca_ending_offset": ca_ending_offset_score,
+        "segments": len(quality_instances),
+        "valid_segments": len(valid_quality_instances),
+        "latency_segments": len(latency_instances),
+        "over_translation_alignments": over_count,
+        "under_translation_alignments": under_count,
+        "null_alignments": over_count + under_count,
     }
