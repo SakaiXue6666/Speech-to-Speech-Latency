@@ -32,6 +32,40 @@ logger = logging.getLogger(__name__)
 INF = float("inf")
 
 
+def _null_alignment_instance(
+    *,
+    global_idx: int,
+    doc_id: str,
+    seg: Dict[str, Any],
+    null_alignment_type: str,
+) -> Dict[str, Any]:
+    if null_alignment_type not in {"over_translation", "under_translation"}:
+        raise ValueError(f"unsupported null alignment type: {null_alignment_type}")
+    return {
+        "index": global_idx,
+        "doc_id": doc_id,
+        "seg_id": seg.get("seg_id"),
+        "source": seg.get("src", ""),
+        "reference": seg.get("ref", ""),
+        "prediction": seg.get("tgt", ""),
+        "source_length": None,
+        "delays": [],
+        "elapsed": [],
+        "recording_end": None,
+        "null_alignment_type": null_alignment_type,
+        "_seg_start_ms": None,
+        "_seg_end_ms": None,
+        "_compact_u_start": None,
+        "_compact_u_end": None,
+        "_raw_u_start": None,
+        "_raw_u_end": None,
+        "_match_method": f"null_{null_alignment_type}",
+        "_start_offset": None,
+        "_end_offset": None,
+        "raw_units": [],
+    }
+
+
 def _to_ms(x: Any) -> float:
     if x is None:
         return INF
@@ -300,12 +334,6 @@ def step3_longyaal(
         doc_sent_list = sent_by_doc[doc_id]
 
 
-        # Skip strategy:
-        #   - seg_src empty / src_ref_ids empty -> over-translation; skip latency/quality scoring
-        #   - seg_tgt empty                     -> under-translation; skip latency/quality scoring
-        # Primary matching uses only _match_src_span_for_seg_by_ids +
-        # _match_tgt_units_for_seg_by_raw_char_span; fallback text matching is not
-        # attempted when these fail (fallback rarely recovers the situation).
         for seg_idx, seg in enumerate(segs):
             seg_src = seg.get("src", "")
             seg_tgt = seg.get("tgt", "")
@@ -314,64 +342,34 @@ def step3_longyaal(
             char_start = seg.get("mt_char_start", -1)
             char_end = seg.get("mt_char_end", -1)
             
-            # over-translation
             if not seg_src.strip():
-                instances_dict.append({
-                    "index": global_idx,
-                    "doc_id": doc_id,
-                    "seg_id": seg.get("seg_id"),
-                    "source": "",
-                    "reference": seg_ref,
-                    "prediction": seg_tgt,
-                    "source_length": None,
-                    "delays": [],
-                    "elapsed": [],
-                    "recording_end": None,
-                    "_seg_start_ms": None,
-                    "_seg_end_ms": None,
-                    "_compact_u_start": None,
-                    "_compact_u_end": None,
-                    "_raw_u_start": None,
-                    "_raw_u_end": None,
-                    "_match_method": "skip_over_translation",
-                    "_start_offset": None,
-                    "_end_offset": None,
-                    "raw_units": [],
-                })
+                null_info = _null_alignment_instance(
+                    global_idx=global_idx,
+                    doc_id=doc_id,
+                    seg=seg,
+                    null_alignment_type="over_translation",
+                )
+                instances_dict.append(null_info)
+                instances.append(Instance(null_info, latency_unit="word"))
                 global_idx += 1
                 logger.info(
-                    "[skip][over-translation] doc=%s seg_id=%s src_empty=%s src_ref_ids_empty=%s",
+                    "[null][over-translation] doc=%s seg_id=%s src_empty=%s src_ref_ids_empty=%s",
                     doc_id, seg.get("seg_id"), not seg_src.strip(), not src_ref_ids,
                 )
                 continue
 
-            # under-translation
             if not seg_tgt.strip():
-                instances_dict.append({
-                    "index": global_idx,
-                    "doc_id": doc_id,
-                    "seg_id": seg.get("seg_id"),
-                    "source": seg_src,
-                    "reference": seg_ref,
-                    "prediction": seg_tgt,
-                    "source_length": None,
-                    "delays": [],
-                    "elapsed": [],
-                    "recording_end": None,
-                    "_seg_start_ms": None,
-                    "_seg_end_ms": None,
-                    "_compact_u_start": None,
-                    "_compact_u_end": None,
-                    "_raw_u_start": None,
-                    "_raw_u_end": None,
-                    "_match_method": "skip_under_translation",
-                    "_start_offset": None,
-                    "_end_offset": None,
-                    "raw_units": [],
-                })
+                null_info = _null_alignment_instance(
+                    global_idx=global_idx,
+                    doc_id=doc_id,
+                    seg=seg,
+                    null_alignment_type="under_translation",
+                )
+                instances_dict.append(null_info)
+                instances.append(Instance(null_info, latency_unit="word"))
                 global_idx += 1
                 logger.info(
-                    "[skip][under-translation] doc=%s seg_id=%s",
+                    "[null][under-translation] doc=%s seg_id=%s",
                     doc_id, seg.get("seg_id"),
                 )
                 continue
@@ -457,7 +455,7 @@ def step3_longyaal(
 
             if not seg_delays:
                 logger.warning(
-                    "[skip][empty-matched-units] doc=%s seg_id=%s cursor_unit=%d c_start=%d c_end=%d r_start=%d r_end=%d "
+                    "[quality-only][empty-matched-units] doc=%s seg_id=%s cursor_unit=%d c_start=%d c_end=%d r_start=%d r_end=%d "
                     "len(asr_units)=%d len(delays_all)=%d len(elapsed_all)=%d seg_tgt_len=%d",
                     doc_id,
                     seg.get("seg_id"),
@@ -471,6 +469,32 @@ def step3_longyaal(
                     len(elapsed_all),
                     len((seg_tgt or "").strip()),
                 )
+                quality_only_info = {
+                    "index": global_idx,
+                    "doc_id": doc_id,
+                    "seg_id": seg.get("seg_id"),
+                    "source": seg_src,
+                    "reference": seg_ref,
+                    "prediction": seg_tgt,
+                    "source_length": seg_source_len_ms,
+                    "delays": [],
+                    "elapsed": [],
+                    "recording_end": seg_recording_end_ms,
+                    "null_alignment_type": "",
+                    "_seg_start_ms": seg_start_ms,
+                    "_seg_end_ms": seg_end_ms,
+                    "_compact_u_start": c_start,
+                    "_compact_u_end": c_end,
+                    "_raw_u_start": r_start,
+                    "_raw_u_end": r_end,
+                    "_match_method": f"quality_only_{match_method}",
+                    "_start_offset": start_offset,
+                    "_end_offset": end_offset,
+                    "raw_units": [],
+                }
+                instances_dict.append(quality_only_info)
+                instances.append(Instance(quality_only_info, latency_unit="word"))
+                global_idx += 1
                 continue
 
             # 3.3 convert to segment-relative timestamps
@@ -498,6 +522,7 @@ def step3_longyaal(
                 "_seg_end_ms": seg_end_ms,
 
                 "_match_method": match_method,
+                "null_alignment_type": "",
                 "_start_offset": start_offset,
                 "_end_offset": end_offset,
 
